@@ -6,6 +6,7 @@ const pool = new Pool({
     database: process.env.PGNAME,
     password: process.env.PGPASSWORD,
     port: Number(process.env.PGPORT),
+    ssl: {rejectUnauthorized: false}
 });
 
 export default pool;

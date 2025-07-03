@@ -41,8 +41,7 @@ export default function Home() {
         const updatedUser = await res.json();
         setUsers(users.map(user =>
             user.id === updatedUser.id ?
-                updatedUser :
-                user
+                updatedUser : user
         ));
         reload();
     };
@@ -115,7 +114,9 @@ export default function Home() {
             <ul>
                 {users.map(user => (
                     <li key={user.id}>
-                        <span className={editingId === user.id ? "text-yellow-500" : ""}>
+                        <span className={editingId === user.id ?
+                            "text-yellow-500" : ""
+                        }>
                             {user.username} ({user.email})
                         </span>
                         <button

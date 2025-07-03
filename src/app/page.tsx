@@ -17,6 +17,12 @@ export default function Home() {
     const fetchUsers = async () => {
         const res = await fetch("/api/users");
         const data = await res.json();
+
+        if (!Array.isArray(data)) {
+            console.error("Expected array, got:", data);
+            return;
+        }
+
         setUsers(data);
     };
 

@@ -19,9 +19,7 @@ export default function Navbar() {
             </div>
             <div className="flex items-center gap-6">
                 {session ? (
-                    <Link href="/settings" className="hover:text-blue-500">
-                        Settings ({session.user?.name})
-                    </Link>
+                    <Link href="/settings" className="hover:text-blue-500">Settings</Link>
                 ) : (
                     <>
                         <Link href="/signup" className="hover:text-blue-500">Sign up</Link>

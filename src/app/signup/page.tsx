@@ -4,26 +4,32 @@ import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
-export default function SignupPage() {
+export default function Signup() {
     const router = useRouter();
 
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [submitting, setSubmitting] = useState(false);
 
     const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        setError(null);
+        setSubmitting(true);
+    
         const form = new FormData(e.currentTarget);
         const payload = {
-            username: String(form.get("username") || ""),
-            handle: String(form.get("handle") || ""),
-            email: String(form.get("email") || ""),
-            password: String(form.get("password") || ""),
-            confirmPassword: String(form.get("confirmPassword") || "")
+            username: String(form.get("username")),
+            handle: String(form.get("handle")),
+            email: String(form.get("email")),
+            password: String(form.get("password")),
+            confirmPassword: String(form.get("confirmPassword"))
         };
 
         const gre = (window as any).grecaptcha;
         if (!gre) {
-            alert("reCAPTCHA not loaded yet. Please try again in a moment.");
+            setError("reCAPTCHA not loaded yet. Please try again in a moment.");
+            setSubmitting(false);
             return;
         }
 
@@ -42,9 +48,11 @@ export default function SignupPage() {
 
                 const data = await res.json();
                 if (!res.ok) {
-                    alert(data.error || "Signup failed");
+                    setError(data.error || "Signup failed");
+                    setSubmitting(false);
                     return;
                 }
+
                 const loginRes = await signIn("credentials", {
                     redirect: false,
                     email: payload.email,
@@ -54,11 +62,13 @@ export default function SignupPage() {
                 if (loginRes?.ok) {
                     router.replace("/");
                 } else {
-                    alert("Signed up, but auto-login failed. Please sign in.");
+                    setError("Signed up, but auto-login failed. Please sign in");
+                    setSubmitting(false);
                 }
-            } catch (err) {
-                console.error(err);
-                alert("Problem running reCAPTCHA. Try again.");
+            } catch (e) {
+                console.error(e);
+                setError("Problem running reCAPTCHA. Try again");
+                setSubmitting(false);
             }
         });
     };
@@ -76,11 +86,16 @@ export default function SignupPage() {
         };
     }, []);
 
-
     return (
-        <div className="flex items-center justify-center">
-            <div className="w-full max-w-md p-8 shadow">
-                <h1 className="text-2xl font-bold mb-6 text-center">Sign Up</h1>
+        <div className="flex justify-center">
+            <div className="max-w-md p-8 shadow">
+                <h1 className={`text-2xl font-bold text-center ${error ? "mb-3" : "mb-8"}`}>Sign Up</h1>
+
+                {error && (
+                    <div className="mb-6 rounded bg-red-100 border border-red-400 text-red-700 px-4 py-3">
+                        <span className="font-bold">Error: </span>{error}
+                    </div>
+                )}
 
                 <form className="space-y-4" onSubmit={handleSignup}>
                     <input
@@ -95,7 +110,7 @@ export default function SignupPage() {
                     <input
                         name="handle"
                         type="text"
-                        placeholder="Handle (e.g. @bryan)"
+                        placeholder="Handle"
                         className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"
                         required
                     />
@@ -139,7 +154,7 @@ export default function SignupPage() {
                     <input
                         name="email"
                         type="email"
-                        placeholder="E-mail address"
+                        placeholder="Email Address"
                         className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"
                         required
                         autoComplete="email"
@@ -147,9 +162,10 @@ export default function SignupPage() {
 
                     <button
                         type="submit"
-                        className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+                        disabled={submitting}
+                        className={`w-full py-2 rounded ${submitting ? "bg-zinc-200 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600 hover:cursor-pointer text-white"}`}
                     >
-                        Sign Up
+                        {submitting ? "Signing Up..." : "Sign Up"}
                     </button>
                 </form>
 

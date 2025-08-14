@@ -26,16 +26,26 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Passwords do not match" }, { status: 400 });
         }
 
-        const hashed = await bcrypt.hash(password, 12);
+        const handleExists = await pool.query(
+            "SELECT 1 FROM users WHERE handle=$1",
+            [handle]
+        );
+        if (handleExists.rowCount) {
+            return NextResponse.json({ error: "Handle already in use" }, { status: 409 });
+        }
 
-        const exists = await pool.query("SELECT 1 FROM users WHERE email=$1", [email]);
-        if (exists.rowCount) {
+        const emailExists = await pool.query(
+            "SELECT 1 FROM users WHERE email=$1",
+            [email]
+        );
+        if (emailExists.rowCount) {
             return NextResponse.json({ error: "Email already in use" }, { status: 409 });
         }
 
+        const hashed = await bcrypt.hash(password, 12);
+
         await pool.query(
-            `INSERT INTO users (username, handle, email, password)
-            VALUES ($1, $2, $3, $4)`,
+            `INSERT INTO users (username, handle, email, password) VALUES ($1, $2, $3, $4)`,
             [username, handle, email, hashed]
         );
 

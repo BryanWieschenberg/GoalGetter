@@ -1,10 +1,12 @@
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
-    "order" INT NOT NULL,
-    handle TEXT NOT NULL UNIQUE
     username TEXT NOT NULL,
-    email TEXT NOT NULL UNIQUE
+    handle TEXT NOT NULL UNIQUE,
+    email TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL
 );
+
+// "order" INT NOT NULL,
 
 users(id, username UNIQUE, email UNIQUE, display_name, avatar_url, bio, tz, created_at)
 

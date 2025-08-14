@@ -28,9 +28,3 @@ export default function Settings() {
         </div>
     );
 }
-
-//                 token.id = user.id;
-                // token.username = user.username;
-                // token.handle = user.handle;
-                // token.email = user.email;
-                // token.provider = user.provider || "local";

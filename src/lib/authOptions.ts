@@ -13,10 +13,16 @@ const authOptions: AuthOptions = {
         }),
         Credentials({
             name: "Credentials",
-            credentials: { email: {}, password: {} },
+            credentials: { handleOrEmail: {}, password: {} },
             async authorize(creds) {
-                if (!creds?.email || !creds?.password) return null;
-                const data = await pool.query('SELECT id, username, handle, email, password, provider FROM users WHERE email = $1', [creds.email]);
+                if (!creds?.handleOrEmail || !creds?.password) return null;
+                
+                const queryParam = creds.handleOrEmail.includes("@") ? "email" : "handle";
+                const data = await pool.query(
+                    `SELECT id, username, handle, email, password, provider FROM users
+                    WHERE ${queryParam} = $1`,
+                    [creds.handleOrEmail]
+                );
                 const user = data.rows[0];
                 if (!user) return null;
 
@@ -47,17 +53,6 @@ const authOptions: AuthOptions = {
         }
     },
     callbacks: {
-        async jwt({ token, user }) {
-            if (user) {
-                token.id = user.id;
-                token.username = user.username;
-                token.handle = user.handle;
-                token.email = user.email;
-                token.provider = user.provider || "local";
-            }
-            return token;
-        },
-
         async session({ session, token }) {
             if (session.user) {
                 session.user.id = token.id as string;
@@ -67,6 +62,16 @@ const authOptions: AuthOptions = {
                 session.user.provider = token.provider as string;
             }
             return session;
+        },
+        async jwt({ token, user }) {
+            if (user) {
+                token.id = user.id;
+                token.username = user.username;
+                token.handle = user.handle;
+                token.email = user.email;
+                token.provider = user.provider || "local";
+            }
+            return token;
         }
     }
 };

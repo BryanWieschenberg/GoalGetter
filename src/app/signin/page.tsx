@@ -19,17 +19,12 @@ export default function SignIn() {
         setSubmitting(true);
     
         const form = new FormData(e.currentTarget);
-        const payload = {
-            username: String(form.get("username")),
-            handle: String(form.get("handle")),
-            email: String(form.get("email")),
-            password: String(form.get("password")),
-            confirmPassword: String(form.get("confirmPassword"))
-        };
+        const handleOrEmail = String(form.get("handleOrEmail"));
+        const password = String(form.get("password"));
 
         const gre = (window as any).grecaptcha;
         if (!gre) {
-            setError("reCAPTCHA not loaded yet. Please try again in a moment.");
+            setError("reCAPTCHA not loaded yet. Please try again in a moment");
             setSubmitting(false);
             return;
         }
@@ -38,37 +33,36 @@ export default function SignIn() {
             try {
                 const token = await gre.execute(
                     process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY,
-                    { action: "signup" }
+                    { action: "signin" }
                 );
 
                 const res = await fetch("/api/auth/signin", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ ...payload, recaptchaToken: token })
+                    body: JSON.stringify({ token }),
+                    headers: { "Content-Type": "application/json" }
                 });
 
-                const data = await res.json();
                 if (!res.ok) {
-                    setError(data.error || "Signup failed");
+                    setError("Failed reCAPTCHA check");
                     setSubmitting(false);
                     return;
                 }
 
                 const loginRes = await signIn("credentials", {
                     redirect: false,
-                    email: payload.email,
-                    password: payload.password
+                    handleOrEmail: handleOrEmail,
+                    password: password
                 });
 
                 if (loginRes?.ok) {
                     router.replace("/");
                 } else {
-                    setError("Signed up, but auto-login failed. Please sign in");
+                    setError("Invalid credentials");
                     setSubmitting(false);
                 }
             } catch (e) {
                 console.error(e);
-                setError("Problem running reCAPTCHA. Try again");
+                setError("Could not run reCAPTCHA");
                 setSubmitting(false);
             }
         });
@@ -100,7 +94,7 @@ export default function SignIn() {
 
                 <form className="space-y-4" onSubmit={handleSignin}>
                     <input
-                        name="username"
+                        name="handleOrEmail"
                         type="text"
                         placeholder="@handle or Email Address"
                         className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"

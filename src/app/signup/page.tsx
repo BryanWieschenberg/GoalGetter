@@ -30,7 +30,7 @@ export default function SignUp() {
 
         const gre = (window as any).grecaptcha;
         if (!gre) {
-            setError("reCAPTCHA not loaded yet. Please try again in a moment.");
+            setError("reCAPTCHA not loaded yet. Please try again in a moment");
             setSubmitting(false);
             return;
         }
@@ -57,7 +57,7 @@ export default function SignUp() {
 
                 const loginRes = await signIn("credentials", {
                     redirect: false,
-                    email: payload.email,
+                    handleOrEmail: payload.email,
                     password: payload.password
                 });
 
@@ -69,7 +69,7 @@ export default function SignUp() {
                 }
             } catch (e) {
                 console.error(e);
-                setError("Problem running reCAPTCHA. Try again");
+                setError("Could not run reCAPTCHA");
                 setSubmitting(false);
             }
         });

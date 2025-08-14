@@ -8,6 +8,14 @@ CREATE TABLE users (
     provider_id TEXT
 );
 
+CREATE TABLE user_settings (
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    theme ENUM('system', 'light', 'dark') NOT NULL DEFAULT 'system',
+    timezone TEXT NOT NULL DEFAULT 'EST',
+    notifications_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    UNIQUE(user_id)
+);
+
 // "order" INT NOT NULL,
 
 users(id, username UNIQUE, email UNIQUE, display_name, avatar_url, bio, tz, created_at)

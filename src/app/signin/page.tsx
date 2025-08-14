@@ -6,15 +6,14 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { HiEye, HiEyeOff } from "react-icons/hi";
 
-export default function SignUp() {
+export default function SignIn() {
     const router = useRouter();
 
     const [passwordVisible, setPasswordVisible] = useState(false);
-    const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
 
-    const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSignin = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
         setSubmitting(true);
@@ -42,7 +41,7 @@ export default function SignUp() {
                     { action: "signup" }
                 );
 
-                const res = await fetch("/api/auth/signup", {
+                const res = await fetch("/api/auth/signin", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ ...payload, recaptchaToken: token })
@@ -91,7 +90,7 @@ export default function SignUp() {
     return (
         <div className="flex justify-center">
             <div className="max-w-md p-8 shadow">
-                <h1 className={`text-2xl font-bold text-center ${error ? "mb-3" : "mb-8"}`}>Sign Up</h1>
+                <h1 className={`text-2xl font-bold text-center ${error ? "mb-3" : "mb-8"}`}>Sign In</h1>
 
                 {error && (
                     <div className="mb-6 rounded bg-red-100 border border-red-400 text-red-700 px-4 py-3">
@@ -99,28 +98,11 @@ export default function SignUp() {
                     </div>
                 )}
 
-                <form className="space-y-4" onSubmit={handleSignup}>
+                <form className="space-y-4" onSubmit={handleSignin}>
                     <input
                         name="username"
                         type="text"
-                        placeholder="Username"
-                        className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"
-                        required
-                        autoComplete="username"
-                    />
-
-                    <input
-                        name="handle"
-                        type="text"
-                        placeholder="@handle"
-                        className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"
-                        required
-                    />
-
-                    <input
-                        name="email"
-                        type="email"
-                        placeholder="Email Address"
+                        placeholder="@handle or Email Address"
                         className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"
                         required
                         autoComplete="email"
@@ -144,35 +126,17 @@ export default function SignUp() {
                         </button>
                     </div>
 
-                    <div className="relative">
-                        <input
-                            name="confirmPassword"
-                            type={confirmPasswordVisible ? "text" : "password"}
-                            placeholder="Confirm Password"
-                            className="w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring focus:border-blue-300"
-                            required
-                        />
-                        <button
-                            type="button"
-                            className="absolute inset-y-0 right-3 flex items-center text-gray-500"
-                            onClick={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
-                            aria-label={confirmPasswordVisible ? "Hide password" : "Show password"}
-                        >
-                            {confirmPasswordVisible ? <HiEyeOff size={20} /> : <HiEye size={20} />}
-                        </button>
-                    </div>
-
                     <button
                         type="submit"
                         disabled={submitting}
                         className={`w-full py-2 rounded ${submitting ? "bg-zinc-200 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600 hover:cursor-pointer text-white"}`}
                     >
-                        {submitting ? "Signing Up..." : "Sign Up"}
+                        {submitting ? "Signing In..." : "Sign In"}
                     </button>
                 </form>
 
-                <p className="pt-4 text-center text-zinc-500">Already have an account? <Link href="/signin" className="text-blue-500 hover:text-blue-700">Sign in</Link></p>
-                <p className="pt-4 text-center">Or you can sign up with</p>
+                <p className="pt-4 text-center text-zinc-500">Don't have an account? <Link href="/signup" className="text-blue-500 hover:text-blue-700">Sign up</Link></p>
+                <p className="pt-4 text-center">Or you can sign in with</p>
                 <div className="pt-4">
                     <button
                         type="button"

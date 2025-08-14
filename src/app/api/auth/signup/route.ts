@@ -15,7 +15,6 @@ export async function POST(req: Request) {
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: `secret=${encodeURIComponent(process.env.RECAPTCHA_SECRET_KEY || "")}&response=${encodeURIComponent(recaptchaToken)}`
         });
-
         const data = await verify.json();
 
         if (!data.success || typeof data.score !== "number" || data.score < 0.5 || data.action !== "signup") {
@@ -26,18 +25,12 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Passwords do not match" }, { status: 400 });
         }
 
-        const handleExists = await pool.query(
-            "SELECT 1 FROM users WHERE handle=$1",
-            [handle]
-        );
+        const handleExists = await pool.query("SELECT 1 FROM users WHERE handle=$1", [handle]);
         if (handleExists.rowCount) {
             return NextResponse.json({ error: "Handle already in use" }, { status: 409 });
         }
 
-        const emailExists = await pool.query(
-            "SELECT 1 FROM users WHERE email=$1",
-            [email]
-        );
+        const emailExists = await pool.query("SELECT 1 FROM users WHERE email=$1", [email]);
         if (emailExists.rowCount) {
             return NextResponse.json({ error: "Email already in use" }, { status: 409 });
         }

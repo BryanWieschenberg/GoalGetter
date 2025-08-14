@@ -9,10 +9,7 @@ export default function Settings() {
     const router = useRouter();
 
     useEffect(() => {
-        if (session === undefined) {
-            return;
-        }
-        if (session === null) {
+        if (session === null || session === undefined) {
             router.replace("/login");
         }
     }, [session, router]);
@@ -21,8 +18,19 @@ export default function Settings() {
 
     return (
         <div className="p-8">
-            <h1>Username: {session.user?.name}</h1>
-            <p>Email: {session.user?.email}</p>
+            <h1 className="font-bold text-2xl pb-8">Settings</h1>
+
+            <p><span className="font-bold">ID:</span> {session.user?.id}</p>
+            <p><span className="font-bold">Username:</span> {session.user?.username}</p>
+            <p><span className="font-bold">Handle:</span> @{session.user?.handle}</p>
+            <p><span className="font-bold">Email:</span> {session.user?.email}</p>
+            <p><span className="font-bold">Source:</span> {session.user?.provider}</p>
         </div>
     );
 }
+
+//                 token.id = user.id;
+                // token.username = user.username;
+                // token.handle = user.handle;
+                // token.email = user.email;
+                // token.provider = user.provider || "local";

@@ -10,7 +10,7 @@ interface UserSettings {
     notifications_enabled: boolean;
 }
 
-export default async function SettingsPage() {
+export default async function Settings() {
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {

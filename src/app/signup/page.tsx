@@ -136,7 +136,7 @@ export default function SignUp() {
                         />
                         <button
                             type="button"
-                            className="absolute inset-y-0 right-3 flex items-center text-gray-500"
+                            className="absolute inset-y-0 right-3 flex items-center text-zinc-500"
                             onClick={() => setPasswordVisible(!passwordVisible)}
                             aria-label={passwordVisible ? "Hide password" : "Show password"}
                         >
@@ -154,7 +154,7 @@ export default function SignUp() {
                         />
                         <button
                             type="button"
-                            className="absolute inset-y-0 right-3 flex items-center text-gray-500"
+                            className="absolute inset-y-0 right-3 flex items-center text-zinc-500"
                             onClick={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
                             aria-label={confirmPasswordVisible ? "Hide password" : "Show password"}
                         >
@@ -177,7 +177,7 @@ export default function SignUp() {
                     <button
                         type="button"
                         onClick={() => signIn("google", { callbackUrl: "/" })}
-                        className="w-full flex items-center justify-center gap-2 border rounded py-2 hover:bg-gray-50 hover:cursor-pointer"
+                        className="w-full flex items-center justify-center gap-2 border rounded py-2 hover:bg-zinc-50 hover:cursor-pointer"
                     >
                         <span className="w-5 h-5">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-5 h-5">

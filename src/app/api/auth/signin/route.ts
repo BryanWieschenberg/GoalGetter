@@ -11,7 +11,7 @@ export async function POST(req: Request) {
 
     const data = await res.json();
     if (!data.success || typeof data.score !== "number" || data.score < 0.5 || data.action !== "signin") {
-        return NextResponse.json({ error: "Failed reCAPTCHA" }, { status: 403 });
+        return NextResponse.json({ error: "Failed reCAPTCHA check" }, { status: 403 });
     }
 
     return NextResponse.json({ ok: true });

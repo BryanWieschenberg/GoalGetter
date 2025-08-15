@@ -89,7 +89,7 @@ export default function SignUp() {
     }, []);
 
     return (
-        <div className="flex justify-center">
+        <div className="flex justify-center pt-16">
             <div className="max-w-md p-8 shadow">
                 <h1 className={`text-2xl font-bold text-center ${error ? "mb-3" : "mb-8"}`}>Sign Up</h1>
 

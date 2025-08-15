@@ -5,7 +5,7 @@ import pool from "@/lib/db";
 import type { AuthOptions } from "next-auth";
 
 const authOptions: AuthOptions = {
-    session: { strategy: "jwt", maxAge: 60 * 60 * 24 * 7 }, // Session lasts 7 days
+    session: { strategy: "jwt", maxAge: 604800 }, // Session lasts 7 days
     providers: [
         Google({
             clientId: process.env.GOOGLE_CLIENT_ID!,

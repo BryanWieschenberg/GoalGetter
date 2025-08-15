@@ -37,10 +37,19 @@ export async function POST(req: Request) {
 
         const hashed = await bcrypt.hash(password, 12);
 
-        await pool.query(
-            `INSERT INTO users (username, handle, email, password) VALUES ($1, $2, $3, $4)`,
+        const userRes = await pool.query(
+            `INSERT INTO users (username, handle, email, password)
+            VALUES ($1, $2, $3, $4)
+            RETURNING id`,
             [username, handle, email, hashed]
         );
+        const userId = userRes.rows[0].id;
+
+        await pool.query(
+            `INSERT INTO user_settings (user_id, theme, timezone, notifications_enabled)
+            VALUES ($1, 'system', 'EST', true)`,
+            [userId]
+        )
 
         return NextResponse.json({ ok: true });
     } catch (e) {

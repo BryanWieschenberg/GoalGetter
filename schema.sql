@@ -3,7 +3,7 @@ CREATE TABLE users (
     username TEXT NOT NULL,
     handle TEXT NOT NULL UNIQUE,
     email TEXT NOT NULL UNIQUE,
-    password TEXT NOT NULL,
+    password TEXT,
     provider ENUM('', 'google') NOT NULL DEFAULT '',
     provider_id TEXT
 );

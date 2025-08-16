@@ -14,7 +14,7 @@ export default async function Settings() {
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
-        redirect("/login");
+        redirect("/signin");
     }
 
     const result = await pool.query<UserSettings>(

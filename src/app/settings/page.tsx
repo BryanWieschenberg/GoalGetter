@@ -4,6 +4,13 @@ import pool from "@/lib/db";
 import SettingsForm from "./SettingsForm";
 import authOptions from "@/lib/authOptions";
 
+interface User {
+    username: string;
+    handle: string;
+    email: string;
+    provider: string;
+}
+
 interface UserSettings {
     theme: string;
     timezone: string;
@@ -17,6 +24,11 @@ export default async function Settings() {
         redirect("/signin");
     }
 
+    const account = await pool.query<User>(
+        "SELECT username, handle, email, provider FROM users WHERE id=$1",
+        [session.user.id]
+    );
+
     const result = await pool.query<UserSettings>(
         "SELECT theme, timezone, notifications_enabled FROM user_settings WHERE user_id=$1",
         [session.user.id]
@@ -27,16 +39,16 @@ export default async function Settings() {
     }
 
     const settings = result.rows[0];
+    const localProvider = account.rows[0].provider === "" ? true : false;
 
     return (
         <div className="p-8">
             <h1 className="font-bold text-2xl pb-4">Settings</h1>
 
-            <p><span className="font-bold">ID:</span> {session.user.id}</p>
-            <p><span className="font-bold">Username:</span> {session.user.username}</p>
-            <p><span className="font-bold">Handle:</span> @{session.user.handle}</p>
-            <p><span className="font-bold">Email:</span> {session.user.email}</p>
-            <p><span className="font-bold">Source:</span> {session.user.provider}</p>
+            <p><span className="font-bold">Username:</span> {account.rows[0].username}</p>
+            <p><span className="font-bold">Handle:</span> @{account.rows[0].handle}</p>
+            <p><span className="font-bold">Email:</span> {account.rows[0].email}</p>
+            {!localProvider && (<p><span className="font-bold">Source:</span> {account.rows[0].provider}</p>)}
 
             <hr className="my-6" />
 

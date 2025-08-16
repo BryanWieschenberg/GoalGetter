@@ -13,15 +13,12 @@ export async function generateHandle(baseName: string) {
         handle = `${base}-${randomSuffix}`;
 
         const result = await pool.query(
-            `INSERT INTO users (handle)
-             VALUES ($1)
-             ON CONFLICT (handle) DO NOTHING
-             RETURNING handle`,
+            `SELECT 1 FROM users WHERE handle = $1`,
             [handle]
         );
 
-        if (result.rows.length > 0) {
-            return result.rows[0].handle;
+        if (result.rowCount === 0) {
+            return handle;
         }
     }
 }

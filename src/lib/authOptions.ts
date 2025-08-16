@@ -12,14 +12,12 @@ const authOptions: AuthOptions = {
         Google({
             clientId: process.env.GOOGLE_CLIENT_ID!,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-            profile(profile) {
+            profile(p) {
                 return {
-                    id: profile.sub,
-                    email: profile.email,
-                    provider: "google",
-                    image: profile.picture,
-                    given_name: profile.given_name,
-                    family_name: profile.family_name,
+                    id: p.sub,
+                    email: p.email,
+                    name: p.name,
+                    image: p.picture
                 };
             }
         }),
@@ -66,50 +64,69 @@ const authOptions: AuthOptions = {
     },
     callbacks: {
         async signIn({ account, profile }) {
-            console.log("REACHED");
-            if (account && profile && account.provider !== "credentials") {
-                console.log("REACHED");
+            if (account && account.provider !== "credentials" && profile && profile.email) {
                 const existing = await pool.query(
                     "SELECT id FROM users WHERE provider = $1 AND provider_id = $2",
                     [account.provider, account.providerAccountId]
                 );
-                console.log(profile);
-                console.log(existing.rowCount);
 
-                if (!existing.rowCount) {
+                if (existing.rowCount === 0) {
                     const username = profile.name || profile.email?.split("@")[0] || "user";
                     const handle = await generateHandle(username);
-                    console.log("DATA:", handle, username);
-                    await pool.query(
+                    
+                    const userId = await pool.query(
                         `INSERT INTO users (username, handle, email, provider, provider_id)
-                        VALUES ($1, $2, $3, $4, $5)`,
+                        VALUES ($1, $2, $3, $4, $5)
+                        RETURNING id`,
                         [username, handle, profile.email, account.provider, account.providerAccountId]
                     );
+                    await pool.query(
+                        `INSERT INTO user_settings (user_id, theme, timezone, notifications_enabled)
+                        VALUES ($1, 'system', 'EST', true)`,
+                        [userId.rows[0].id]
+                    )
                 }
-
-                // TODO: add profile name update, if user updates their name on google
             }
 
             return true;
         },
-        async jwt({ token, user }) {
-            if (user) {
-                token.id = user.id;
-                token.username = user.username;
-                token.handle = user.handle;
-                token.email = user.email;
-                token.provider = user.provider || "local";
+        async jwt({ token, user, account, profile }) {
+            try {
+                if (token.id) return token;
+                
+                if (account?.provider === "credentials" && user?.id) {
+                    token.id = String(user.id);
+                    return token;
+                }
+
+                if (account?.type !== "credentials" && account?.provider && account.providerAccountId) {
+                    const r = await pool.query(
+                        "SELECT id FROM users WHERE provider = $1 AND provider_id = $2",
+                        [account.provider, account.providerAccountId]
+                    );
+                    if (r.rows[0]?.id) {
+                        token.id = String(r.rows[0].id);
+                        return token;
+                    }
+                }
+
+                const email = (user as any)?.email ?? (profile as any)?.email ?? null;
+                if (email) {
+                    const r = await pool.query("SELECT id FROM users WHERE email = $1", [email]);
+                    if (r.rows[0]?.id) {
+                        token.id = String(r.rows[0].id);
+                        return token;
+                    }
+                }
+
+                return token;
+            } catch (e) {
+                console.error("[next-auth][jwt] failed to resolve DB id:", e);
+                return token;
             }
-            return token;
         },
         async session({ session, token }) {
-            if (session.user) {
-                session.user.id = token.id as string;
-                session.user.username = token.username as string;
-                session.user.handle = token.handle as string;
-                session.user.email = token.email as string;
-                session.user.provider = token.provider as string;
-            }
+            if (session.user && token.id) session.user.id = String(token.id);
             return session;
         }
     }

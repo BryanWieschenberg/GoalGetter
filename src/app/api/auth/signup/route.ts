@@ -5,12 +5,35 @@ import SignupVerify from "@/lib/templates/SignupVerify";
 import { Resend } from "resend";
 import crypto from "crypto";
 
+const isValidHandle = (h: string) => /^[a-z0-9-_]{3,20}$/.test(h);
+const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+
 export async function POST(req: Request) {
     try {
         const { username, handle, email, password, confirmPassword, recaptchaToken } = await req.json();
 
         if (!recaptchaToken) {
             return NextResponse.json({ error: "Missing reCAPTCHA token" }, { status: 400 });
+        }
+        if (!username || !handle || !email || !password || !confirmPassword) {
+            return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+        }
+        if (!isValidHandle(handle)) {
+            return NextResponse.json({ error: "Invalid handle, only use letters, numbers, dashes, and underscores" }, { status: 400 });
+        }
+        if (!isValidEmail(email)) {
+            return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
+        }
+        if (password !== confirmPassword) {
+            return NextResponse.json({ error: "Passwords do not match" }, { status: 400 });
+        }
+        const handleExists = await pool.query("SELECT 1 FROM users WHERE handle=$1", [handle]);
+        if (handleExists.rowCount) {
+            return NextResponse.json({ error: "Handle already in use" }, { status: 409 });
+        }
+        const emailExists = await pool.query("SELECT 1 FROM users WHERE email=$1", [email]);
+        if (emailExists.rowCount) {
+            return NextResponse.json({ error: "Email already in use" }, { status: 409 });
         }
 
         const verify = await fetch("https://www.google.com/recaptcha/api/siteverify", {
@@ -22,20 +45,6 @@ export async function POST(req: Request) {
 
         if (!data.success || typeof data.score !== "number" || data.score < 0.5 || data.action !== "signup") {
             return NextResponse.json({ error: "Failed reCAPTCHA check" }, { status: 400 });
-        }
-
-        if (password !== confirmPassword) {
-            return NextResponse.json({ error: "Passwords do not match" }, { status: 400 });
-        }
-
-        const handleExists = await pool.query("SELECT 1 FROM users WHERE handle=$1", [handle]);
-        if (handleExists.rowCount) {
-            return NextResponse.json({ error: "Handle already in use" }, { status: 409 });
-        }
-
-        const emailExists = await pool.query("SELECT 1 FROM users WHERE email=$1", [email]);
-        if (emailExists.rowCount) {
-            return NextResponse.json({ error: "Email already in use" }, { status: 409 });
         }
 
         const hashed = await bcrypt.hash(password, 12);

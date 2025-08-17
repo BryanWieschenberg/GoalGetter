@@ -9,7 +9,7 @@ import VerifyAccount from "../components/VerifyAccount";
 export const metadata = {
     title: {
         default: "GoalGetter",
-        template: "%s | GoalGetter",
+        template: "%s",
     },
 };
 

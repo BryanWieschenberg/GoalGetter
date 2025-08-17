@@ -13,6 +13,20 @@ export default function SignUpForm() {
     const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
+    const [handle, setHandle] = useState("");
+    const [handleError, setHandleError] = useState<string | null>(null);
+
+    const sanitizeHandle = (value: string) => {
+        let cleaned = value.toLowerCase().replace(/\s+/g, "-");
+
+        if (!/^[a-z0-9-_]*$/.test(cleaned)) {
+            setHandleError("Can only contain letters, numbers, dashes, and underscores");
+        } else {
+            setHandleError(null);
+        }
+
+        setHandle(cleaned);
+    };
 
     const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -109,13 +123,25 @@ export default function SignUpForm() {
                         required
                     />
 
-                    <input
-                        name="handle"
-                        type="text"
-                        placeholder="@handle"
-                        className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300 dark:focus:border-blue-700 dark:focus:ring-blue-600"
-                        required
-                    />
+                    <div className="relative">
+                        <span className="absolute inset-y-0 left-3 flex items-center font-bold pointer-events-none">
+                            @
+                        </span>
+                        <input
+                            name="handle"
+                            type="text"
+                            placeholder="handle"
+                            value={handle}
+                            onChange={(e) => sanitizeHandle(e.target.value)}
+                            className={`w-full border rounded px-3 py-2 pl-8 focus:outline-none focus:ring ${
+                                handleError
+                                    ? "focus:border-red-300 dark:focus:border-red-700 dark:focus:ring-red-600"
+                                    : "focus:border-blue-300 dark:focus:border-blue-700 dark:focus:ring-blue-600"
+                            }`}
+                            required
+                        />
+                    </div>
+                    {handleError && <p className="text-red-600 dark:text-red-400 text-sm text-center">{handleError}</p>}
 
                     <input
                         name="email"

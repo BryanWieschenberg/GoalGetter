@@ -7,7 +7,7 @@ import pool from "@/lib/db";
 export const metadata = {
     title: {
         default: "GoalGetter",
-        template: "%s | GoalGetter"
+        template: "%s"
     }
 };
 

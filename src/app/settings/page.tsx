@@ -30,7 +30,7 @@ export default async function Settings() {
     );
 
     const settingsRes = await pool.query<UserSettings>(
-        "SELECT theme, timezone, notifications_enabled FROM user_settings WHERE user_id=$1",
+        "SELECT theme FROM user_settings WHERE user_id=$1",
         [session.user.id]
     );
 

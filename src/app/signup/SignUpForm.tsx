@@ -90,12 +90,12 @@ export default function SignUpForm() {
     }, []);
 
     return (
-        <div className="flex justify-center pt-16">
-            <div className="max-w-md p-8 shadow">
+        <div className="flex justify-center pt-8">
+            <div className="max-w-md w-full p-8 border-2 rounded-2xl">
                 <h1 className={`text-2xl font-bold text-center ${error ? "mb-3" : "mb-8"}`}>Sign Up</h1>
 
                 {error && (
-                    <div className="mb-6 rounded bg-red-100 border border-red-400 text-red-700 px-4 py-3">
+                    <div className="mb-6 rounded px-4 py-3 border bg-red-100 border-red-400 text-red-700 dark:bg-red-900 border dark:border-red-500 dark:text-red-300">
                         <span className="font-bold">Error: </span>{error}
                     </div>
                 )}
@@ -105,16 +105,15 @@ export default function SignUpForm() {
                         name="username"
                         type="text"
                         placeholder="Username"
-                        className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"
+                        className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300 dark:focus:border-blue-700 dark:focus:ring-blue-600"
                         required
-                        autoComplete="username"
                     />
 
                     <input
                         name="handle"
                         type="text"
                         placeholder="@handle"
-                        className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"
+                        className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300 dark:focus:border-blue-700 dark:focus:ring-blue-600"
                         required
                     />
 
@@ -122,7 +121,7 @@ export default function SignUpForm() {
                         name="email"
                         type="email"
                         placeholder="Email Address"
-                        className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"
+                        className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300 dark:focus:border-blue-700 dark:focus:ring-blue-600"
                         required
                         autoComplete="email"
                     />
@@ -132,7 +131,7 @@ export default function SignUpForm() {
                             name="password"
                             type={passwordVisible ? "text" : "password"}
                             placeholder="Password"
-                            className="w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring focus:border-blue-300"
+                            className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300 dark:focus:border-blue-700 dark:focus:ring-blue-600"
                             required
                         />
                         <button
@@ -150,7 +149,7 @@ export default function SignUpForm() {
                             name="confirmPassword"
                             type={confirmPasswordVisible ? "text" : "password"}
                             placeholder="Confirm Password"
-                            className="w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring focus:border-blue-300"
+                            className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300 dark:focus:border-blue-700 dark:focus:ring-blue-600"
                             required
                         />
                         <button
@@ -166,19 +165,19 @@ export default function SignUpForm() {
                     <button
                         type="submit"
                         disabled={submitting}
-                        className={`w-full py-2 rounded ${submitting ? "bg-zinc-200 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600 hover:cursor-pointer text-white"}`}
+                        className={`w-full py-2 rounded ${submitting ? "cursor-not-allowed bg-zinc-200 dark:bg-zinc-800" : "bg-blue-500 hover:cursor-pointer text-white hover:bg-blue-600"}`}
                     >
                         {submitting ? "Signing Up..." : "Sign Up"}
                     </button>
                 </form>
 
-                <p className="pt-4 text-center text-zinc-500">Already have an account? <Link href="/signin" className="text-blue-500 hover:text-blue-700">Sign in</Link></p>
+                <p className="pt-4 text-center text-zinc-500">Already have an account? <Link href="/signin" className="text-blue-500 hover:text-blue-700 dark:hover:text-blue-400">Sign in</Link></p>
                 <p className="pt-4 text-center">Or you can sign up with</p>
                 <div className="pt-4">
                     <button
                         type="button"
                         onClick={() => signIn("google", { callbackUrl: "/" })}
-                        className="w-full flex items-center justify-center gap-2 border rounded py-2 hover:bg-zinc-50 hover:cursor-pointer"
+                        className="w-full flex items-center justify-center gap-2 border rounded py-2 hover:cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900"
                     >
                         <span className="w-5 h-5">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-5 h-5">

@@ -46,8 +46,8 @@ export async function POST(req: Request) {
         const userId = userRes.rows[0].id;
 
         await pool.query(
-            `INSERT INTO user_settings (user_id, theme, timezone, notifications_enabled)
-            VALUES ($1, 'system', 'EST', true)`,
+            `INSERT INTO user_settings (user_id, theme)
+            VALUES ($1, 'system')`,
             [userId]
         )
 

@@ -1,14 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { signIn, useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { HiEye, HiEyeOff } from "react-icons/hi";
 
 export default function SignInForm() {
     const router = useRouter();
-    const { data: session, status } = useSession();
 
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -84,12 +83,12 @@ export default function SignInForm() {
     }, []);
 
     return (
-        <div className="flex justify-center pt-16">
-            <div className="max-w-md w-full p-8 shadow">
+        <div className="flex justify-center pt-8">
+            <div className="max-w-md w-full p-8 border-2 rounded-2xl">
                 <h1 className={`text-2xl font-bold text-center ${error ? "mb-3" : "mb-8"}`}>Sign In</h1>
 
                 {error && (
-                    <div className="mb-6 rounded bg-red-100 border border-red-400 text-red-700 px-4 py-3">
+                    <div className="mb-6 rounded px-4 py-3 border bg-red-100 border-red-400 text-red-700 dark:bg-red-900 border dark:border-red-500 dark:text-red-300">
                         <span className="font-bold">Error: </span>{error}
                     </div>
                 )}
@@ -99,7 +98,7 @@ export default function SignInForm() {
                         name="handleOrEmail"
                         type="text"
                         placeholder="@handle or Email Address"
-                        className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"
+                        className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300 dark:focus:border-blue-700 dark:focus:ring-blue-600"
                         required
                         autoComplete="email"
                     />
@@ -109,7 +108,7 @@ export default function SignInForm() {
                             name="password"
                             type={passwordVisible ? "text" : "password"}
                             placeholder="Password"
-                            className="w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring focus:border-blue-300"
+                            className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300 dark:focus:border-blue-700 dark:focus:ring-blue-600"
                             required
                         />
                         <button
@@ -125,13 +124,13 @@ export default function SignInForm() {
                     <button
                         type="submit"
                         disabled={submitting}
-                        className={`w-full py-2 rounded ${submitting ? "bg-zinc-200 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600 hover:cursor-pointer text-white"}`}
+                        className={`w-full py-2 rounded ${submitting ? "cursor-not-allowed bg-zinc-200 dark:bg-zinc-800" : "bg-blue-500 hover:bg-blue-600 hover:cursor-pointer text-white"}`}
                     >
                         {submitting ? "Signing In..." : "Sign In"}
                     </button>
                 </form>
 
-                <div className="pt-4 flex justify-between text-sm text-blue-500">
+                <div className="pt-4 flex justify-between text-blue-500">
                     <Link href="/forgot-password" className="hover:text-blue-600 dark:hover:text-blue-400">Forgot password?</Link>
                     <Link href="/signup" className="text-blue-500 hover:text-blue-600 dark:hover:text-blue-400">Sign up</Link>
                 </div>
@@ -140,7 +139,7 @@ export default function SignInForm() {
                     <button
                         type="button"
                         onClick={() => signIn("google", { callbackUrl: "/" })}
-                        className="w-full flex items-center justify-center gap-2 border rounded py-2 hover:bg-zinc-50 hover:cursor-pointer"
+                        className="w-full flex items-center justify-center gap-2 border rounded py-2 hover:cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900"
                     >
                         <span className="w-5 h-5">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-5 h-5">

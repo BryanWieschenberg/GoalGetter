@@ -31,7 +31,7 @@ export default function VerifyAccount() {
                     onClick={resend}
                     disabled={status === "sending"}
                     aria-busy={status === "sending"}
-                    className="shrink-0 rounded-md border ml-2 px-2 py-0.5 text-sm font-medium disabled:opacity-60 hover:cursor-pointer border-amber-400 bg-amber-200 hover:bg-amber-400 dark:border-purple-600 dark:bg-purple-800 dark:hover:bg-purple-600"
+                    className="shrink-0 rounded-md border ml-2 px-2 py-0.5 text-sm font-medium disabled:opacity-60 hover:cursor-pointer border-amber-300 bg-amber-200 hover:bg-amber-300 dark:border-purple-600 dark:bg-purple-800 dark:hover:bg-purple-600"
                 >
                     {status === "sending" ? "Sending..." : status === "sent" ? "Sent" : "Resend Verification Email"}
                 </button>

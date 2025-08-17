@@ -63,6 +63,7 @@ export default function SignUpForm() {
 
                 if (loginRes?.ok) {
                     router.replace("/");
+                    router.refresh();
                 } else {
                     setError("Signed up, but auto-login failed. Please sign in");
                     setSubmitting(false);

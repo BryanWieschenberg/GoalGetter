@@ -29,7 +29,7 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Use
                 <select
                     value={settings.theme}
                     onChange={e => setSettings(s => ({ ...s, theme: e.target.value }))}
-                    className="border rounded p-2"
+                    className="border rounded p-2 dark:bg-black"
                 >
                     <option value="system">System</option>
                     <option value="light">Light</option>
@@ -37,29 +37,10 @@ export default function SettingsForm({ initialSettings }: { initialSettings: Use
                 </select>
             </label>
 
-            <label className="flex flex-col">
-                Timezone:
-                <input
-                    type="text"
-                    value={settings.timezone}
-                    onChange={e => setSettings(s => ({ ...s, timezone: e.target.value }))}
-                    className="border rounded p-2"
-                />
-            </label>
-
-            <label className="flex items-center gap-2">
-                <input
-                    type="checkbox"
-                    checked={settings.notifications_enabled}
-                    onChange={e => setSettings(s => ({ ...s, notifications_enabled: e.target.checked }))}
-                />
-                Enable notifications
-            </label>
-
             <button
                 onClick={handleSave}
                 disabled={saving}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+                className="bg-blue-600 text-white px-4 py-2 rounded mt-4 hover:bg-blue-700 disabled:opacity-50"
             >
                 {saving ? "Saving..." : "Save Settings"}
             </button>

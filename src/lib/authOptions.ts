@@ -75,10 +75,10 @@ const authOptions: AuthOptions = {
                     const handle = await generateHandle(username);
                     
                     const userId = await pool.query(
-                        `INSERT INTO users (username, handle, email, provider, provider_id)
-                        VALUES ($1, $2, $3, $4, $5)
+                        `INSERT INTO users (username, handle, email, email_verified, provider, provider_id)
+                        VALUES ($1, $2, $3, $4, $5, $6)
                         RETURNING id`,
-                        [username, handle, profile.email, account.provider, account.providerAccountId]
+                        [username, handle, profile.email, true, account.provider, account.providerAccountId]
                     );
                     await pool.query(
                         `INSERT INTO user_settings (user_id, theme, timezone, notifications_enabled)

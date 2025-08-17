@@ -15,10 +15,7 @@ export async function GET() {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const result = await pool.query<UserSettings>(
-        "SELECT theme, timezone, notifications_enabled FROM user_settings WHERE user_id=$1",
-        [session.user.id]
-    );
+    const result = await pool.query<UserSettings>("SELECT theme FROM user_settings WHERE user_id=$1", [session.user.id]);
 
     if (result.rowCount === 0) {
         return NextResponse.json({ error: "Settings not found" }, { status: 404 });
@@ -36,10 +33,8 @@ export async function PUT(req: Request) {
     const body: UserSettings = await req.json();
 
     await pool.query(
-        `UPDATE user_settings
-         SET theme=$1, timezone=$2, notifications_enabled=$3
-         WHERE user_id=$4`,
-        [body.theme, body.timezone, body.notifications_enabled, session.user.id]
+        `UPDATE user_settings SET theme=$1 WHERE user_id=$2`,
+        [body.theme, session.user.id]
     );
 
     return NextResponse.json({ ok: true });

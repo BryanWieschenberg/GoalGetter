@@ -57,6 +57,7 @@ export default function SignInForm() {
 
                 if (loginRes?.ok) {
                     router.replace("/");
+                    router.refresh();
                 } else {
                     setError("Invalid credentials");
                     setSubmitting(false);

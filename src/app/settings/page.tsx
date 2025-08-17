@@ -29,16 +29,16 @@ export default async function Settings() {
         [session.user.id]
     );
 
-    const result = await pool.query<UserSettings>(
+    const settingsRes = await pool.query<UserSettings>(
         "SELECT theme, timezone, notifications_enabled FROM user_settings WHERE user_id=$1",
         [session.user.id]
     );
 
-    if (result.rowCount === 0) {
+    if (settingsRes.rowCount === 0) {
         redirect("/");
     }
 
-    const settings = result.rows[0];
+    const settings = settingsRes.rows[0];
     const localProvider = account.rows[0].provider === "" ? true : false;
 
     return (
@@ -52,7 +52,7 @@ export default async function Settings() {
 
             <hr className="my-6" />
 
-            <h2 className="font-bold text-xl pb-2">User Preferences</h2>
+            <h2 className="font-bold text-xl pb-4">User Preferences</h2>
 
             <SettingsForm initialSettings={settings} />
         </div>

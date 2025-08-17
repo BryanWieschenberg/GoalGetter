@@ -1,20 +1,38 @@
 'use client';
 
-import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function VerifyAccount() {
     const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+    const [cooldown, setCooldown] = useState<number>(0);
 
     const resend = async () => {
         try {
             setStatus("sending");
-            const res = await fetch("/api/auth/resend-verification", { method: "POST" });
-            setStatus(res.ok ? "sent" : "error");
+            const res = await fetch("/api/email/signup-resend", { method: "POST" });
+            const data = await res.json();
+
+            if (!res.ok) {
+                if (data.error === "cooldown" && typeof data.remaining === "number") {
+                    setCooldown(Number(data?.remaining ?? 60));
+                    setStatus("idle");
+                    return;
+                }
+                setStatus("error");
+                return;
+            }
+            setCooldown(60);
+            setStatus("idle");
         } catch {
             setStatus("error");
         }
     };
+
+    useEffect(() => {
+        if (cooldown <= 0) return;
+        const id = setInterval(() => setCooldown(s => Math.max(0, s - 1)), 1000);
+        return () => clearInterval(id);
+    }, [cooldown]);
 
     return (
         <div
@@ -29,11 +47,19 @@ export default function VerifyAccount() {
                 <button
                     type="button"
                     onClick={resend}
-                    disabled={status === "sending"}
+                    disabled={status === "sending" || cooldown > 0}
                     aria-busy={status === "sending"}
-                    className="shrink-0 rounded-md border ml-2 px-2 py-0.5 text-sm font-medium disabled:opacity-60 hover:cursor-pointer border-amber-300 bg-amber-200 hover:bg-amber-300 dark:border-purple-600 dark:bg-purple-800 dark:hover:bg-purple-600"
+                    className={`shrink-0 rounded-md border ml-2 px-2 py-0.5 text-sm font-medium
+                        ${status === "sending" || cooldown > 0
+                            ? "opacity-60 cursor-not-allowed border-amber-300 bg-amber-200 dark:border-purple-600 dark:bg-purple-800"
+                            : "hover:cursor-pointer border-amber-300 bg-amber-200 hover:bg-amber-300 dark:border-purple-600 dark:bg-purple-800 dark:hover:bg-purple-600"
+                        }`}
                 >
-                    {status === "sending" ? "Sending..." : status === "sent" ? "Sent" : "Resend Verification Email"}
+                    {cooldown > 0
+                        ? `${cooldown}s`
+                        : status === "sending"
+                            ? "Sending..."
+                            : "Resend Verification Email"}
                 </button>
             </div>
         </div>

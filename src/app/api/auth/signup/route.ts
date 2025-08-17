@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import pool from "@/lib/db";
+import SignupVerify from "@/lib/templates/SignupVerify";
+import { Resend } from "resend";
+import crypto from "crypto";
 
 export async function POST(req: Request) {
     try {
@@ -40,7 +43,7 @@ export async function POST(req: Request) {
         const userRes = await pool.query(
             `INSERT INTO users (username, handle, email, email_verified, password)
             VALUES ($1, $2, $3, $4, $5)
-            RETURNING id`,
+            RETURNING id, username, email`,
             [username, handle, email, false, hashed]
         );
         const userId = userRes.rows[0].id;
@@ -50,6 +53,26 @@ export async function POST(req: Request) {
             VALUES ($1, 'system')`,
             [userId]
         )
+
+        const raw = crypto.randomBytes(32).toString("hex");
+        const tokenHash = crypto.createHash("sha256").update(raw).digest("hex");
+
+        await pool.query(
+            `INSERT INTO auth_tokens (user_id, token, purpose, expires_at, created_at)
+            VALUES ($1, $2, 'signup', now() + interval '1 hour', now())`,
+            [userId, tokenHash]
+        );
+        const from = process.env.EMAIL_FROM ?? "onboarding@resend.dev";
+
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        const link = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${raw}`;
+        
+        await resend.emails.send({
+            from: from,
+            to: userRes.rows[0].email,
+            subject: "Welcome to GoalGetter!",
+            react: SignupVerify({ username: userRes.rows[0].username, link: link }),
+        });
 
         return NextResponse.json({ ok: true });
     } catch (e) {

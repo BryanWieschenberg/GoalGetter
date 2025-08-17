@@ -1,8 +1,9 @@
 import "./globals.css";
-import { Providers } from "./providers";
+import { Providers } from "./Providers";
 import { getServerSession } from "next-auth";
 import authOptions from "@/lib/authOptions";
 import pool from "@/lib/db";
+import ThemeApplier from "./ThemeApplier";
 
 export const metadata = {
     title: {
@@ -44,6 +45,7 @@ export default async function BareLayout({ children }: { children: React.ReactNo
                 )}
             </head>
             <body>
+                <ThemeApplier theme={theme as "system" | "light" | "dark"} />
                 <Providers session={session}>
                     <main>{children}</main>
                 </Providers>

@@ -1,6 +1,6 @@
 import "../globals.css";
 import Navbar from "../components/Navbar";
-import { Providers } from "../providers";
+import { Providers } from "../Providers";
 import { getServerSession } from "next-auth";
 import authOptions from "@/lib/authOptions";
 import pool from "@/lib/db";

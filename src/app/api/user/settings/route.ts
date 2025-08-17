@@ -5,8 +5,7 @@ import authOptions from "@/lib/authOptions";
 
 interface UserSettings {
     theme: string;
-    timezone: string;
-    notifications_enabled: boolean;
+    week_start: string;
 }
 
 export async function GET() {
@@ -15,7 +14,7 @@ export async function GET() {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const result = await pool.query<UserSettings>("SELECT theme FROM user_settings WHERE user_id=$1", [session.user.id]);
+    const result = await pool.query<UserSettings>("SELECT theme, week_start FROM user_settings WHERE user_id=$1", [session.user.id]);
 
     if (result.rowCount === 0) {
         return NextResponse.json({ error: "Settings not found" }, { status: 404 });
@@ -33,8 +32,8 @@ export async function PUT(req: Request) {
     const body: UserSettings = await req.json();
 
     await pool.query(
-        `UPDATE user_settings SET theme=$1 WHERE user_id=$2`,
-        [body.theme, session.user.id]
+        `UPDATE user_settings SET theme=$1, week_start=$2 WHERE user_id=$3`,
+        [body.theme, body.week_start, session.user.id]
     );
 
     return NextResponse.json({ ok: true });

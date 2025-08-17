@@ -13,8 +13,7 @@ interface User {
 
 interface UserSettings {
     theme: string;
-    timezone: string;
-    notifications_enabled: boolean;
+    week_start: string;
 }
 
 export default async function Settings() {
@@ -30,7 +29,7 @@ export default async function Settings() {
     );
 
     const settingsRes = await pool.query<UserSettings>(
-        "SELECT theme FROM user_settings WHERE user_id=$1",
+        "SELECT theme, week_start FROM user_settings WHERE user_id=$1",
         [session.user.id]
     );
 

@@ -9,6 +9,8 @@ const isValidHandle = (h: string) => /^[a-z0-9-_]{3,20}$/.test(h);
 const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 
 export async function POST(req: Request) {
+    const client = await pool.connect();
+    let began = false;
     try {
         const { username, handle, email, password, confirmPassword, recaptchaToken } = await req.json();
 
@@ -27,11 +29,11 @@ export async function POST(req: Request) {
         if (password !== confirmPassword) {
             return NextResponse.json({ error: "Passwords do not match" }, { status: 400 });
         }
-        const handleExists = await pool.query("SELECT 1 FROM users WHERE handle=$1", [handle]);
+        const handleExists = await client.query("SELECT 1 FROM users WHERE handle=$1", [handle]);
         if (handleExists.rowCount) {
             return NextResponse.json({ error: "Handle already in use" }, { status: 409 });
         }
-        const emailExists = await pool.query("SELECT 1 FROM users WHERE email=$1", [email]);
+        const emailExists = await client.query("SELECT 1 FROM users WHERE email=$1", [email]);
         if (emailExists.rowCount) {
             return NextResponse.json({ error: "Email already in use" }, { status: 409 });
         }
@@ -49,30 +51,33 @@ export async function POST(req: Request) {
 
         const hashed = await bcrypt.hash(password, 12);
 
-        const userRes = await pool.query(
+        const raw = crypto.randomBytes(32).toString("hex");
+        const tokenHash = crypto.createHash("sha256").update(raw).digest("hex");
+
+        await client.query("BEGIN");
+        began = true;
+        const userRes = await client.query(
             `INSERT INTO users (username, handle, email, email_verified, password)
             VALUES ($1, $2, $3, $4, $5)
             RETURNING id, username, email`,
             [username, handle, email, false, hashed]
         );
-        const userId = userRes.rows[0].id;
 
-        await pool.query(
+        await client.query(
             `INSERT INTO user_settings (user_id, theme)
             VALUES ($1, 'system')`,
-            [userId]
-        )
-
-        const raw = crypto.randomBytes(32).toString("hex");
-        const tokenHash = crypto.createHash("sha256").update(raw).digest("hex");
-
-        await pool.query(
-            `INSERT INTO auth_tokens (user_id, token, purpose, expires_at, created_at)
-            VALUES ($1, $2, 'signup', now() + interval '1 hour', now())`,
-            [userId, tokenHash]
+            [userRes.rows[0].id]
         );
-        const from = process.env.EMAIL_FROM ?? "onboarding@resend.dev";
 
+        await client.query(
+            `INSERT INTO auth_tokens (user_id, token, purpose)
+            VALUES ($1, $2, 'signup')`,
+            [userRes.rows[0].id, tokenHash]
+        );
+        await client.query("COMMIT");
+        began = false;
+
+        const from = process.env.EMAIL_FROM ?? "onboarding@resend.dev";
         const resend = new Resend(process.env.RESEND_API_KEY);
         const link = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${raw}`;
         
@@ -85,7 +90,10 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ ok: true });
     } catch (e) {
+        if (began) { await client.query("ROLLBACK"); }
         console.error(e);
         return NextResponse.json({ error: "Server error" }, { status: 500 });
+    } finally {
+        client.release();
     }
 }

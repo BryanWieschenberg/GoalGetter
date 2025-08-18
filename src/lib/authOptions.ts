@@ -64,31 +64,44 @@ const authOptions: AuthOptions = {
     },
     callbacks: {
         async signIn({ account, profile }) {
-            if (account && account.provider !== "credentials" && profile && profile.email) {
-                const existing = await pool.query(
-                    "SELECT id FROM users WHERE provider = $1 AND provider_id = $2",
-                    [account.provider, account.providerAccountId]
-                );
-
-                if (existing.rowCount === 0) {
-                    const username = profile.name || profile.email?.split("@")[0] || "user";
-                    const handle = await generateHandle(username);
-                    
-                    const userId = await pool.query(
-                        `INSERT INTO users (username, handle, email, email_verified, provider, provider_id)
-                        VALUES ($1, $2, $3, $4, $5, $6)
-                        RETURNING id`,
-                        [username, handle, profile.email, true, account.provider, account.providerAccountId]
+            const client = await pool.connect();
+            let began = false;
+            try {
+                if (account && account.provider !== "credentials" && profile && profile.email) {
+                    const existing = await client.query(
+                        "SELECT id FROM users WHERE provider = $1 AND provider_id = $2",
+                        [account.provider, account.providerAccountId]
                     );
-                    await pool.query(
-                        `INSERT INTO user_settings (user_id, theme)
-                        VALUES ($1, 'system')`,
-                        [userId.rows[0].id]
-                    )
-                }
-            }
 
-            return true;
+                    if (existing.rowCount === 0) {
+                        const username = profile.name || profile.email?.split("@")[0];
+                        const handle = await generateHandle(username, client);
+                        
+                        await client.query("BEGIN");
+                        began = true;
+                        const userId = await client.query(
+                            `INSERT INTO users (username, handle, email, email_verified, provider, provider_id)
+                            VALUES ($1, $2, $3, $4, $5, $6)
+                            RETURNING id`,
+                            [username, handle, profile.email, true, account.provider, account.providerAccountId]
+                        );
+                        await client.query(
+                            `INSERT INTO user_settings (user_id, theme)
+                            VALUES ($1, 'system')`,
+                            [userId.rows[0].id]
+                        );
+                        await client.query("COMMIT");
+                        began = false;
+                    }
+                }
+                return true;
+            } catch (e) {
+                if (began) { await client.query("ROLLBACK"); }
+                console.error("Error in signIn callback:", e);
+                return false;
+            } finally {
+                client.release();
+            }
         },
         async jwt({ token, user, account, profile }) {
             if (token.id) return token;

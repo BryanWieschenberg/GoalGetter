@@ -53,8 +53,8 @@ export async function POST() {
             );
         } else {
             await pool.query(
-                `INSERT INTO auth_tokens (user_id, token, purpose, expires_at, created_at)
-                VALUES ($1, $2, 'signup', NOW() + interval '1 hour', NOW())`,
+                `INSERT INTO auth_tokens (user_id, token, purpose)
+                VALUES ($1, $2, 'signup')`,
                 [userId, tokenHash]
             );
         }

@@ -1,7 +1,7 @@
-import pool from "@/lib/db";
 import crypto from "crypto";
+import { PoolClient } from "pg";
 
-export async function generateHandle(baseName: string) {
+export async function generateHandle(baseName: string, client: PoolClient) {
     const base = (baseName && baseName.trim() !== "" ? baseName : "user")
         .replace(/\s+/g, "")
         .toLowerCase();
@@ -12,7 +12,7 @@ export async function generateHandle(baseName: string) {
         const randomSuffix = crypto.randomBytes(3).toString("hex");
         handle = `${base}-${randomSuffix}`;
 
-        const result = await pool.query(
+        const result = await client.query(
             `SELECT 1 FROM users WHERE handle = $1`,
             [handle]
         );

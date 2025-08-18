@@ -13,6 +13,33 @@ export default function SignInForm() {
     const [error, setError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
 
+    const [forgotOpen, setForgotOpen] = useState(false);
+    const [forgotEmail, setForgotEmail] = useState("");
+    const [forgotSubmitting, setForgotSubmitting] = useState(false);
+    const [forgotMessage, setForgotMessage] = useState<string | null>(null);
+
+    const handleForgot = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setForgotSubmitting(true);
+        setForgotMessage(null);
+
+        try {
+            const res = await fetch("/api/auth/forgot-password", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: forgotEmail })
+            });
+            if (res.ok) {
+                setForgotMessage("Check your email for reset instructions.");
+            } else {
+                setForgotMessage("Could not process request.");
+            }
+        } catch {
+            setForgotMessage("Error sending request.");
+        }
+        setForgotSubmitting(false);
+    };
+
     const handleSignin = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
@@ -131,8 +158,14 @@ export default function SignInForm() {
                 </form>
 
                 <div className="pt-4 flex justify-between text-blue-500">
-                    <Link href="/forgot-password" className="hover:text-blue-600 dark:hover:text-blue-400">Forgot password?</Link>
-                    <Link href="/signup" className="text-blue-500 hover:text-blue-600 dark:hover:text-blue-400">Sign up</Link>
+                    <button
+                        type="button"
+                        onClick={() => setForgotOpen(true)}
+                        className="hover:cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
+                    >
+                        Forgot password?
+                    </button>
+                    <Link href="/signup" className="hover:text-blue-600 dark:hover:text-blue-400">Sign up</Link>
                 </div>
                 <p className="pt-4 text-center">Or you can sign in with</p>
                 <div className="pt-4">
@@ -154,6 +187,41 @@ export default function SignInForm() {
                     </button>
                 </div>
             </div>
+
+            {forgotOpen && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black/50">
+                    <div className="bg-white dark:bg-zinc-900 p-6 rounded-lg w-full max-w-sm">
+                        <h2 className="text-lg font-bold mb-4">Reset Password</h2>
+                        <form onSubmit={handleForgot} className="space-y-3">
+                            <input
+                                type="email"
+                                value={forgotEmail}
+                                onChange={(e) => setForgotEmail(e.target.value)}
+                                placeholder="Enter your email"
+                                className="w-full border rounded px-3 py-2"
+                                required
+                            />
+                            <button
+                                type="submit"
+                                disabled={forgotSubmitting}
+                                className="w-full py-2 rounded bg-blue-500 hover:bg-blue-600 text-white"
+                            >
+                                {forgotSubmitting ? "Sending..." : "Send Reset Link"}
+                            </button>
+                        </form>
+                        {forgotMessage && (
+                            <p className="mt-3 text-sm text-center">{forgotMessage}</p>
+                        )}
+                        <button
+                            type="button"
+                            onClick={() => setForgotOpen(false)}
+                            className="mt-4 w-full py-2 rounded bg-zinc-200 dark:bg-zinc-700"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

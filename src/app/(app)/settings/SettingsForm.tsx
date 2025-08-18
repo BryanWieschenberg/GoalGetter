@@ -230,7 +230,7 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
                     <div className="mt-3 grid gap-3 max-w-lg">
                         <form onSubmit={handleAccountSave}>
                             <label className="text-sm">
-                                <span className="block font-medium mb-1">New {editorOpen}</span>
+                                <span className="block font-medium mb-1">New {editorOpen}:</span>
                                 <input
                                     name="newValue"
                                     type={editorOpen === "email" ? "email" : "text"}
@@ -246,14 +246,14 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
                                         editorOpen === "username"
                                             ? "your new username"
                                             : editorOpen === "handle"
-                                            ? "your_new_handle"
+                                            ? "@your_new_handle"
                                             : "you@example.com"
                                     }
                                 />
                             </label>
 
                             <label className="text-sm">
-                                <span className="block font-medium mb-1">Password</span>
+                                <span className="block font-medium mb-1 mt-1">Password:</span>
                                 <input
                                     name="password"
                                     type="password"
@@ -263,7 +263,7 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
                                 />
                             </label>
 
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 mt-3">
                                 <button
                                     type="submit"
                                     disabled={editSaving}

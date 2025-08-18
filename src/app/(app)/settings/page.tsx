@@ -37,23 +37,9 @@ export default async function Settings() {
         redirect("/");
     }
 
-    const settings = settingsRes.rows[0];
-    const localProvider = account.rows[0].provider === "" ? true : false;
-
     return (
         <div className="p-8">
-            <h1 className="font-bold text-2xl pb-4">Settings</h1>
-
-            <p><span className="font-bold">Username:</span> {account.rows[0].username}</p>
-            <p><span className="font-bold">Handle:</span> @{account.rows[0].handle}</p>
-            <p><span className="font-bold">Email:</span> {account.rows[0].email}</p>
-            {!localProvider && (<p><span className="font-bold">Source:</span> {account.rows[0].provider}</p>)}
-
-            <hr className="my-6" />
-
-            <h2 className="font-bold text-xl pb-4">User Preferences</h2>
-
-            <SettingsForm initialSettings={settings} />
+            <SettingsForm account={account.rows[0]} initialSettings={settingsRes.rows[0]} />
         </div>
     );
 }

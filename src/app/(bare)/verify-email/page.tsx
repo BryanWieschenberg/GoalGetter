@@ -2,29 +2,47 @@ import crypto from "crypto";
 import pool from "@/lib/db";
 import Link from "next/link";
 
-export default async function VerifyEmailPage({ searchParams }: { searchParams: { token: string } }) {
-    const token = searchParams.token;
-    if (!token) return UI("No verification token was provided.", false);
+export const dynamic = 'force-dynamic';
 
-    const hashed = crypto.createHash("sha256").update(token).digest("hex");
+export default async function VerifyEmailPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+    const client = await pool.connect();
+    let began = false;
+    try {
+        const sp = await searchParams;
+        const tokenParam = sp.token;
+        const token = Array.isArray(tokenParam) ? tokenParam[0] : tokenParam;
+        if (!token) return UI("No verification token was provided.", false);
 
-    const res = await pool.query(
-        `SELECT user_id, expires_at FROM auth_tokens WHERE token=$1`,
-        [hashed]
-    );
-    const row = res.rows[0];
-    if (!row) {
-        return UI("This verification link is invalid or has already been used.", false);
+        const hashed = crypto.createHash("sha256").update(token).digest("hex");
+
+        const res = await client.query(
+            `SELECT user_id, expires_at FROM auth_tokens WHERE token=$1`,
+            [hashed]
+        );
+        const row = res.rows[0];
+        if (!row) {
+            return UI("This verification link is invalid or has already been used.", false);
+        }
+
+        if (new Date(row.expires_at) < new Date()) {
+            return UI("This verification link has expired. Please request a new one.", false);
+        }
+
+        await client.query("BEGIN");
+        began = true;
+        await client.query(`UPDATE users SET email_verified=true WHERE id=$1`, [row.user_id]);
+        await client.query(`DELETE FROM auth_tokens WHERE token=$1`, [hashed]);
+        await client.query("COMMIT");
+        began = false;
+
+        return UI("Your email has been verified successfully!", true);
+    } catch (e) {
+        if (began) { await client.query("ROLLBACK"); }
+        console.error("Error verifying email:", e);
+        return UI("An unexpected error occurred. Please try again later.", false);
+    } finally {
+        client.release();
     }
-
-    if (new Date(row.expires_at) < new Date()) {
-        return UI("This verification link has expired. Please request a new one.", false);
-    }
-
-    await pool.query(`UPDATE users SET email_verified=true WHERE id=$1`, [row.user_id]);
-    await pool.query(`DELETE FROM auth_tokens WHERE token=$1`, [hashed]);
-
-    return UI("Your email has been verified successfully!", true);
 }
 
 function UI(message: string, success: boolean) {

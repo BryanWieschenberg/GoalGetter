@@ -80,7 +80,7 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
             setEditSaving(true);
             const body = { editType: editorOpen, newValue: newValue, password: password };
 
-            const res = await fetch("/api/user/edit-account", {
+            const res = await fetch("/api/auth/edit-account", {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(body),
@@ -125,7 +125,7 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
 
     const handleSettingSave = async () => {
         setSaving(true);
-        await fetch("/api/user/settings", {
+        await fetch("/api/auth/settings", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(settings),
@@ -139,7 +139,7 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
         if (!handleMatches || deleting) return;
         try {
             setDeleting(true);
-            const res = await fetch("/api/user/delete", { method: "DELETE" });
+            const res = await fetch("/api/auth/delete", { method: "DELETE" });
             if (!res.ok) {
                 setDeleting(false);
                 return;

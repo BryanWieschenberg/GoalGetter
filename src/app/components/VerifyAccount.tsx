@@ -9,7 +9,7 @@ export default function VerifyAccount() {
     const resend = async () => {
         try {
             setStatus("sending");
-            const res = await fetch("/api/email/signup-resend", { method: "POST" });
+            const res = await fetch("/api/auth/signup-resend", { method: "POST" });
             const data = await res.json();
 
             if (!res.ok) {

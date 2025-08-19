@@ -1,6 +1,5 @@
 import "../globals.css";
 import Navbar from "../components/Navbar";
-import { Providers } from "../Providers";
 import { getServerSession } from "next-auth";
 import authOptions from "@/lib/authOptions";
 import pool from "@/lib/db";
@@ -18,6 +17,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     let isVerified = false;
 
     let theme = "system";
+    const hasSession = session?.user?.id ? true : false;
     if (session?.user?.id) {
         const themeRes = await pool.query<{ theme: string }>(
             "SELECT theme FROM user_settings WHERE user_id=$1",
@@ -34,7 +34,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
     return (
         <>
-            <Navbar />
+            <Navbar hasSession={hasSession} />
             {session?.user?.id && !isVerified && <VerifyAccount />}
             <main>{children}</main>
         </>

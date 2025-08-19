@@ -3,9 +3,7 @@
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 
-export default function Navbar() {
-    const { data: session } = useSession();
-    
+export default function Navbar({hasSession}: {hasSession: boolean}) {
     return (
         <nav className="flex justify-between p-2 pl-8 pr-8 border-b border-zinc-300 bg-zinc-100 text-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-white">
             <div className="flex items-center gap-6">
@@ -18,7 +16,7 @@ export default function Navbar() {
                 <Link href="/profile" className="hover:text-blue-600 dark:hover:text-blue-400">Profile</Link>
             </div>
             <div className="flex items-center gap-6">
-                {session ? (
+                {hasSession ? (
                     <>
                         <button
                             onClick={() => signOut({ callbackUrl: "/" })}

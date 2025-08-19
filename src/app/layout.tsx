@@ -47,7 +47,9 @@ export default async function BareLayout({ children }: { children: React.ReactNo
             <body>
                 <ThemeApplier theme={theme as "system" | "light" | "dark"} />
                 <Providers session={session}>
-                    <main>{children}</main>
+                    <main className="h-screen overflow-hidden flex flex-col">
+                        {children}
+                    </main>
                 </Providers>
             </body>
         </html>

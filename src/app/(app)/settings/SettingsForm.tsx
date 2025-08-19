@@ -57,12 +57,14 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
     };
 
     const handleAccountSave = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
         if (!editorOpen) return;
         setEditError(null);
         setEditSuccess(null);
 
         const form = new FormData(e.currentTarget);
-        const newValue = String(form.get("username"));
+        const newValue = String(form.get("newValue"));
         const password = String(form.get("password"));
 
         if (editorOpen === "handle" && !/^[a-z0-9_]+$/i.test(newValue)) {
@@ -76,28 +78,17 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
 
         try {
             setEditSaving(true);
+            const body = { editType: editorOpen, newValue: newValue, password: password };
 
-            const endpoint =
-                editorOpen === "username"
-                    ? "/api/user/change-username"
-                    : editorOpen === "handle"
-                    ? "/api/user/change-handle"
-                    : "/api/auth/email-change-request";
-
-            const body =
-                editorOpen === "email"
-                    ? { newEmail: newValue, password }
-                    : { [editorOpen]: newValue, password };
-
-            const res = await fetch(endpoint, {
-                method: "POST",
+            const res = await fetch("/api/user/edit-account", {
+                method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(body),
             });
 
             if (!res.ok) {
-                const data = await res.json().catch(() => ({}));
-                setEditError(data?.error ?? "Failed to save changes.");
+                const data = await res.json();
+                setEditError(data.error ?? "Failed to save changes.");
                 setEditSaving(false);
                 return;
             }
@@ -107,8 +98,6 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
             } else {
                 setEditSuccess("Saved!");
             }
-
-            router.refresh();
         } catch (e) {
             setEditError("Unexpected error. Please try again.");
         } finally {
@@ -193,14 +182,16 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
             </p>
 
             <p className="flex items-center gap-2">
-                <span className="font-bold">Email:</span> @{account.email}
-                <button
-                    type="button"
-                    onClick={() => setEditorOpen("email")}
-                    className="rounded ml-1 px-1 hover:bg-zinc-300 dark:hover:bg-zinc-700"
-                >
-                    <HiPencil className="inline-block justify-center items-center" />
-                </button>
+                <span className="font-bold">Email:</span> {account.email}
+                {localProvider && (
+                    <button
+                        type="button"
+                        onClick={() => setEditorOpen("email")}
+                        className="rounded ml-1 px-1 hover:bg-zinc-300 dark:hover:bg-zinc-700"
+                    >
+                        <HiPencil className="inline-block justify-center items-center" />
+                    </button>
+                )}
             </p>
 
             {!localProvider && (<p><span className="font-bold">Source: </span>{providerName}</p>)}

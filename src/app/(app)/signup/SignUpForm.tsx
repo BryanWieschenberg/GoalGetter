@@ -198,7 +198,7 @@ export default function SignUpForm() {
                 </form>
 
                 <p className="pt-4 text-center text-zinc-500">Already have an account? <Link href="/signin" className="text-blue-500 hover:text-blue-700 dark:hover:text-blue-400">Sign in</Link></p>
-                <p className="pt-4 text-center">Or you can sign up with</p>
+                <p className="pt-4 text-center">Or you can sign up with:</p>
                 <div className="pt-4">
                     <button
                         type="button"

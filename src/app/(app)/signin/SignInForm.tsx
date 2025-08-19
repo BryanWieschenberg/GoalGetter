@@ -167,7 +167,7 @@ export default function SignInForm() {
                     </button>
                     <Link href="/signup" className="hover:text-blue-600 dark:hover:text-blue-400">Sign up</Link>
                 </div>
-                <p className="pt-4 text-center">Or you can sign in with</p>
+                <p className="pt-4 text-center">Or you can sign in with:</p>
                 <div className="pt-4">
                     <button
                         type="button"

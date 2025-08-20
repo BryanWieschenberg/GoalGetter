@@ -29,6 +29,40 @@ CREATE TABLE IF NOT EXISTS auth_tokens (
     pending_email           TEXT UNIQUE
 );
 
+CREATE TABLE task_categories (
+    id                      SERIAL PRIMARY KEY,
+    user_id                 INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name                    TEXT NOT NULL,
+    color                   VARCHAR(6)
+);
+
+CREATE TABLE task_tags (
+    id                      SERIAL PRIMARY KEY,
+    category_id             INTEGER NOT NULL REFERENCES task_categories(id) ON DELETE CASCADE,
+    name                    TEXT NOT NULL,
+    color                   VARCHAR(6)
+);
+
+CREATE TABLE tasks (
+    id                      SERIAL PRIMARY KEY,
+    category_id             INTEGER REFERENCES task_categories(id) ON DELETE SET NULL,
+    tag_id                  INTEGER REFERENCES task_tags(id) ON DELETE SET NULL,
+    title                   TEXT NOT NULL,
+    description             TEXT,
+    due_date                TIMESTAMP
+);
+
+CREATE TABLE events (
+    id                      SERIAL PRIMARY KEY,
+    user_id                 INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title                   TEXT NOT NULL,
+    description             TEXT,
+    start_time              TIMESTAMP NOT NULL,
+    end_time                TIMESTAMP NOT NULL,
+    recurrence              TEXT[], -- Array of RRULEs like 'FREQ=WEEKLY;COUNT=10'
+    color                   VARCHAR(6)
+);
+
 -- WARNING: The following below have not been dumby-checked yet
 
 CREATE TABLE user_profiles IF NOT EXISTS (
@@ -38,41 +72,4 @@ CREATE TABLE user_profiles IF NOT EXISTS (
     location                TEXT,
     birthday                DATE,
     UNIQUE(user_id)
-);
-
-CREATE TABLE task_categories (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    name VARCHAR(255) NOT NULL,
-    color VARCHAR(50)
-);
-
-CREATE TABLE task_tags (
-    id SERIAL PRIMARY KEY,
-    category_id INTEGER NOT NULL REFERENCES task_categories(id) ON DELETE CASCADE,
-    name VARCHAR(255) NOT NULL,
-    color VARCHAR(50)
-);
-
-CREATE TABLE tasks (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    category_id INTEGER REFERENCES task_categories(id) ON DELETE SET NULL,
-    tag_id INTEGER REFERENCES task_tags(id) ON DELETE SET NULL,
-    title VARCHAR(255) NOT NULL,
-    description TEXT,
-    due_date TIMESTAMP WITH TIME ZONE
-);
-
-CREATE TABLE events (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    google_id VARCHAR(255), -- For if it's from Google Calendar, for syncing
-    title VARCHAR(255) NOT NULL,
-    description TEXT,
-    location VARCHAR(255),
-    start_time TIMESTAMP WITH TIME ZONE NOT NULL,
-    end_time TIMESTAMP WITH TIME ZONE NOT NULL,
-    recurrence TEXT[], -- Array of RRULEs like 'FREQ=WEEKLY;COUNT=10'
-    color VARCHAR(50),
 );

@@ -1,74 +1,50 @@
-"use client";
+import { getServerSession } from "next-auth";
+import HomePage from "./HomePage";
+import WelcomePage from "../components/WelcomePage";
+import authOptions from "@/lib/authOptions";
+import pool from "@/lib/db";
+export default async function Home() {
+    const session = await getServerSession(authOptions);
+    let res = null;
 
-import { useRef, useState, useEffect } from "react";
-import Tasks from "../components/Tasks";
-import Calendar from "../components/Calendar";
-
-export default function Home() {
-    const containerRef = useRef<HTMLDivElement | null>(null);
-    const dragging = useRef(false);
-    const [leftPct, setLeftPct] = useState(30);
-
-    const clamp = (n: number, min: number, max: number) =>
-        Math.max(min, Math.min(max, n));
-
-    const startDrag = (e: React.MouseEvent | React.TouchEvent) => {
-        e.preventDefault();
-        dragging.current = true;
-    };
-
-    useEffect(() => {
-        const onMove = (clientX: number) => {
-            if (!dragging.current || !containerRef.current) return;
-            const rect = containerRef.current.getBoundingClientRect();
-            const x = clamp(clientX - rect.left, 0, rect.width);
-            const pct = (x / rect.width) * 100;
-            setLeftPct(clamp(pct, 20, 80));
-        };
-
-        const handleMouseMove = (e: MouseEvent) => onMove(e.clientX);
-        const handleTouchMove = (e: TouchEvent) => {
-            if (e.touches.length > 0) onMove(e.touches[0].clientX);
-        };
-        const stop = () => (dragging.current = false);
-
-        window.addEventListener("mousemove", handleMouseMove);
-        window.addEventListener("mouseup", stop);
-        window.addEventListener("touchmove", handleTouchMove, { passive: false });
-        window.addEventListener("touchend", stop);
-
-        return () => {
-            window.removeEventListener("mousemove", handleMouseMove);
-            window.removeEventListener("mouseup", stop);
-            window.removeEventListener("touchmove", handleTouchMove);
-            window.removeEventListener("touchend", stop);
-        };
-    }, []);
-
+    if (session) {
+        res = await pool.query(
+            `SELECT json_build_object(
+                'task_categories', (
+                    SELECT COALESCE(json_agg(c), '[]'::json) 
+                    FROM task_categories c 
+                    WHERE c.user_id = $1
+                ),
+                'task_tags', (
+                    SELECT COALESCE(json_agg(tg), '[]'::json) 
+                    FROM task_tags tg 
+                    WHERE tg.category_id IN (
+                        SELECT id FROM task_categories WHERE user_id = $1
+                    )
+                ),
+                'tasks', (
+                    SELECT COALESCE(json_agg(t), '[]'::json) 
+                    FROM tasks t
+                    WHERE t.category_id IN (
+                        SELECT id FROM task_categories WHERE user_id = $1
+                    )
+                ),
+                'events', (
+                    SELECT COALESCE(json_agg(e), '[]'::json) 
+                    FROM events e 
+                    WHERE e.user_id = $1
+                )
+            ) AS user_data;`,
+            [session.user.id]
+        );
+    }
+    if (res) { console.log(res.rows[0].user_data); }
     return (
-        <div
-            ref={containerRef}
-            className="flex h-screen w-full overflow-hidden"
-        >
-            <div
-                className="h-full overflow-auto"
-                style={{ flex: `0 0 ${leftPct}%` }}
-            >
-                <Tasks />
-            </div>
-
-            <div
-                onMouseDown={startDrag}
-                onTouchStart={startDrag}
-                className="w-[.25rem] cursor-col-resize bg-zinc-300 dark:bg-zinc-700"
-                role="separator"
-                aria-orientation="vertical"
-                aria-label="Resize panels"
-            />
-
-            <div className="flex-1 h-full overflow-auto">
-                <Calendar />
-            </div>
-        </div>
+        <>
+            {res
+                ? <HomePage body={res.rows[0].user_data} />
+                : <WelcomePage />
+            }
+        </>
     );
 }

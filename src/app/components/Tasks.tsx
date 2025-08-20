@@ -1,13 +1,15 @@
 'use client';
 
+import { useState } from "react";
+
 export default function Tasks({ taskData }: { taskData: any }) {
     const categories = taskData?.task_categories ?? [];
     const tags = taskData?.task_tags ?? [];
     const tasks = taskData?.tasks ?? [];
+    const [hoveredTask, setHoveredTask] = useState<number | null>(null);
+    const [hoveredCat, setHoveredCat] = useState<number | null>(null);
 
     const tagById = (id?: number) => tags.find((t: any) => t.id === id);
-
-    const uncategorized = tasks.filter((t: any) => !t.category_id);
 
     return (
         <div className="p-8">
@@ -19,8 +21,13 @@ export default function Tasks({ taskData }: { taskData: any }) {
                         <h2
                             className="text-xl font-bold mb-3"
                             style={{ color: cat.color ? `#${cat.color}` : undefined }}
+                            onMouseEnter={() => setHoveredCat(cat.id)}
+                            onMouseLeave={() => setHoveredCat(null)}
                         >
                             {cat.name}
+                            {hoveredCat === cat.id && (
+                                <span className="ml-2 text-red-500">a</span>
+                            )}
                         </h2>
 
                         {catTasks.length === 0 ? (
@@ -32,16 +39,22 @@ export default function Tasks({ taskData }: { taskData: any }) {
                                     return (
                                         <li
                                             key={task.id}
+                                            onMouseEnter={() => setHoveredTask(task.id)}
+                                            onMouseLeave={() => setHoveredTask(null)}
                                             style={{ borderColor: cat.color ? `#${cat.color}` : undefined }}
                                         >
                                             <h3
+                                                className="whitespace-nowrap inline-block"
                                                 style={{ color: tag?.color ? `#${tag.color}` : undefined }}
                                             >
                                                 <span className="font-semibold">{task.title}</span>
                                                 {task.description && (
-                                                    <span className="ml-3 text-sm text-zinc-600 dark:text-zinc-400">
+                                                    <span className="ml-3 text-sm text-zinc-800 dark:text-zinc-200">
                                                         {task.description}
                                                     </span>
+                                                )}
+                                                {hoveredTask === task.id && (
+                                                    <span className="ml-2 text-red-500">a</span>
                                                 )}
                                             </h3>
                                         </li>
@@ -52,45 +65,6 @@ export default function Tasks({ taskData }: { taskData: any }) {
                     </section>
                 );
             })}
-
-            {uncategorized.length > 0 && (
-                <section className="mb-10">
-                    <h2 className="text-xl font-bold mb-3">Uncategorized</h2>
-                    <ul className="space-y-3">
-                        {uncategorized.map((task: any) => {
-                            const tag = tagById(task.tag_id);
-                            return (
-                                <li key={task.id} className="rounded border p-3">
-                                    <h3
-                                        className="font-semibold"
-                                        style={{
-                                            color: tag?.color ? `#${tag.color}` : undefined
-                                        }}
-                                    >
-                                        {task.title}
-                                    </h3>
-                                    {task.description && (
-                                        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                                            {task.description}
-                                        </p>
-                                    )}
-                                    <div className="mt-1 text-sm">
-                                        <span className="text-zinc-500 mr-2">Tag:</span>
-                                        <span
-                                            style={{
-                                                color: tag?.color ? `#${tag.color}` : undefined,
-                                                fontWeight: tag ? (600 as const) : (400 as const)
-                                            }}
-                                        >
-                                            {tag ? tag.name : "None"}
-                                        </span>
-                                    </div>
-                                </li>
-                            );
-                        })}
-                    </ul>
-                </section>
-            )}
         </div>
     );
 }

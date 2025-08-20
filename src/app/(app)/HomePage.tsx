@@ -4,10 +4,21 @@ import { useRef, useState, useEffect } from "react";
 import Tasks from "../components/Tasks";
 import Calendar from "../components/Calendar";
 
-export default function HomePage({ body }: { body: any }) {
+export default function HomePage({ body, startWeek }: { body: any, startWeek: any }) {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const dragging = useRef(false);
     const [leftPct, setLeftPct] = useState(27);
+
+    let startWeekCode = 0;
+    switch (startWeek) {
+        case 'mon': startWeekCode = -6; break;
+        case 'tue': startWeekCode = -5; break;
+        case 'wed': startWeekCode = -4; break;
+        case 'thu': startWeekCode = -3; break;
+        case 'fri': startWeekCode = -2; break;
+        case 'sat': startWeekCode = -1; break;
+        default: startWeekCode = 0;
+    }
 
     const clamp = (n: number, min: number, max: number) =>
         Math.max(min, Math.min(max, n));
@@ -48,10 +59,10 @@ export default function HomePage({ body }: { body: any }) {
     return (
         <div
             ref={containerRef}
-            className="flex h-screen w-full overflow-hidden"
+            className="flex flex-1 overflow-hidden"
         >
             <div
-                className="h-full overflow-auto"
+                className="overflow-y-auto"
                 style={{ flex: `0 0 ${leftPct}%` }}
             >
                 <Tasks taskData={{
@@ -70,10 +81,8 @@ export default function HomePage({ body }: { body: any }) {
                 aria-label="Resize panels"
             />
 
-            <div className="flex-1 h-full overflow-auto">
-                <Calendar eventData={{
-                    events: body.events
-                }} />
+            <div className="flex-1 overflow-y-auto">
+                <Calendar eventData={{ events: body.events }} startWeekPreference={ startWeekCode || 0 } />
             </div>
         </div>
     );

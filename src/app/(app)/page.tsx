@@ -6,6 +6,7 @@ import pool from "@/lib/db";
 export default async function Home() {
     const session = await getServerSession(authOptions);
     let res = null;
+    let startWeek = null;
 
     if (session) {
         res = await pool.query(
@@ -37,12 +38,16 @@ export default async function Home() {
             ) AS user_data;`,
             [session.user.id]
         );
+        startWeek = await pool.query(
+            `SELECT week_start FROM user_settings WHERE user_id = $1`,
+            [session.user.id]
+        );
     }
-    if (res) { console.log(res.rows[0].user_data); }
+
     return (
         <>
             {res
-                ? <HomePage body={res.rows[0].user_data} />
+                ? <HomePage body={res.rows[0].user_data} startWeek={startWeek?.rows[0].week_start} />
                 : <WelcomePage />
             }
         </>

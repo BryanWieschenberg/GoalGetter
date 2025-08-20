@@ -11,8 +11,8 @@ type EventItem = {
     color?: string | null;
 };
 
-export default function Calendar({ eventData }: { eventData: { events: EventItem[] } }) {
-    const [weekStart, setWeekStart] = useState(startOfWeek(new Date())); // Sunday-start. Change to Monday with startOfWeek(d, 1)
+export default function Calendar({ eventData, startWeekPreference }: { eventData: { events: EventItem[] }, startWeekPreference: number }) {
+    const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), startWeekPreference));
 
     const hours = useMemo(() => Array.from({ length: 24 }, (_, i) => i), []);
 
@@ -118,7 +118,7 @@ export default function Calendar({ eventData }: { eventData: { events: EventItem
     );
 }
 
-function startOfWeek(d: Date, weekStart: 0 | 1 = 0) {
+function startOfWeek(d: Date, weekStart: number = 0) {
     const date = new Date(d);
     const day = date.getDay(); // 0 Sun - 6 Sat
     const diff = (day < weekStart ? 7 : 0) + day - weekStart;

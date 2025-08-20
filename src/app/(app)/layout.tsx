@@ -36,7 +36,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <>
             <Navbar hasSession={hasSession} />
             {session?.user?.id && !isVerified && <VerifyAccount />}
-            <main>{children}</main>
+            {children}
         </>
     );
 }

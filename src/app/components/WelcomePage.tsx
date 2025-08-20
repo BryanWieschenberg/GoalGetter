@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 
 export default function WelcomePage() {
     return (
-        <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-zinc-800 dark:to-black">
+        <div className="flex-1 overflow-y-auto bg-gradient-to-b from-blue-50 to-white dark:from-zinc-800 dark:to-black">
             <motion.div
                 className="flex flex-col items-center text-zinc-900 dark:text-zinc-100"
                 initial={{ opacity: 0, y: 40 }}
@@ -69,7 +69,7 @@ export default function WelcomePage() {
                     </div>
                 </section>
 
-                <footer className="mt-12 text-sm text-zinc-500 dark:text-zinc-400">
+                <footer className="mt-12 mb-6 text-sm text-zinc-500 dark:text-zinc-400">
                     <p>© {new Date().getFullYear()} GoalGetter</p>
                 </footer>
             </motion.div>

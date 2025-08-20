@@ -38,7 +38,7 @@ export default async function Settings() {
     }
 
     return (
-        <div className="p-8">
+        <div className="flex-1 overflow-y-auto p-8">
             <SettingsForm account={account.rows[0]} initialSettings={settingsRes.rows[0]} />
         </div>
     );

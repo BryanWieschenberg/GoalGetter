@@ -57,19 +57,15 @@ export default function HomePage({ body, startWeek }: { body: any, startWeek: an
     }, []);
 
     return (
-        <div
-            ref={containerRef}
-            className="flex flex-1 overflow-hidden"
-        >
-            <div
-                className="overflow-y-auto"
-                style={{ flex: `0 0 ${leftPct}%` }}
-            >
-                <Tasks taskData={{
-                    task_categories: body.task_categories,
-                    task_tags: body.task_tags,
-                    tasks: body.tasks
-                }} />
+        <div ref={containerRef} className="flex overflow-hidden"> {/* If it stops working, add flex-1 here */}
+            <div className="overflow-y-auto" style={{ flex: `0 0 ${leftPct}%` }}>
+                <Tasks
+                    taskData={{
+                        task_categories: body.task_categories,
+                        task_tags: body.task_tags,
+                        tasks: body.tasks
+                    }}
+                />
             </div>
 
             <div
@@ -82,7 +78,12 @@ export default function HomePage({ body, startWeek }: { body: any, startWeek: an
             />
 
             <div className="flex-1 overflow-y-auto">
-                <Calendar eventData={{ events: body.events }} startWeekPreference={ startWeekCode || 0 } />
+                <Calendar
+                    eventData={{
+                        events: body.events
+                    }}
+                    startWeekPreference={ startWeekCode || 0 }
+                />
             </div>
         </div>
     );

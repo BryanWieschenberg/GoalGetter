@@ -3,9 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 
 export default function Tasks({ taskData }: { taskData: any }) {
-    const categories = taskData?.task_categories ?? [];
-    const tags = taskData?.task_tags ?? [];
-    const tasks = taskData?.tasks ?? [];
+    const [categories, setCategories] = useState(taskData?.task_categories);
+    const [tags, setTags] = useState(taskData?.task_tags);
+    const [tasks, setTasks] = useState(taskData?.tasks);
     const [hoveredCat, setHoveredCat] = useState<number | null>(null);
     const [createOpen, setCreateOpen] = useState(false);
     const createRef = useRef<HTMLDivElement | null>(null);
@@ -31,11 +31,46 @@ export default function Tasks({ taskData }: { taskData: any }) {
         };
     }, []);
 
+    const fetchTaskData = () => {
+        fetch('/api/user/tasks')
+            .then((res) => res.json())
+            .then((data) => {
+                setCategories(data.task_categories);
+                setTags(data.task_tags);
+                setTasks(data.tasks);
+            }
+        );
+    };
+
+    async function handleCreateSubmit(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+
+        const form = new FormData(e.currentTarget);
+        const payload = {
+            title: form.get("title"),
+            description: form.get("description"),
+            category_id: form.get("category_id"),
+            tag_id: form.get("tag_id") || null,
+            due_date: form.get("due_date") || null,
+            priority: form.get("priority") || "normal",
+        };
+
+        const res = await fetch("/api/user/tasks", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ type: "task", payload }),
+        });
+
+        if (!res.ok) throw new Error("Failed to create task");
+
+        fetchTaskData();
+        setTaskModalOpen(false);
+    }
+
     return (
         <div>
-            <div className="mb-6 border-b-2 border-zinc-300 dark:border-zinc-700 px-3 py-2">
+            <div className="border-b-2 border-zinc-300 dark:border-zinc-700 px-3 py-2">
                 <div className="flex flex-wrap items-center gap-2">
-                    {/* Create */}
                     <div ref={createRef} className="relative">
                         <button
                             type="button"
@@ -43,7 +78,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
                             className="inline-flex items-center gap-2 rounded-lg text-white bg-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 px-4 py-1.5 font-medium shadow-sm hover:dark:bg-black hover:dark:bg-white active:opacity-80"
                             aria-expanded={createOpen}
                         >
-                            <span className="text-lg leading-none">＋</span>
+                            <span className="text-lg leading-none font-bold">＋</span>
                             Create
                         </button>
 
@@ -80,7 +115,6 @@ export default function Tasks({ taskData }: { taskData: any }) {
                         )}
                     </div>
 
-                    {/* Sort */}
                     <button
                         type="button"
                         className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 bg-white/70 dark:bg-black/20 hover:bg-zinc-200 dark:hover:bg-zinc-800"
@@ -88,7 +122,6 @@ export default function Tasks({ taskData }: { taskData: any }) {
                         ⇅
                     </button>
 
-                    {/* View toggle (placeholder) */}
                     <button
                         type="button"
                         className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 bg-white/70 dark:bg-black/20 hover:bg-zinc-200 dark:hover:bg-zinc-800"
@@ -98,7 +131,6 @@ export default function Tasks({ taskData }: { taskData: any }) {
                         👁️
                     </button>
 
-                    {/* Search */}
                     <div className="relative flex-1 min-w-[20px] max-w-[200px]">
                         <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-zinc-400">
                             🔍
@@ -135,7 +167,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
                             </h2>
 
                             {catTasks.length === 0 ? (
-                                <p className="text-zinc-500">No tasks in this category.</p>
+                                <p className="text-sm text-zinc-500">Add a task with the Create button!</p>
                             ) : (
                                 <ul>
                                     {catTasks.map((task: any) => {
@@ -174,13 +206,11 @@ export default function Tasks({ taskData }: { taskData: any }) {
                     role="dialog"
                     aria-labelledby="new-task-title"
                 >
-                    {/* backdrop */}
                     <div
                         className="absolute inset-0 bg-black/80"
                         onClick={() => setTaskModalOpen(false)}
                     />
 
-                    {/* dialog */}
                     <div className="relative z-[61] w-[90vw] max-w-xl rounded-2xl border-[.2rem] border-zinc-500/70 bg-white dark:bg-zinc-900 shadow-2xl">
                         <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-200 dark:border-zinc-800">
                             <h3 id="new-task-title" className="text-lg font-semibold">Create Task</h3>
@@ -195,11 +225,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
 
                         <form
                             className="px-5 py-4 space-y-4"
-                            onSubmit={(e) => {
-                                e.preventDefault();
-                                // TODO: handle submit
-                                setTaskModalOpen(false);
-                            }}
+                            onSubmit={(e) => { handleCreateSubmit(e as React.FormEvent<HTMLFormElement>); }}
                         >
                             <div className="grid gap-3">
                                 <label className="text-sm font-medium">Title *</label>
@@ -227,6 +253,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
                                     <label className="text-sm font-medium">Category *</label>
                                     <select
                                         name="category_id"
+                                        required
                                         className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2 outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600"
                                         defaultValue=""
                                     >

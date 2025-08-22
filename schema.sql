@@ -43,13 +43,15 @@ CREATE TABLE task_tags (
     color                   VARCHAR(6)
 );
 
+CREATE TYPE task_priority AS ENUM ('low', 'normal', 'high', 'urgent');
 CREATE TABLE tasks (
     id                      SERIAL PRIMARY KEY,
     category_id             INTEGER REFERENCES task_categories(id) ON DELETE SET NULL,
     tag_id                  INTEGER REFERENCES task_tags(id) ON DELETE SET NULL,
     title                   TEXT NOT NULL,
     description             TEXT,
-    due_date                TIMESTAMP
+    due_date                DATE,
+    priority                task_priority DEFAULT 'normal'
 );
 
 CREATE TABLE events (

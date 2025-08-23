@@ -8,3 +8,18 @@ type task = {
     priority: string;
     sort_order: number;
 }
+
+type category = {
+    id: string;
+    user_id: number;
+    name: string;
+    color: string | null;
+    sort_order: number;
+}
+
+type tag = {
+    id: string;
+    category_id: string;
+    name: string;
+    color: string | null;
+}

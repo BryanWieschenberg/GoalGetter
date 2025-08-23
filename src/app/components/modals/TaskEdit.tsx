@@ -8,7 +8,7 @@ type TaskAddProps = {
     tags: any[];
     modalError?: string | null;
     onClose: () => void;
-    onSubmit: (e: React.FormEvent<HTMLFormElement>, id: number) => void;
+    onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
     onDelete: (id: number) => void;
     preSelectedTask: task;
 };
@@ -58,7 +58,7 @@ export default function TaskEdit({ categories, tags, modalError, onClose, onSubm
 
                 <form
                     className="px-5 py-4 space-y-4"
-                    onSubmit={(e) => onSubmit(e, preSelectedTask.id)}
+                    onSubmit={onSubmit}
                 >
                     <div className="grid gap-3">
                         <label className="text-sm font-medium">Title *</label>

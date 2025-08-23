@@ -5,6 +5,10 @@ import { getServerSession } from "next-auth/next";
 
 export async function GET() {
     const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    
     try {
         const tasks = await pool.query(
             `SELECT t.*
@@ -23,10 +27,23 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     try {
         const body = await req.json();
         const payload = body.payload;
         const { title, description, category_id, tag_id, due_date, priority } = payload;
+
+        const catCheck = await pool.query(
+            "SELECT 1 FROM task_categories WHERE id = $1 AND user_id = $2",
+            [category_id, session.user.id]
+        );
+        if (catCheck.rowCount === 0) {
+            return NextResponse.json({ error: "Invalid category" }, { status: 403 });
+        }
 
         const { rows: maxRows } = await pool.query(
             `SELECT COALESCE(MAX(sort_order) + 1, 0) AS next_order
@@ -51,8 +68,13 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const client = await pool.connect();
     let began = false;
+    
     try {
         const body = await req.json();
         const payload = body.payload;
@@ -62,9 +84,16 @@ export async function PUT(req: Request) {
         began = true;
 
         const oldCatRes = await client.query(
-            "SELECT category_id, sort_order FROM tasks WHERE id = $1",
-            [id]
+            `SELECT t.category_id, t.sort_order
+             FROM tasks t
+             JOIN task_categories tc ON t.category_id = tc.id
+             WHERE t.id = $1 AND tc.user_id = $2`,
+            [id, session.user.id]
         );
+        if (oldCatRes.rowCount === 0) {
+            throw new Error("Task unavailable");
+        }
+
         const { category_id: oldCatId, sort_order: oldSort } = oldCatRes.rows[0];
 
         if (oldCatId !== category_id) {
@@ -107,16 +136,33 @@ export async function PUT(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const client = await pool.connect();
     let began = false;
+    
     try {
         const { searchParams } = new URL(req.url);
         const id = searchParams.get("id");
 
-        const taskRes = await pool.query("SELECT category_id, sort_order FROM tasks WHERE id = $1", [id]);
+        const taskRes = await client.query(
+            `SELECT t.category_id, t.sort_order
+             FROM tasks t
+             JOIN task_categories tc ON t.category_id = tc.id
+             WHERE t.id = $1 AND tc.user_id = $2`,
+            [id, session.user.id]
+        );
+        if (taskRes.rowCount === 0) {
+            throw new Error("Task not found or not owned by user");
+        }
+
         const { category_id, sort_order } = taskRes.rows[0];
+        
         await client.query("BEGIN");
         began = true;
+        
         await pool.query("DELETE FROM tasks WHERE id = $1", [id]);
         await pool.query(
             `UPDATE tasks

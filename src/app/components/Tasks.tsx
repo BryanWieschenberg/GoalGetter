@@ -154,7 +154,79 @@ export default function Tasks({ taskData }: { taskData: any }) {
         }
     }
 
-    async function handleTaskEdit(e: React.FormEvent<HTMLFormElement>, selectedTask: number) {
+    async function handleCategoryEdit(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+
+        if (!selectedCategory) return;
+
+        const form = new FormData(e.currentTarget);
+        const category_id_str = form.get("category_id");
+        const category_id = Number(category_id_str);
+
+        const payload = {
+            id: selectedTask,
+            title: form.get("title"),
+            description: form.get("description"),
+            category_id: category_id,
+            tag_id: form.get("tag_id") || null,
+            due_date: form.get("due_date") || null,
+            priority: form.get("priority") || "normal"
+        };
+
+        const res = await fetch("/api/user/tasks/tasks", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ payload })
+        });
+
+        if (!res.ok) {
+            const res_json = await res.json();
+            setModalError(res_json.error || "An unknown error occurred.");
+        } else {
+            fetchTaskData();
+            setModalOpen(null);
+            setModalError(null);
+            setSelectedTask(null);
+        }
+    }
+
+    async function handleTagEdit(e: React.FormEvent<HTMLFormElement>, selectedTag: number) {
+        e.preventDefault();
+
+        if (!selectedTag) return;
+
+        const form = new FormData(e.currentTarget);
+        const category_id_str = form.get("category_id");
+        const category_id = Number(category_id_str);
+
+        const payload = {
+            id: selectedTask,
+            title: form.get("title"),
+            description: form.get("description"),
+            category_id: category_id,
+            tag_id: form.get("tag_id") || null,
+            due_date: form.get("due_date") || null,
+            priority: form.get("priority") || "normal"
+        };
+
+        const res = await fetch("/api/user/tasks/tasks", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ payload })
+        });
+
+        if (!res.ok) {
+            const res_json = await res.json();
+            setModalError(res_json.error || "An unknown error occurred.");
+        } else {
+            fetchTaskData();
+            setModalOpen(null);
+            setModalError(null);
+            setSelectedTask(null);
+        }
+    }
+
+    async function handleTaskEdit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
         if (!selectedTask) return;
@@ -187,6 +259,36 @@ export default function Tasks({ taskData }: { taskData: any }) {
             setModalOpen(null);
             setModalError(null);
             setSelectedTask(null);
+        }
+    }
+
+    async function handleCategoryDelete(id: number) {
+        const res = await fetch(`/api/user/tasks/categories?id=${id}`, {
+            method: "DELETE"
+        });
+
+        if (!res.ok) {
+            const res_json = await res.json();
+            setModalError(res_json.error || "An unknown error occurred.");
+        } else {
+            fetchCategoryData();
+            setModalOpen(null);
+            setModalError(null);
+        }
+    }
+
+    async function handleTagDelete(id: number) {
+        const res = await fetch(`/api/user/tasks/tags?id=${id}`, {
+            method: "DELETE"
+        });
+
+        if (!res.ok) {
+            const res_json = await res.json();
+            setModalError(res_json.error || "An unknown error occurred.");
+        } else {
+            fetchTagData();
+            setModalOpen(null);
+            setModalError(null);
         }
     }
 

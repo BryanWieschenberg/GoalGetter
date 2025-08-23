@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS events (
 -- POST-MVP TABLES, IGNORE FOR NOW
 
 CREATE TABLE IF NOT EXISTS user_profiles IF NOT EXISTS (
-    user_id                 INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id                 INTEGER PRIMARY KEY NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     avatar_url              TEXT,
     bio                     TEXT,
     location                TEXT,

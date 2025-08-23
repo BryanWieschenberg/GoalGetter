@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { FaRegCalendarAlt } from "react-icons/fa";
 
 type TaskAddProps = {
     categories: any[];
@@ -12,6 +13,7 @@ type TaskAddProps = {
 
 export default function TaskAdd({ categories, tags, modalError, onClose, onSubmit }: TaskAddProps) {
     const [selectedCategory, setSelectedCategory] = useState<string>("");
+    const inputRef = useRef<HTMLInputElement>(null);
 
     const filteredTags = tags.filter((t) => String(t.category_id) === selectedCategory);
 
@@ -27,7 +29,7 @@ export default function TaskAdd({ categories, tags, modalError, onClose, onSubmi
                 onClick={onClose}
             />
 
-            <div className="relative z-[61] w-[90vw] max-w-xl rounded-2xl border-[.2rem] border-zinc-500/70 bg-white dark:bg-zinc-900 shadow-2xl animate-slideUp">
+            <div className="relative z-[61] w-[90vw] max-w-xl rounded-2xl border-[.2rem] border-zinc-500/70 bg-zinc-100 dark:bg-zinc-900 shadow-2xl animate-slideUp">
                 <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-200 dark:border-zinc-800">
                     <h3 id="new-task-title" className="text-lg font-semibold">
                         Create Task
@@ -124,11 +126,28 @@ export default function TaskAdd({ categories, tags, modalError, onClose, onSubmi
                     <div className="grid gap-3 sm:grid-cols-2">
                         <div className="grid gap-2">
                             <label className="text-sm font-medium">Due date</label>
-                            <input
-                                type="date"
-                                name="due_date"
-                                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2 outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600"
-                            />
+                            <div className="relative w-full">
+                                <input
+                                    ref={inputRef}
+                                    type="date"
+                                    name="due_date"
+                                    className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-3 py-2 pr-10 outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600 [appearance:none]"
+                                />
+                                <FaRegCalendarAlt
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 
+                                            text-zinc-500 dark:text-zinc-400"
+                                    size={18}
+                                    onClick={() => {
+                                        if (inputRef.current) {
+                                            if (typeof inputRef.current.showPicker === "function") {
+                                                inputRef.current.showPicker();
+                                            } else {
+                                                inputRef.current.focus();
+                                            }
+                                        }
+                                    }}
+                                />
+                            </div>
                         </div>
 
                         <div className="grid gap-2">

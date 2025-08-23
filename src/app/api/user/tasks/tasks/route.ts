@@ -18,7 +18,7 @@ export async function GET() {
         return NextResponse.json({ tasks: tasks.rows }, { status: 200 });
     } catch (err) {
         console.error("GET /api/user/tasks/tasks:", err);
-        return NextResponse.json({ error: "Failed to fetch tasks" }, { status: 500 });
+        return NextResponse.json({ error: "Failed to fetch tasks." }, { status: 500 });
     }
 }
 
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
         const { title, description, category_id, tag_id, due_date, priority } = payload;
 
         const { rows: maxRows } = await pool.query(
-            `SELECT COALESCE(MAX(sort_order), 0) + 1 AS next_order
+            `SELECT COALESCE(MAX(sort_order) + 1, 0) AS next_order
             FROM tasks
             WHERE category_id = $1`,
             [category_id]
@@ -46,6 +46,6 @@ export async function POST(req: Request) {
         return NextResponse.json(result.rows[0], { status: 201 });
     } catch (err) {
         console.error("POST /api/user/tasks/tasks error:", err);
-        return NextResponse.json({ error: "Failed to add task" }, { status: 500 });
+        return NextResponse.json({ error: "Failed to add task." }, { status: 500 });
     }
 }

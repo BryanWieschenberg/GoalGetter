@@ -70,7 +70,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
             category_id: form.get("category_id"),
             tag_id: form.get("tag_id") || null,
             due_date: form.get("due_date") || null,
-            priority: form.get("priority") || "normal",
+            priority: form.get("priority") || "normal"
         };
 
         const res = await fetch("/api/user/tasks/tasks", {
@@ -85,6 +85,66 @@ export default function Tasks({ taskData }: { taskData: any }) {
         } else {
             fetchTaskData();
             setModalOpen(null);
+            setModalError(null);
+        }
+    }
+
+    async function handleCategorySubmit(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+
+        const form = new FormData(e.currentTarget);
+
+        let color = form.get("color") as string | null;
+        color = color ? color.replace(/^#/, "") : null;
+        
+        const payload = {
+            title: form.get("title"),
+            color: color
+        };
+
+        const res = await fetch("/api/user/tasks/categories", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ payload })
+        });
+
+        if (!res.ok) {
+            const res_json = await res.json();
+            setModalError(res_json.error || "An unknown error occurred.");
+        } else {
+            fetchCategoryData();
+            setModalOpen(null);
+            setModalError(null);
+        }
+    }
+
+    async function handleTagSubmit(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+
+        const form = new FormData(e.currentTarget);
+        
+        let color = form.get("color") as string | null;
+        color = color ? color.replace(/^#/, "") : null;
+        
+        const payload = {
+            title: form.get("title"),
+            category_id: form.get("category_id"),
+            color: color
+        };
+
+        const res = await fetch("/api/user/tasks/tags", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ payload })
+        });
+
+        if (!res.ok) {
+            const res_json = await res.json();
+            setModalError(res_json.error || "An unknown error occurred.");
+        } else {
+            fetchTagData();
+            setModalOpen(null);
+            setModalError(null);
         }
     }
 
@@ -173,7 +233,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
             </div>
 
             {/* Tasks */}
-            <div className="p-4">
+            <div className="p-3">
                 {categories.map((cat: any) => {
                     // Get all categories
                     const catTasks = tasks.filter((t: any) => t.category_id === cat.id);
@@ -230,6 +290,23 @@ export default function Tasks({ taskData }: { taskData: any }) {
             </div>
 
             {/* Modals */}
+            {modalOpen === "categoryAdd" && (
+                <CategoryAdd
+                    onClose={() => setModalOpen(null)}
+                    onSubmit={handleCategorySubmit}
+                    modalError={modalError}
+                />
+            )}
+            
+            {modalOpen === "tagAdd" && (
+                <TagAdd
+                    categories={categories}
+                    onClose={() => setModalOpen(null)}
+                    onSubmit={handleTagSubmit}
+                    modalError={modalError}
+                />
+            )}
+            
             {modalOpen === "taskAdd" && (
                 <TaskAdd
                     categories={categories}
@@ -237,19 +314,17 @@ export default function Tasks({ taskData }: { taskData: any }) {
                     onClose={() => setModalOpen(null)}
                     onSubmit={handleTaskSubmit}
                     modalError={modalError}
-                />)}
-            {modalOpen === "categoryAdd" && (
-                <CategoryAdd />
+                />
             )}
-            {modalOpen === "tagAdd" && (
-                <TagAdd />
-            )}
+            
             {modalOpen === "taskEdit" && (
                 <TaskEdit />
             )}
+            
             {modalOpen === "categoryEdit" && (
                 <CategoryEdit />
             )}
+            
             {modalOpen === "tagEdit" && (
                 <TagEdit />
             )}

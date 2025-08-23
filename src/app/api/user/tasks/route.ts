@@ -40,8 +40,7 @@ export async function GET() {
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { type, payload } = body; // type: "task" | "tag" | "category", payload: fields for that row
-        console.log(type, payload)
+        const { type, payload } = body;
         let result;
 
         if (type === "task") {

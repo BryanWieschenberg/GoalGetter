@@ -12,11 +12,10 @@ CREATE TABLE users IF NOT EXISTS (
 
 CREATE TYPE theme_type AS ENUM ('system', 'light', 'dark');
 CREATE TYPE week_start_type AS ENUM ('sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat');
-CREATE TABLE user_settings IF NOT EXISTS (
-    user_id                 INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+CREATE TABLE IF NOT EXISTS user_settings (
+    user_id                 INT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     theme                   theme_type NOT NULL DEFAULT 'system',
-    week_start              week_start_type NOT NULL DEFAULT 'sun',
-    UNIQUE(user_id)
+    week_start              week_start_type NOT NULL DEFAULT 'sun'
 );
 
 CREATE TYPE token_purpose AS ENUM ('signup', 'email_change', 'password_reset');
@@ -29,14 +28,15 @@ CREATE TABLE IF NOT EXISTS auth_tokens (
     pending_email           TEXT UNIQUE
 );
 
-CREATE TABLE task_categories (
+CREATE TABLE IF NOT EXISTS task_categories (
     id                      SERIAL PRIMARY KEY,
     user_id                 INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name                    TEXT NOT NULL,
-    color                   VARCHAR(6)
+    color                   VARCHAR(6),
+    sort_order              INTEGER NOT NULL
 );
 
-CREATE TABLE task_tags (
+CREATE TABLE IF NOT EXISTS task_tags (
     id                      SERIAL PRIMARY KEY,
     category_id             INTEGER NOT NULL REFERENCES task_categories(id) ON DELETE CASCADE,
     name                    TEXT NOT NULL,
@@ -44,17 +44,25 @@ CREATE TABLE task_tags (
 );
 
 CREATE TYPE task_priority AS ENUM ('low', 'normal', 'high', 'urgent');
-CREATE TABLE tasks (
+CREATE TABLE IF NOT EXISTS tasks (
     id                      SERIAL PRIMARY KEY,
-    category_id             INTEGER REFERENCES task_categories(id) ON DELETE SET NULL,
+    category_id             INTEGER REFERENCES task_categories(id) ON DELETE CASCADE,
     tag_id                  INTEGER REFERENCES task_tags(id) ON DELETE SET NULL,
     title                   TEXT NOT NULL,
     description             TEXT,
     due_date                DATE,
-    priority                task_priority DEFAULT 'normal'
+    priority                task_priority DEFAULT 'normal',
+    sort_order              INTEGER NOT NULL
 );
 
-CREATE TABLE events (
+CREATE TABLE IF NOT EXISTS today_tasks (
+    task_id                 INTEGER PRIMARY KEY REFERENCES tasks(id) ON DELETE CASCADE,
+    sort_order              INTEGER NOT NULL
+);
+
+-- WARNING: The following below have not been dumby-checked yet
+
+CREATE TABLE IF NOT EXISTS events (
     id                      SERIAL PRIMARY KEY,
     user_id                 INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     title                   TEXT NOT NULL,
@@ -65,9 +73,9 @@ CREATE TABLE events (
     color                   VARCHAR(6)
 );
 
--- WARNING: The following below have not been dumby-checked yet
+-- POST-MVP TABLES, IGNORE FOR NOW
 
-CREATE TABLE user_profiles IF NOT EXISTS (
+CREATE TABLE IF NOT EXISTS user_profiles IF NOT EXISTS (
     user_id                 INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     avatar_url              TEXT,
     bio                     TEXT,

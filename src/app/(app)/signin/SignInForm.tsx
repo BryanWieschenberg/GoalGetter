@@ -189,7 +189,7 @@ export default function SignInForm() {
             </div>
 
             {forgotOpen && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black/80">
+                <div className="fixed inset-0 flex items-center justify-center bg-black/50">
                     <div className="bg-white dark:bg-zinc-900 p-6 rounded-lg w-full max-w-sm">
                         <h2 className="text-lg font-bold mb-4">Reset Password</h2>
                         <form onSubmit={handleForgot} className="space-y-3">

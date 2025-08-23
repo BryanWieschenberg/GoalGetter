@@ -21,7 +21,10 @@ export default function Tasks({ taskData }: { taskData: any }) {
             }
         };
         const onEsc = (e: KeyboardEvent) => {
-            if (e.key === "Escape") setCreateOpen(false);
+            if (e.key === "Escape") {
+                setCreateOpen(false);
+                setTaskModalOpen(false);
+            }
         };
         document.addEventListener("mousedown", onDocClick);
         document.addEventListener("keydown", onEsc);
@@ -75,7 +78,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
                         <button
                             type="button"
                             onClick={() => setCreateOpen((v) => !v)}
-                            className="inline-flex items-center gap-2 rounded-lg text-white bg-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 px-4 py-1.5 font-medium shadow-sm hover:dark:bg-black hover:dark:bg-white active:opacity-80"
+                            className="inline-flex items-center gap-2 rounded-lg text-white bg-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 px-4 py-1.5 font-medium shadow-sm hover:dark:bg-black dark:hover:dark:bg-white active:opacity-80"
                             aria-expanded={createOpen}
                         >
                             <span className="text-lg leading-none font-bold">＋</span>
@@ -201,17 +204,17 @@ export default function Tasks({ taskData }: { taskData: any }) {
 
             {taskModalOpen && (
                 <div
-                    className="fixed inset-0 z-[60] flex items-center justify-center"
+                    className="fixed inset-0 z-[60] flex items-center justify-center animate-fadeIn"
                     aria-modal="true"
                     role="dialog"
                     aria-labelledby="new-task-title"
                 >
                     <div
-                        className="absolute inset-0 bg-black/80"
+                        className="absolute inset-0 bg-black/50 animate-fadeIn"
                         onClick={() => setTaskModalOpen(false)}
                     />
 
-                    <div className="relative z-[61] w-[90vw] max-w-xl rounded-2xl border-[.2rem] border-zinc-500/70 bg-white dark:bg-zinc-900 shadow-2xl">
+                    <div className="relative z-[61] w-[90vw] max-w-xl rounded-2xl border-[.2rem] border-zinc-500/70 bg-white dark:bg-zinc-900 shadow-2xl animate-slideUp">
                         <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-200 dark:border-zinc-800">
                             <h3 id="new-task-title" className="text-lg font-semibold">Create Task</h3>
                             <button

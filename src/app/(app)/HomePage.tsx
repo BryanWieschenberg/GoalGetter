@@ -8,6 +8,8 @@ export default function HomePage({ body, startWeek }: { body: any, startWeek: an
     const containerRef = useRef<HTMLDivElement | null>(null);
     const dragging = useRef(false);
     const [leftPct, setLeftPct] = useState(27);
+    const [isMobile, setIsMobile] = useState(false);
+    const [mobileView, setMobileView] = useState<"tasks" | "calendar">("tasks");
 
     let startWeekCode = 0;
     switch (startWeek) {
@@ -47,44 +49,76 @@ export default function HomePage({ body, startWeek }: { body: any, startWeek: an
         window.addEventListener("mouseup", stop);
         window.addEventListener("touchmove", handleTouchMove, { passive: false });
         window.addEventListener("touchend", stop);
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener("resize", checkMobile);
 
         return () => {
             window.removeEventListener("mousemove", handleMouseMove);
             window.removeEventListener("mouseup", stop);
             window.removeEventListener("touchmove", handleTouchMove);
             window.removeEventListener("touchend", stop);
+            window.removeEventListener("resize", checkMobile);
         };
     }, []);
 
     return (
-        <div ref={containerRef} className="flex overflow-hidden"> {/* If it stops working, add flex-1 here */}
-            <div className="overflow-y-auto" style={{ flex: `0 0 ${leftPct}%` }}>
-                <Tasks
-                    taskData={{
-                        task_categories: body.task_categories,
-                        task_tags: body.task_tags,
-                        tasks: body.tasks
-                    }}
-                />
-            </div>
+        <div ref={containerRef} className="flex overflow-hidden h-full relative">
+            {isMobile ? (
+                <>
+                    {mobileView === "tasks" ? (
+                        <Tasks
+                            taskData={{
+                                task_categories: body.task_categories,
+                                task_tags: body.task_tags,
+                                tasks: body.tasks
+                            }}
+                        />
+                    ) : (
+                        <Calendar
+                            eventData={{ events: body.events }}
+                            startWeekPreference={startWeekCode || 0}
+                        />
+                    )}
 
-            <div
-                onMouseDown={startDrag}
-                onTouchStart={startDrag}
-                className="w-[.25rem] cursor-col-resize bg-zinc-300 dark:bg-zinc-700"
-                role="separator"
-                aria-orientation="vertical"
-                aria-label="Resize panels"
-            />
+                    <button
+                        onClick={() =>
+                            setMobileView(mobileView === "tasks" ? "calendar" : "tasks")
+                        }
+                        className="fixed bottom-4 right-4 rounded-full bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 px-4 py-3 shadow-lg hover:opacity-90 active:opacity-80"
+                    >
+                        ⇆
+                    </button>
+                </>
+            ) : (
+                <>
+                    <div className="overflow-y-auto" style={{ flex: `0 0 ${leftPct}%` }}>
+                        <Tasks
+                            taskData={{
+                                task_categories: body.task_categories,
+                                task_tags: body.task_tags,
+                                tasks: body.tasks
+                            }}
+                        />
+                    </div>
 
-            <div className="flex-1 overflow-y-auto">
-                <Calendar
-                    eventData={{
-                        events: body.events
-                    }}
-                    startWeekPreference={ startWeekCode || 0 }
-                />
-            </div>
+                    <div
+                        onMouseDown={startDrag}
+                        onTouchStart={startDrag}
+                        className="w-[.25rem] cursor-col-resize bg-zinc-300 dark:bg-zinc-700"
+                        role="separator"
+                        aria-orientation="vertical"
+                        aria-label="Resize panels"
+                    />
+
+                    <div className="flex-1 overflow-y-auto">
+                        <Calendar
+                            eventData={{ events: body.events }}
+                            startWeekPreference={startWeekCode || 0}
+                        />
+                    </div>
+                </>
+            )}
         </div>
     );
 }

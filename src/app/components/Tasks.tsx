@@ -1,15 +1,22 @@
 'use client';
 
 import { useEffect, useRef, useState } from "react";
+import TaskAdd from "./modals/TaskAdd";
+import CategoryAdd from "./modals/CategoryAdd";
+import TagAdd from "./modals/TagAdd";
+import TaskEdit from "./modals/TaskEdit";
+import CategoryEdit from "./modals/CategoryEdit";
+import TagEdit from "./modals/TagEdit";
 
 export default function Tasks({ taskData }: { taskData: any }) {
     const [categories, setCategories] = useState(taskData?.task_categories);
     const [tags, setTags] = useState(taskData?.task_tags);
     const [tasks, setTasks] = useState(taskData?.tasks);
     const [hoveredCat, setHoveredCat] = useState<number | null>(null);
-    const [createOpen, setCreateOpen] = useState(false);
     const createRef = useRef<HTMLDivElement | null>(null);
-    const [taskModalOpen, setTaskModalOpen] = useState(false);
+    const [createOpen, setCreateOpen] = useState(false);
+    const [modalOpen, setModalOpen] = useState<string | null>(null);
+    const [modalError, setModalError] = useState<string | null>(null);
 
     const tagById = (id?: number) =>
         tags.find((t: any) => t.id === id);
@@ -23,29 +30,37 @@ export default function Tasks({ taskData }: { taskData: any }) {
         const onEsc = (e: KeyboardEvent) => {
             if (e.key === "Escape") {
                 setCreateOpen(false);
-                setTaskModalOpen(false);
+                setModalOpen(null);
             }
         };
         document.addEventListener("mousedown", onDocClick);
         document.addEventListener("keydown", onEsc);
+        
         return () => {
             document.removeEventListener("mousedown", onDocClick);
             document.removeEventListener("keydown", onEsc);
         };
     }, []);
 
-    const fetchTaskData = () => {
-        fetch('/api/user/tasks')
+    const fetchCategoryData = () => {
+        fetch('/api/user/tasks/categories')
             .then((res) => res.json())
-            .then((data) => {
-                setCategories(data.task_categories);
-                setTags(data.task_tags);
-                setTasks(data.tasks);
-            }
-        );
+            .then((data) => setCategories(data.categories));
     };
 
-    async function handleCreateSubmit(e: React.FormEvent<HTMLFormElement>) {
+    const fetchTagData = () => {
+        fetch('/api/user/tasks/tags')
+            .then((res) => res.json())
+            .then((data) => setTags(data.tags));
+    };
+
+    const fetchTaskData = () => {
+        fetch('/api/user/tasks/tasks')
+            .then((res) => res.json())
+            .then((data) => setTasks(data.tasks));
+    };
+
+    async function handleTaskSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
         const form = new FormData(e.currentTarget);
@@ -58,30 +73,34 @@ export default function Tasks({ taskData }: { taskData: any }) {
             priority: form.get("priority") || "normal",
         };
 
-        const res = await fetch("/api/user/tasks", {
+        const res = await fetch("/api/user/tasks/tasks", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ type: "task", payload }),
+            body: JSON.stringify({ payload })
         });
 
-        if (!res.ok) throw new Error("Failed to create task");
-
-        fetchTaskData();
-        setTaskModalOpen(false);
+        if (!res.ok) {
+            const res_json = await res.json();
+            setModalError(res_json.error || "An unknown error occurred.");
+        } else {
+            fetchTaskData();
+            setModalOpen(null);
+        }
     }
 
     return (
         <div>
+            {/* Top Section */}
             <div className="border-b-2 border-zinc-300 dark:border-zinc-700 px-3 py-2">
                 <div className="flex flex-wrap items-center gap-2">
                     <div ref={createRef} className="relative">
                         <button
                             type="button"
                             onClick={() => setCreateOpen((v) => !v)}
-                            className="inline-flex items-center gap-2 rounded-lg text-white bg-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 px-4 py-1.5 font-medium shadow-sm hover:dark:bg-black dark:hover:dark:bg-white active:opacity-80"
+                            className="inline-flex items-center gap-2 rounded-lg text-white bg-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 px-4 py-1.5 font-medium shadow-sm hover:dark:bg-black dark:hover:dark:bg-white active:opacity-80 hover:cursor-pointer"
                             aria-expanded={createOpen}
                         >
-                            <span className="text-lg leading-none font-bold">＋</span>
+                            <span className="text-lg leading-none font-bold">{'\uFF0B'}</span>
                             Create
                         </button>
 
@@ -92,25 +111,31 @@ export default function Tasks({ taskData }: { taskData: any }) {
                             >
                                 <button
                                     role="menuitem"
-                                    className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                                    className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:cursor-pointer"
                                     onClick={() => {
                                         setCreateOpen(false);
-                                        setTaskModalOpen(true);
+                                        setModalOpen("taskAdd");
                                     }}
                                 >
                                     Task
                                 </button>
                                 <button
                                     role="menuitem"
-                                    className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                                    onClick={() => setCreateOpen(false)}
+                                    className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:cursor-pointer"
+                                    onClick={() => {
+                                        setCreateOpen(false);
+                                        setModalOpen("categoryAdd");
+                                    }}
                                 >
                                     Category
                                 </button>
                                 <button
                                     role="menuitem"
-                                    className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                                    onClick={() => setCreateOpen(false)}
+                                    className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:cursor-pointer"
+                                    onClick={() => {
+                                        setCreateOpen(false);
+                                        setModalOpen("tagAdd");
+                                    }}
                                 >
                                     Tag
                                 </button>
@@ -147,10 +172,11 @@ export default function Tasks({ taskData }: { taskData: any }) {
                 </div>
             </div>
 
-            <div className="p-8">
+            {/* Tasks */}
+            <div className="p-4">
                 {categories.map((cat: any) => {
+                    // Get all categories
                     const catTasks = tasks.filter((t: any) => t.category_id === cat.id);
-
                     return (
                         <section
                             key={cat.id}
@@ -172,6 +198,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
                             {catTasks.length === 0 ? (
                                 <p className="text-sm text-zinc-500">Add a task with the Create button!</p>
                             ) : (
+                                // Get all tasks in this category
                                 <ul>
                                     {catTasks.map((task: any) => {
                                         const tag = tagById(task.tag_id);
@@ -202,128 +229,29 @@ export default function Tasks({ taskData }: { taskData: any }) {
                 })}
             </div>
 
-            {taskModalOpen && (
-                <div
-                    className="fixed inset-0 z-[60] flex items-center justify-center animate-fadeIn"
-                    aria-modal="true"
-                    role="dialog"
-                    aria-labelledby="new-task-title"
-                >
-                    <div
-                        className="absolute inset-0 bg-black/50 animate-fadeIn"
-                        onClick={() => setTaskModalOpen(false)}
-                    />
-
-                    <div className="relative z-[61] w-[90vw] max-w-xl rounded-2xl border-[.2rem] border-zinc-500/70 bg-white dark:bg-zinc-900 shadow-2xl animate-slideUp">
-                        <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-200 dark:border-zinc-800">
-                            <h3 id="new-task-title" className="text-lg font-semibold">Create Task</h3>
-                            <button
-                                onClick={() => setTaskModalOpen(false)}
-                                className="rounded-md p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                                aria-label="Close"
-                            >
-                                ✕
-                            </button>
-                        </div>
-
-                        <form
-                            className="px-5 py-4 space-y-4"
-                            onSubmit={(e) => { handleCreateSubmit(e as React.FormEvent<HTMLFormElement>); }}
-                        >
-                            <div className="grid gap-3">
-                                <label className="text-sm font-medium">Title *</label>
-                                <input
-                                    required
-                                    type="text"
-                                    className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2 outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600"
-                                    placeholder="Task name..."
-                                    name="title"
-                                />
-                            </div>
-
-                            <div className="grid gap-3">
-                                <label className="text-sm font-medium">Description</label>
-                                <textarea
-                                    className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2 outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600"
-                                    placeholder="Additional details…"
-                                    rows={3}
-                                    name="description"
-                                />
-                            </div>
-
-                            <div className="grid gap-3 sm:grid-cols-2">
-                                <div className="grid gap-2">
-                                    <label className="text-sm font-medium">Category *</label>
-                                    <select
-                                        name="category_id"
-                                        required
-                                        className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2 outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600"
-                                        defaultValue=""
-                                    >
-                                        <option value="" disabled>Select category</option>
-                                        {categories.map((c: any) => (
-                                            <option key={c.id} value={c.id}>{c.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div className="grid gap-2">
-                                    <label className="text-sm font-medium">Tag</label>
-                                    <select
-                                        name="tag_id"
-                                        className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2 outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600"
-                                        defaultValue=""
-                                    >
-                                        <option value="" disabled>Select tag</option>
-                                        {tags.map((t: any) => (
-                                            <option key={t.id} value={t.id}>{t.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="grid gap-3 sm:grid-cols-2">
-                                <div className="grid gap-2">
-                                    <label className="text-sm font-medium">Due date</label>
-                                    <input
-                                        type="date"
-                                        name="due_date"
-                                        className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2 outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600"
-                                    />
-                                </div>
-
-                                <div className="grid gap-2">
-                                    <label className="text-sm font-medium">Priority</label>
-                                    <select
-                                        name="priority"
-                                        className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2 outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600"
-                                        defaultValue="normal"
-                                    >
-                                        <option value="low">Low</option>
-                                        <option value="normal">Normal</option>
-                                        <option value="high">High</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="mt-2 flex items-center justify-end gap-2 border-t border-zinc-200 dark:border-zinc-800 pt-4">
-                                <button
-                                    type="button"
-                                    onClick={() => setTaskModalOpen(false)}
-                                    className="rounded-lg px-4 py-2 text-sm ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="rounded-lg bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 px-4 py-2 text-sm font-medium hover:opacity-90 active:opacity-80"
-                                >
-                                    Create Task
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+            {/* Modals */}
+            {modalOpen === "taskAdd" && (
+                <TaskAdd
+                    categories={categories}
+                    tags={tags}
+                    onClose={() => setModalOpen(null)}
+                    onSubmit={handleTaskSubmit}
+                    modalError={modalError}
+                />)}
+            {modalOpen === "categoryAdd" && (
+                <CategoryAdd />
+            )}
+            {modalOpen === "tagAdd" && (
+                <TagAdd />
+            )}
+            {modalOpen === "taskEdit" && (
+                <TaskEdit />
+            )}
+            {modalOpen === "categoryEdit" && (
+                <CategoryEdit />
+            )}
+            {modalOpen === "tagEdit" && (
+                <TagEdit />
             )}
         </div>
     );

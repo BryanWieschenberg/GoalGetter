@@ -75,8 +75,8 @@ export async function POST(req: Request) {
             [userRes.rows[0].id, tokenHash]
         );
         await client.query(
-            `INSERT INTO task_categories (user_id, name) VALUES
-            ($1, 'My Tasks')`,
+            `INSERT INTO task_categories (user_id, name, sort_order) VALUES
+            ($1, 'My Tasks', 0)`,
             [userRes.rows[0].id]
         )
         await client.query("COMMIT");

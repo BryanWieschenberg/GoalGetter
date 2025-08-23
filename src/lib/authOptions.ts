@@ -91,8 +91,8 @@ const authOptions: AuthOptions = {
                             [userId.rows[0].id]
                         );
                         await client.query(
-                            `INSERT INTO task_categories (user_id, name) VALUES
-                            ($1, 'My Tasks')`,
+                            `INSERT INTO task_categories (user_id, name, sort_order) VALUES
+                            ($1, 'My Tasks', 0)`,
                             [userId.rows[0].id]
                         )
                         await client.query("COMMIT");

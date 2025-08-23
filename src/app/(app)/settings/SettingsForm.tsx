@@ -288,7 +288,7 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
                     onClick={() => setShowDelete(v => !v)}
                     className="rounded-md px-3 py-2 hover:cursor-pointer border border-red-300 text-red-700 hover:bg-red-50 dark:border-red-600 dark:text-red-300 dark:hover:bg-red-900/30"
                 >
-                    Account Deletion
+                    Danger Zone
                 </button>
 
                 {showDelete && (
@@ -342,7 +342,7 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
                         <select
                             value={settings.theme}
                             onChange={e => setSettings(s => ({ ...s, theme: e.target.value }))}
-                            className={`border rounded p-2 border-2 dark:bg-black
+                            className={`rounded p-2 border-2 dark:bg-black
                                 ${themeModified ? "border-yellow-500 dark:border-purple-700" : ""}`}
                         >
                             <option value="system">System</option>
@@ -369,7 +369,7 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
                         <select
                             value={settings.week_start}
                             onChange={e => setSettings(s => ({ ...s, week_start: e.target.value }))}
-                            className={`border rounded p-2 border-2 dark:bg-black
+                            className={`rounded p-2 border-2 dark:bg-black
                                 ${weekStartModified ? "border-yellow-500 dark:border-purple-700" : ""}`}
                         >
                             <option value="sun">Sunday</option>

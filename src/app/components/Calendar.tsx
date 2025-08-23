@@ -46,7 +46,7 @@ export default function Calendar({ eventData, startWeekPreference }: { eventData
     const dayColHeight = hourRowHeight * 24;
 
     return (
-        <div className="p-4 md:p-6">
+        <div className="p-4">
             <div className="mb-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <button onClick={goPrev} className="px-3 py-1.5 rounded border hover:bg-zinc-100 dark:hover:bg-zinc-800">←</button>

@@ -12,7 +12,7 @@ export default async function Home() {
         res = await pool.query(
             `SELECT json_build_object(
                 'task_categories', (
-                    SELECT COALESCE(json_agg(c), '[]'::json) 
+                    SELECT COALESCE(json_agg(c ORDER BY c.sort_order), '[]'::json) 
                     FROM task_categories c 
                     WHERE c.user_id = $1
                 ),
@@ -24,7 +24,7 @@ export default async function Home() {
                     )
                 ),
                 'tasks', (
-                    SELECT COALESCE(json_agg(t), '[]'::json) 
+                    SELECT COALESCE(json_agg(t ORDER BY t.sort_order), '[]'::json) 
                     FROM tasks t
                     WHERE t.category_id IN (
                         SELECT id FROM task_categories WHERE user_id = $1

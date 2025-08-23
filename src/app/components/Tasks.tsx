@@ -7,6 +7,7 @@ import TagAdd from "./modals/TagAdd";
 import TaskEdit from "./modals/TaskEdit";
 import CategoryEdit from "./modals/CategoryEdit";
 import TagEdit from "./modals/TagEdit";
+import { FiPlus } from "react-icons/fi";
 
 export default function Tasks({ taskData }: { taskData: any }) {
     const [categories, setCategories] = useState(taskData?.task_categories);
@@ -17,6 +18,8 @@ export default function Tasks({ taskData }: { taskData: any }) {
     const [createOpen, setCreateOpen] = useState(false);
     const [modalOpen, setModalOpen] = useState<string | null>(null);
     const [modalError, setModalError] = useState<string | null>(null);
+    const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+    const [selectedTask, setSelectedTask] = useState<task | null>(null);
 
     const tagById = (id?: number) =>
         tags.find((t: any) => t.id === id);
@@ -31,6 +34,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
             if (e.key === "Escape") {
                 setCreateOpen(false);
                 setModalOpen(null);
+                setSelectedTask(null);
             }
         };
         document.addEventListener("mousedown", onDocClick);
@@ -59,35 +63,6 @@ export default function Tasks({ taskData }: { taskData: any }) {
             .then((res) => res.json())
             .then((data) => setTasks(data.tasks));
     };
-
-    async function handleTaskSubmit(e: React.FormEvent<HTMLFormElement>) {
-        e.preventDefault();
-
-        const form = new FormData(e.currentTarget);
-        const payload = {
-            title: form.get("title"),
-            description: form.get("description"),
-            category_id: form.get("category_id"),
-            tag_id: form.get("tag_id") || null,
-            due_date: form.get("due_date") || null,
-            priority: form.get("priority") || "normal"
-        };
-
-        const res = await fetch("/api/user/tasks/tasks", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ payload })
-        });
-
-        if (!res.ok) {
-            const res_json = await res.json();
-            setModalError(res_json.error || "An unknown error occurred.");
-        } else {
-            fetchTaskData();
-            setModalOpen(null);
-            setModalError(null);
-        }
-    }
 
     async function handleCategorySubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -148,6 +123,88 @@ export default function Tasks({ taskData }: { taskData: any }) {
         }
     }
 
+    async function handleTaskSubmit(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+        
+        const form = new FormData(e.currentTarget);
+
+        const payload = {
+            title: form.get("title"),
+            description: form.get("description"),
+            category_id: form.get("category_id"),
+            tag_id: form.get("tag_id") || null,
+            due_date: form.get("due_date") || null,
+            priority: form.get("priority") || "normal"
+        };
+
+        const res = await fetch("/api/user/tasks/tasks", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ payload })
+        });
+
+        if (!res.ok) {
+            const res_json = await res.json();
+            setModalError(res_json.error || "An unknown error occurred.");
+        } else {
+            fetchTaskData();
+            setModalOpen(null);
+            setModalError(null);
+            setSelectedCategory(null);
+        }
+    }
+
+    async function handleTaskEdit(e: React.FormEvent<HTMLFormElement>, selectedTask: number) {
+        e.preventDefault();
+
+        if (!selectedTask) return;
+
+        const form = new FormData(e.currentTarget);
+        const category_id_str = form.get("category_id");
+        const category_id = Number(category_id_str);
+
+        const payload = {
+            id: selectedTask,
+            title: form.get("title"),
+            description: form.get("description"),
+            category_id: category_id,
+            tag_id: form.get("tag_id") || null,
+            due_date: form.get("due_date") || null,
+            priority: form.get("priority") || "normal"
+        };
+
+        const res = await fetch("/api/user/tasks/tasks", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ payload })
+        });
+
+        if (!res.ok) {
+            const res_json = await res.json();
+            setModalError(res_json.error || "An unknown error occurred.");
+        } else {
+            fetchTaskData();
+            setModalOpen(null);
+            setModalError(null);
+            setSelectedTask(null);
+        }
+    }
+
+    async function handleTaskDelete(id: number) {
+        const res = await fetch(`/api/user/tasks/tasks?id=${id}`, {
+            method: "DELETE"
+        });
+
+        if (!res.ok) {
+            const res_json = await res.json();
+            setModalError(res_json.error || "An unknown error occurred.");
+        } else {
+            fetchTaskData();
+            setModalOpen(null);
+            setModalError(null);
+        }
+    }
+
     return (
         <div>
             {/* Top Section */}
@@ -173,6 +230,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
                                     role="menuitem"
                                     className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:cursor-pointer"
                                     onClick={() => {
+                                        setSelectedCategory(null);
                                         setCreateOpen(false);
                                         setModalOpen("taskAdd");
                                     }}
@@ -244,19 +302,34 @@ export default function Tasks({ taskData }: { taskData: any }) {
                             style={{ borderColor: cat.color ? `#${cat.color}` : undefined }}
                         >
                             <h2
-                                className="text-xl font-bold mb-3 flex items-center"
+                                className="text-xl font-bold mb-3 flex items-center gap-2"
                                 style={{ color: cat.color ? `#${cat.color}` : undefined }}
                                 onMouseEnter={() => setHoveredCat(cat.id)}
                                 onMouseLeave={() => setHoveredCat(null)}
                             >
-                                {cat.name}
+                                <span
+                                    className="hover:cursor-pointer"
+                                    onClick={() => {
+                                        setSelectedCategory(cat);
+                                        setModalOpen("categoryEdit");
+                                    }}
+                                >
+                                    {cat.name}
+                                </span>
                                 {hoveredCat === cat.id && (
-                                    <span className="ml-auto text-red-500">a</span>
+                                    <FiPlus
+                                        className="hover:cursor-pointer"
+                                        style={{ color: cat.color ? `#${cat.color}` : undefined }}
+                                        onClick={() => {
+                                            setSelectedCategory(cat.id);
+                                            setModalOpen("taskAdd");
+                                        }}
+                                    />
                                 )}
                             </h2>
 
                             {catTasks.length === 0 ? (
-                                <p className="text-sm text-zinc-500">Add a task with the Create button!</p>
+                                <p className="whitespace-nowrap text-sm text-zinc-500">Add a task with the {"\uFF0B"} button!</p>
                             ) : (
                                 // Get all tasks in this category
                                 <ul>
@@ -272,9 +345,18 @@ export default function Tasks({ taskData }: { taskData: any }) {
                                                     className="whitespace-nowrap text-sm"
                                                     style={{ color: tag?.color ? `#${tag.color}` : undefined }}
                                                 >
-                                                    <span>{task.title}</span>
+                                                    <span
+                                                        className={`hover:cursor-pointer ${selectedTask?.id === task.id ? "bg-indigo-100 dark:bg-indigo-900" : ""}`}
+                                                        onClick={() => {
+                                                            setSelectedTask(task);
+                                                            setModalOpen("taskEdit");
+                                                        }}
+                                                    >
+                                                        {task.title}
+                                                    </span>
+                                                    
                                                     {task.description && (
-                                                        <span className="ml-3 text-zinc-800 dark:text-zinc-200">
+                                                        <span className="ml-3 text-zinc-400">
                                                             {task.description}
                                                         </span>
                                                     )}
@@ -292,7 +374,11 @@ export default function Tasks({ taskData }: { taskData: any }) {
             {/* Modals */}
             {modalOpen === "categoryAdd" && (
                 <CategoryAdd
-                    onClose={() => setModalOpen(null)}
+                    onClose={() => {
+                        setModalOpen(null);
+                        setSelectedTask(null);
+                        setSelectedCategory(null);
+                    }}
                     onSubmit={handleCategorySubmit}
                     modalError={modalError}
                 />
@@ -301,7 +387,11 @@ export default function Tasks({ taskData }: { taskData: any }) {
             {modalOpen === "tagAdd" && (
                 <TagAdd
                     categories={categories}
-                    onClose={() => setModalOpen(null)}
+                    onClose={() => {
+                        setModalOpen(null);
+                        setSelectedTask(null);
+                        setSelectedCategory(null);
+                    }}
                     onSubmit={handleTagSubmit}
                     modalError={modalError}
                 />
@@ -311,14 +401,31 @@ export default function Tasks({ taskData }: { taskData: any }) {
                 <TaskAdd
                     categories={categories}
                     tags={tags}
-                    onClose={() => setModalOpen(null)}
+                    onClose={() => {
+                        setModalOpen(null);
+                        setSelectedTask(null);
+                        setSelectedCategory(null);
+                    }}
                     onSubmit={handleTaskSubmit}
                     modalError={modalError}
+                    preSelectedCategory={selectedCategory}
                 />
             )}
             
-            {modalOpen === "taskEdit" && (
-                <TaskEdit />
+            {modalOpen === "taskEdit" && selectedTask && (
+                <TaskEdit
+                    categories={categories}
+                    tags={tags}
+                    modalError={modalError}
+                    onClose={() => {
+                        setModalOpen(null);
+                        setSelectedTask(null);
+                        setSelectedCategory(null);
+                    }}
+                    onSubmit={handleTaskEdit}
+                    onDelete={handleTaskDelete}
+                    preSelectedTask={selectedTask}
+                />
             )}
             
             {modalOpen === "categoryEdit" && (

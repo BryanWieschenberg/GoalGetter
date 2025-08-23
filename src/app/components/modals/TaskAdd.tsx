@@ -9,10 +9,11 @@ type TaskAddProps = {
     modalError?: string | null;
     onClose: () => void;
     onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+    preSelectedCategory: number | null;
 };
 
-export default function TaskAdd({ categories, tags, modalError, onClose, onSubmit }: TaskAddProps) {
-    const [selectedCategory, setSelectedCategory] = useState<string>("");
+export default function TaskAdd({ categories, tags, modalError, onClose, onSubmit, preSelectedCategory }: TaskAddProps) {
+    const [selectedCategory, setSelectedCategory] = useState<string>(preSelectedCategory ? String(preSelectedCategory) : "");
     const inputRef = useRef<HTMLInputElement>(null);
 
     const filteredTags = tags.filter((t) => String(t.category_id) === selectedCategory);
@@ -169,13 +170,13 @@ export default function TaskAdd({ categories, tags, modalError, onClose, onSubmi
                         <button
                             type="button"
                             onClick={onClose}
-                            className="rounded-lg px-4 py-2 text-sm ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                            className="hover:cursor-pointer rounded-lg px-4 py-2 text-sm ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="rounded-lg bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 px-4 py-2 text-sm font-medium hover:opacity-90 active:opacity-80"
+                            className="hover:cursor-pointer rounded-lg bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 px-4 py-2 text-sm font-medium hover:opacity-90 active:opacity-80"
                         >
                             Create Task
                         </button>

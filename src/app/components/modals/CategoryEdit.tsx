@@ -118,7 +118,7 @@ export default function CategoryEdit({ tags, modalError, onClose, onSubmit, onDe
                                 <button
                                     type="button"
                                     onClick={() => onTagEdit && onTagEdit(Number(selectedTag))}
-                                    className="px-3 py-2 text-sm rounded-md bg-amber-400 text-black dark:bg-amber-600 dark:text-white hover:bg-blue-700 active:bg-blue-800"
+                                    className="hover:cursor-pointer px-3 py-2 text-sm rounded-md bg-amber-400 text-black dark:bg-amber-600 dark:text-white hover:bg-blue-700 active:bg-blue-800"
                                 >
                                     Edit Tag
                                 </button>

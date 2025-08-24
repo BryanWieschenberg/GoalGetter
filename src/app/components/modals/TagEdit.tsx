@@ -76,14 +76,28 @@ export default function TagEdit({ categories, modalError, onClose, onSubmit, onD
 
                     <div className="grid gap-3">
                         <label className="text-sm font-medium">Color</label>
-                        <input
-                            type="color"
-                            id="tagColor"
-                            name="color"
-                            value={color}
-                            onChange={(e) => setColor(e.target.value)}
-                            className="h-10 w-14 rounded-md border-2 border-zinc-300 dark:border-zinc-700 bg-white dark:bg-black p-1 cursor-pointer"
-                        />
+                        <div className="flex items-center gap-3">
+                            <input
+                                type="checkbox"
+                                id="useCustomColor"
+                                name="useCustomColor"
+                                checked={useCustomColor}
+                                onChange={(e) => setUseCustomColor(e.target.checked)}
+                                className="h-4 w-4"
+                            />
+                            <span className="text-sm">Custom color?</span>
+
+                            <input
+                                type="color"
+                                id="tagColor"
+                                name="color"
+                                value={color}
+                                onChange={(e) => setColor(e.target.value)}
+                                className={`h-10 w-14 rounded-md border-2 border-zinc-300 dark:border-zinc-700 bg-white dark:bg-black p-1
+                                    ${useCustomColor ? "cursor-pointer opacity-100" : "cursor-not-allowed opacity-0"}`}
+                                disabled={!useCustomColor}
+                            />
+                        </div>
                     </div>
 
                     <div className="grid gap-3">

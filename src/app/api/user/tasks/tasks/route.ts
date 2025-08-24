@@ -91,7 +91,7 @@ export async function PUT(req: Request) {
             [id, session?.user.id]
         );
         if (oldCatRes.rowCount === 0) {
-            throw new Error("Task unavailable");
+            return NextResponse.json({ error: "Invalid task" }, { status: 403 });
         }
 
         const { category_id: oldCatId, sort_order: oldSort } = oldCatRes.rows[0];
@@ -155,7 +155,7 @@ export async function DELETE(req: Request) {
             [id, session?.user.id]
         );
         if (taskRes.rowCount === 0) {
-            throw new Error("Task not found or not owned by user");
+            return NextResponse.json({ error: "Invalid task" }, { status: 403 });
         }
 
         const { category_id, sort_order } = taskRes.rows[0];

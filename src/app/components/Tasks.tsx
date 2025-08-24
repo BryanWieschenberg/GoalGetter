@@ -28,8 +28,11 @@ export default function Tasks({ taskData }: { taskData: any }) {
 
     const closeAll = () => {
         setModalOpen(null);
-        setSelectedTaskRaw(null);
         setSelectedCategory(null);
+        setSelectedCategoryRaw(null);
+        setSelectedTagRaw(null);
+        setSelectedTaskRaw(null);
+        setModalError(null);
     }
 
     useEffect(() => {
@@ -42,7 +45,11 @@ export default function Tasks({ taskData }: { taskData: any }) {
             if (e.key === "Escape") {
                 setCreateOpen(false);
                 setModalOpen(null);
+                setSelectedCategory(null);
+                setSelectedCategoryRaw(null);
+                setSelectedTagRaw(null);
                 setSelectedTaskRaw(null);
+                setModalError(null);
             }
         };
         document.addEventListener("mousedown", onDocClick);
@@ -223,7 +230,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
             setModalError(res_json.error || "An unknown error occurred.");
         } else {
             fetchTagData();
-            setModalOpen(null);
+            setModalOpen("categoryEdit noFade");
             setModalError(null);
             setSelectedTagRaw(null);
         }
@@ -290,7 +297,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
             setModalError(res_json.error || "An unknown error occurred.");
         } else {
             fetchTagData();
-            setModalOpen(null);
+            setModalOpen("categoryEdit noFade");
             setModalError(null);
         }
     }
@@ -403,7 +410,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
                     return (
                         <section
                             key={cat.id}
-                            className="mb-4 inline-block min-w-[300px] w-fit rounded-xl border-[.1rem] mr-8 p-4"
+                            className={`mb-4 inline-block min-w-[300px] w-fit rounded-xl border-[.1rem] mr-8 p-4 ${selectedCategory === cat.id ? "bg-zinc-100 dark:bg-zinc-900" : ""}`}
                             style={{ borderColor: cat.color ? `#${cat.color}` : undefined }}
                         >
                             <h2
@@ -413,7 +420,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
                                 onMouseLeave={() => setHoveredCat(null)}
                             >
                                 <span
-                                    className="hover:cursor-pointer"
+                                    className={`hover:cursor-pointer ${selectedCategoryRaw?.id === cat.id ? "bg-zinc-300 dark:bg-zinc-700" : ""}`}
                                     onClick={() => {
                                         setSelectedCategoryRaw(cat);
                                         setModalOpen("categoryEdit");
@@ -451,7 +458,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
                                                     style={{ color: tag?.color ? `#${tag.color}` : undefined }}
                                                 >
                                                     <span
-                                                        className={`hover:cursor-pointer ${selectedTaskRaw?.id === task.id ? "bg-indigo-100 dark:bg-indigo-900" : ""}`}
+                                                        className={`hover:cursor-pointer ${selectedTaskRaw?.id === task.id ? "bg-zinc-300 dark:bg-zinc-700" : ""}`}
                                                         onClick={() => {
                                                             setSelectedTaskRaw(task);
                                                             setModalOpen("taskEdit");

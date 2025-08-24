@@ -165,23 +165,20 @@ export default function Tasks({ taskData }: { taskData: any }) {
     async function handleCategoryEdit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
-        if (!selectedCategory) return;
+        if (!selectedCategoryRaw) return;
 
         const form = new FormData(e.currentTarget);
-        const category_id_str = form.get("category_id");
-        const category_id = Number(category_id_str);
+
+        let color = form.get("color") as string | null;
+        color = color ? color.replace(/^#/, "") : null;
 
         const payload = {
-            id: selectedTaskRaw,
+            id: selectedCategoryRaw.id,
             title: form.get("title"),
-            description: form.get("description"),
-            category_id: category_id,
-            tag_id: form.get("tag_id") || null,
-            due_date: form.get("due_date") || null,
-            priority: form.get("priority") || "normal"
+            color: color
         };
 
-        const res = await fetch("/api/user/tasks/tasks", {
+        const res = await fetch("/api/user/tasks/categories", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ payload })
@@ -191,33 +188,31 @@ export default function Tasks({ taskData }: { taskData: any }) {
             const res_json = await res.json();
             setModalError(res_json.error || "An unknown error occurred.");
         } else {
-            fetchTaskData();
+            fetchCategoryData();
             setModalOpen(null);
             setModalError(null);
-            setSelectedTaskRaw(null);
+            setSelectedCategoryRaw(null);
         }
     }
 
-    async function handleTagEdit(e: React.FormEvent<HTMLFormElement>, selectedTag: number) {
+    async function handleTagEdit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
-        if (!selectedTag) return;
+        if (!selectedTagRaw) return;
 
         const form = new FormData(e.currentTarget);
-        const category_id_str = form.get("category_id");
-        const category_id = Number(category_id_str);
+
+        let color = form.get("color") as string | null;
+        color = color ? color.replace(/^#/, "") : null;
 
         const payload = {
-            id: selectedTaskRaw,
+            id: selectedTagRaw.id,
             title: form.get("title"),
-            description: form.get("description"),
-            category_id: category_id,
-            tag_id: form.get("tag_id") || null,
-            due_date: form.get("due_date") || null,
-            priority: form.get("priority") || "normal"
+            category_id: form.get("category_id"),
+            color: color
         };
 
-        const res = await fetch("/api/user/tasks/tasks", {
+        const res = await fetch("/api/user/tasks/tags", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ payload })
@@ -227,10 +222,10 @@ export default function Tasks({ taskData }: { taskData: any }) {
             const res_json = await res.json();
             setModalError(res_json.error || "An unknown error occurred.");
         } else {
-            fetchTaskData();
+            fetchTagData();
             setModalOpen(null);
             setModalError(null);
-            setSelectedTaskRaw(null);
+            setSelectedTagRaw(null);
         }
     }
 
@@ -522,7 +517,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
                 />
             )}
             
-            {modalOpen === "categoryEdit" && selectedCategoryRaw && (
+            {modalOpen?.startsWith("categoryEdit") && selectedCategoryRaw && (
                 <CategoryEdit 
                     tags={tags}
                     modalError={modalError}
@@ -535,18 +530,24 @@ export default function Tasks({ taskData }: { taskData: any }) {
                         if (tag) setSelectedTagRaw(tag);
                         setModalOpen("tagEdit");
                     }}
+                    noFade={modalOpen.includes("noFade")}
                 />
             )}
 
             {modalOpen === "tagEdit" && selectedTagRaw && (
-                <TagEdit />
-                    // categories={categories}
-                    // modalError={modalError}
-                    // onClose={closeAll}
-                    // onSubmit={(e) => handleTagEdit(e, selectedTagRaw.id)}
-                    // onClose={closeAll}
-                    // preSelectedTag={selectedTagRaw}
-                // />
+                <TagEdit
+                    categories={categories}
+                    modalError={modalError}
+                    onClose={closeAll}
+                    onSubmit={handleTagEdit}
+                    onDelete={handleTagDelete}
+                    preSelectedTag={selectedTagRaw}
+                    onCategoryReturn={() => {
+                        const category = categories.find((c: any) => c.id === selectedTagRaw.category_id);
+                        if (category) setSelectedCategoryRaw(category);
+                        setModalOpen("categoryEdit noFade");
+                    }}
+                />
             )}
         </div>
     );

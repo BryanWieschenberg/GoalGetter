@@ -39,7 +39,7 @@ export async function POST(req: Request) {
 
         const catCheck = await pool.query(
             "SELECT 1 FROM task_categories WHERE id = $1 AND user_id = $2",
-            [category_id, session.user.id]
+            [category_id, session?.user.id]
         );
         if (catCheck.rowCount === 0) {
             return NextResponse.json({ error: "Invalid category" }, { status: 403 });
@@ -85,10 +85,10 @@ export async function PUT(req: Request) {
 
         const oldCatRes = await client.query(
             `SELECT t.category_id, t.sort_order
-             FROM tasks t
-             JOIN task_categories tc ON t.category_id = tc.id
-             WHERE t.id = $1 AND tc.user_id = $2`,
-            [id, session.user.id]
+            FROM tasks t
+            JOIN task_categories tc ON t.category_id = tc.id
+            WHERE t.id = $1 AND tc.user_id = $2`,
+            [id, session?.user.id]
         );
         if (oldCatRes.rowCount === 0) {
             throw new Error("Task unavailable");
@@ -149,10 +149,10 @@ export async function DELETE(req: Request) {
 
         const taskRes = await client.query(
             `SELECT t.category_id, t.sort_order
-             FROM tasks t
-             JOIN task_categories tc ON t.category_id = tc.id
-             WHERE t.id = $1 AND tc.user_id = $2`,
-            [id, session.user.id]
+            FROM tasks t
+            JOIN task_categories tc ON t.category_id = tc.id
+            WHERE t.id = $1 AND tc.user_id = $2`,
+            [id, session?.user.id]
         );
         if (taskRes.rowCount === 0) {
             throw new Error("Task not found or not owned by user");

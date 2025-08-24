@@ -10,7 +10,7 @@ type task = {
 }
 
 type category = {
-    id: string;
+    id: number;
     user_id: number;
     name: string;
     color: string | null;
@@ -18,7 +18,7 @@ type category = {
 }
 
 type tag = {
-    id: string;
+    id: number;
     category_id: string;
     name: string;
     color: string | null;

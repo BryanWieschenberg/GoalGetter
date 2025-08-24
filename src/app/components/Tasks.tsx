@@ -19,10 +19,18 @@ export default function Tasks({ taskData }: { taskData: any }) {
     const [modalOpen, setModalOpen] = useState<string | null>(null);
     const [modalError, setModalError] = useState<string | null>(null);
     const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
-    const [selectedTask, setSelectedTask] = useState<task | null>(null);
+    const [selectedCategoryRaw, setSelectedCategoryRaw] = useState<category | null>(null);
+    const [selectedTaskRaw, setSelectedTaskRaw] = useState<task | null>(null);
+    const [selectedTagRaw, setSelectedTagRaw] = useState<tag | null>(null);
 
     const tagById = (id?: number) =>
         tags.find((t: any) => t.id === id);
+
+    const closeAll = () => {
+        setModalOpen(null);
+        setSelectedTaskRaw(null);
+        setSelectedCategory(null);
+    }
 
     useEffect(() => {
         const onDocClick = (e: MouseEvent) => {
@@ -34,7 +42,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
             if (e.key === "Escape") {
                 setCreateOpen(false);
                 setModalOpen(null);
-                setSelectedTask(null);
+                setSelectedTaskRaw(null);
             }
         };
         document.addEventListener("mousedown", onDocClick);
@@ -64,7 +72,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
             .then((data) => setTasks(data.tasks));
     };
 
-    async function handleCategorySubmit(e: React.FormEvent<HTMLFormElement>) {
+    async function handleCategoryAdd(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
         const form = new FormData(e.currentTarget);
@@ -93,7 +101,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
         }
     }
 
-    async function handleTagSubmit(e: React.FormEvent<HTMLFormElement>) {
+    async function handleTagAdd(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
         const form = new FormData(e.currentTarget);
@@ -123,7 +131,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
         }
     }
 
-    async function handleTaskSubmit(e: React.FormEvent<HTMLFormElement>) {
+    async function handleTaskAdd(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         
         const form = new FormData(e.currentTarget);
@@ -164,7 +172,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
         const category_id = Number(category_id_str);
 
         const payload = {
-            id: selectedTask,
+            id: selectedTaskRaw,
             title: form.get("title"),
             description: form.get("description"),
             category_id: category_id,
@@ -186,7 +194,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
             fetchTaskData();
             setModalOpen(null);
             setModalError(null);
-            setSelectedTask(null);
+            setSelectedTaskRaw(null);
         }
     }
 
@@ -200,7 +208,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
         const category_id = Number(category_id_str);
 
         const payload = {
-            id: selectedTask,
+            id: selectedTaskRaw,
             title: form.get("title"),
             description: form.get("description"),
             category_id: category_id,
@@ -222,21 +230,21 @@ export default function Tasks({ taskData }: { taskData: any }) {
             fetchTaskData();
             setModalOpen(null);
             setModalError(null);
-            setSelectedTask(null);
+            setSelectedTaskRaw(null);
         }
     }
 
     async function handleTaskEdit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
-        if (!selectedTask) return;
+        if (!selectedTaskRaw) return;
 
         const form = new FormData(e.currentTarget);
         const category_id_str = form.get("category_id");
         const category_id = Number(category_id_str);
 
         const payload = {
-            id: selectedTask,
+            id: selectedTaskRaw.id,
             title: form.get("title"),
             description: form.get("description"),
             category_id: category_id,
@@ -258,7 +266,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
             fetchTaskData();
             setModalOpen(null);
             setModalError(null);
-            setSelectedTask(null);
+            setSelectedTaskRaw(null);
         }
     }
 
@@ -400,7 +408,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
                     return (
                         <section
                             key={cat.id}
-                            className="mb-4 inline-block w-fit rounded-xl border-[.1rem] mr-8 p-4"
+                            className="mb-4 inline-block min-w-[300px] w-fit rounded-xl border-[.1rem] mr-8 p-4"
                             style={{ borderColor: cat.color ? `#${cat.color}` : undefined }}
                         >
                             <h2
@@ -412,7 +420,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
                                 <span
                                     className="hover:cursor-pointer"
                                     onClick={() => {
-                                        setSelectedCategory(cat);
+                                        setSelectedCategoryRaw(cat);
                                         setModalOpen("categoryEdit");
                                     }}
                                 >
@@ -448,9 +456,9 @@ export default function Tasks({ taskData }: { taskData: any }) {
                                                     style={{ color: tag?.color ? `#${tag.color}` : undefined }}
                                                 >
                                                     <span
-                                                        className={`hover:cursor-pointer ${selectedTask?.id === task.id ? "bg-indigo-100 dark:bg-indigo-900" : ""}`}
+                                                        className={`hover:cursor-pointer ${selectedTaskRaw?.id === task.id ? "bg-indigo-100 dark:bg-indigo-900" : ""}`}
                                                         onClick={() => {
-                                                            setSelectedTask(task);
+                                                            setSelectedTaskRaw(task);
                                                             setModalOpen("taskEdit");
                                                         }}
                                                     >
@@ -476,12 +484,8 @@ export default function Tasks({ taskData }: { taskData: any }) {
             {/* Modals */}
             {modalOpen === "categoryAdd" && (
                 <CategoryAdd
-                    onClose={() => {
-                        setModalOpen(null);
-                        setSelectedTask(null);
-                        setSelectedCategory(null);
-                    }}
-                    onSubmit={handleCategorySubmit}
+                    onClose={closeAll}
+                    onSubmit={handleCategoryAdd}
                     modalError={modalError}
                 />
             )}
@@ -489,12 +493,8 @@ export default function Tasks({ taskData }: { taskData: any }) {
             {modalOpen === "tagAdd" && (
                 <TagAdd
                     categories={categories}
-                    onClose={() => {
-                        setModalOpen(null);
-                        setSelectedTask(null);
-                        setSelectedCategory(null);
-                    }}
-                    onSubmit={handleTagSubmit}
+                    onClose={closeAll}
+                    onSubmit={handleTagAdd}
                     modalError={modalError}
                 />
             )}
@@ -503,39 +503,50 @@ export default function Tasks({ taskData }: { taskData: any }) {
                 <TaskAdd
                     categories={categories}
                     tags={tags}
-                    onClose={() => {
-                        setModalOpen(null);
-                        setSelectedTask(null);
-                        setSelectedCategory(null);
-                    }}
-                    onSubmit={handleTaskSubmit}
+                    onClose={closeAll}
+                    onSubmit={handleTaskAdd}
                     modalError={modalError}
                     preSelectedCategory={selectedCategory}
                 />
             )}
             
-            {modalOpen === "taskEdit" && selectedTask && (
+            {modalOpen === "taskEdit" && selectedTaskRaw && (
                 <TaskEdit
                     categories={categories}
                     tags={tags}
                     modalError={modalError}
-                    onClose={() => {
-                        setModalOpen(null);
-                        setSelectedTask(null);
-                        setSelectedCategory(null);
-                    }}
+                    onClose={closeAll}
                     onSubmit={handleTaskEdit}
                     onDelete={handleTaskDelete}
-                    preSelectedTask={selectedTask}
+                    preSelectedTask={selectedTaskRaw}
                 />
             )}
             
-            {modalOpen === "categoryEdit" && (
-                <CategoryEdit />
+            {modalOpen === "categoryEdit" && selectedCategoryRaw && (
+                <CategoryEdit 
+                    tags={tags}
+                    modalError={modalError}
+                    onClose={closeAll}
+                    onSubmit={handleCategoryEdit}
+                    onDelete={handleCategoryDelete}
+                    preSelectedCategory={selectedCategoryRaw}
+                    onTagEdit={(tagId) => {
+                        const tag = tags.find((t: any) => t.id === tagId);
+                        if (tag) setSelectedTagRaw(tag);
+                        setModalOpen("tagEdit");
+                    }}
+                />
             )}
-            
-            {modalOpen === "tagEdit" && (
+
+            {modalOpen === "tagEdit" && selectedTagRaw && (
                 <TagEdit />
+                    // categories={categories}
+                    // modalError={modalError}
+                    // onClose={closeAll}
+                    // onSubmit={(e) => handleTagEdit(e, selectedTagRaw.id)}
+                    // onClose={closeAll}
+                    // preSelectedTag={selectedTagRaw}
+                // />
             )}
         </div>
     );

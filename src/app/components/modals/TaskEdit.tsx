@@ -149,6 +149,10 @@ export default function TaskEdit({ categories, tags, modalError, onClose, onSubm
                                     className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-3 py-2 pr-10 outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600 [appearance:none]"
                                     value={dueDate}
                                     onChange={(e) => setDueDate(e.target.value)}
+                                    style={{
+                                        WebkitAppearance: "none",
+                                        MozAppearance: "textfield"
+                                    }}
                                 />
                                 <FaRegCalendarAlt
                                     className="absolute right-3 top-1/2 -translate-y-1/2 
@@ -164,6 +168,23 @@ export default function TaskEdit({ categories, tags, modalError, onClose, onSubm
                                         }
                                     }}
                                 />
+                                <style jsx>{`
+                                    input[type="date"]::-webkit-calendar-picker-indicator {
+                                        opacity: 0;
+                                        display: none;
+                                        -webkit-appearance: none;
+                                    }
+
+                                    /* Hide native clear button (optional) */
+                                    input[type="date"]::-webkit-clear-button {
+                                        display: none;
+                                    }
+
+                                    /* Hide in Firefox */
+                                    input[type="date"]::-moz-calendar-picker-indicator {
+                                        display: none;
+                                    }
+                                `}</style>
                             </div>
                         </div>
 

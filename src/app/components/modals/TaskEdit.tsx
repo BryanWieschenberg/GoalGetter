@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { FaRegCalendarAlt } from "react-icons/fa";
 
-type TaskAddProps = {
+type TaskEditProps = {
     categories: any[];
     tags: any[];
     modalError?: string | null;
@@ -13,7 +13,7 @@ type TaskAddProps = {
     preSelectedTask: task;
 };
 
-export default function TaskEdit({ categories, tags, modalError, onClose, onSubmit, onDelete, preSelectedTask }: TaskAddProps) {
+export default function TaskEdit({ categories, tags, modalError, onClose, onSubmit, onDelete, preSelectedTask }: TaskEditProps) {
     const [title, setTitle] = useState<string>(preSelectedTask.title);
     const [description, setDescription] = useState<string>(preSelectedTask.description ? preSelectedTask.description : "");
     const [selectedCategory, setSelectedCategory] = useState<string>(preSelectedTask.category_id);

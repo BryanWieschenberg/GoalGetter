@@ -2,18 +2,19 @@
 
 import { useState } from "react";
 
-type TaskAddProps = {
+type CategoryEditProps = {
     tags: any[];
     modalError?: string | null;
     onClose: () => void;
     onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
     onDelete: (id: number) => void;
     preSelectedCategory: category;
+    onTagAdd?: () => void;
     onTagEdit?: (tagId: number) => void;
     noFade?: boolean
 };
 
-export default function CategoryEdit({ tags, modalError, onClose, onSubmit, onDelete, preSelectedCategory, onTagEdit, noFade }: TaskAddProps) {
+export default function CategoryEdit({ tags, modalError, onClose, onSubmit, onDelete, preSelectedCategory, onTagAdd, onTagEdit, noFade }: CategoryEditProps) {
     const [title, setTitle] = useState<string>(preSelectedCategory.name);
     const [color, setColor] = useState<string>(preSelectedCategory.color ? `#${preSelectedCategory.color}` : "#ffffff");
     const [useCustomColor, setUseCustomColor] = useState<boolean>(!!preSelectedCategory.color);
@@ -120,9 +121,17 @@ export default function CategoryEdit({ tags, modalError, onClose, onSubmit, onDe
                                     onClick={() => onTagEdit && onTagEdit(Number(selectedTag))}
                                     className="hover:cursor-pointer px-3 py-2 text-sm rounded-md bg-amber-400 text-black dark:bg-amber-600 dark:text-white hover:bg-blue-700 active:bg-blue-800"
                                 >
-                                    Edit Tag
+                                    Edit
                                 </button>
                             )}
+
+                            <button
+                                type="button"
+                                onClick={onTagAdd}
+                                className="hover:cursor-pointer px-3 py-2 text-sm rounded-md bg-green-600 text-white hover:bg-green-700 active:bg-green-800"
+                            >
+                                Add
+                            </button>
                         </div>
                     </div>
 

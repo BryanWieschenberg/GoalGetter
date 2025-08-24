@@ -18,6 +18,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
     const [createOpen, setCreateOpen] = useState(false);
     const [modalOpen, setModalOpen] = useState<string | null>(null);
     const [modalError, setModalError] = useState<string | null>(null);
+    const [highlightedBox, setHighlightedBox] = useState<number | null>(null);
     const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
     const [selectedCategoryRaw, setSelectedCategoryRaw] = useState<category | null>(null);
     const [selectedTaskRaw, setSelectedTaskRaw] = useState<task | null>(null);
@@ -33,6 +34,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
         setSelectedTagRaw(null);
         setSelectedTaskRaw(null);
         setModalError(null);
+        setHighlightedBox(null);
     }
 
     useEffect(() => {
@@ -44,12 +46,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
         const onEsc = (e: KeyboardEvent) => {
             if (e.key === "Escape") {
                 setCreateOpen(false);
-                setModalOpen(null);
-                setSelectedCategory(null);
-                setSelectedCategoryRaw(null);
-                setSelectedTagRaw(null);
-                setSelectedTaskRaw(null);
-                setModalError(null);
+                closeAll();
             }
         };
         document.addEventListener("mousedown", onDocClick);
@@ -133,7 +130,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
             setModalError(res_json.error || "An unknown error occurred.");
         } else {
             fetchTagData();
-            setModalOpen(null);
+            setModalOpen(selectedCategory ? "categoryEdit noFade" : null);
             setModalError(null);
         }
     }
@@ -410,7 +407,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
                     return (
                         <section
                             key={cat.id}
-                            className={`mb-4 inline-block min-w-[300px] w-fit rounded-xl border-[.1rem] mr-8 p-4 ${selectedCategory === cat.id ? "bg-zinc-100 dark:bg-zinc-900" : ""}`}
+                            className={`mb-4 inline-block min-w-[300px] w-fit rounded-xl border-[.1rem] mr-8 p-4 ${highlightedBox === cat.id ? "bg-zinc-100 dark:bg-zinc-900" : ""}`}
                             style={{ borderColor: cat.color ? `#${cat.color}` : undefined }}
                         >
                             <h2
@@ -422,6 +419,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
                                 <span
                                     className={`hover:cursor-pointer ${selectedCategoryRaw?.id === cat.id ? "bg-zinc-300 dark:bg-zinc-700" : ""}`}
                                     onClick={() => {
+                                        setSelectedCategory(cat.id);
                                         setSelectedCategoryRaw(cat);
                                         setModalOpen("categoryEdit");
                                     }}
@@ -435,6 +433,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
                                         onClick={() => {
                                             setSelectedCategory(cat.id);
                                             setModalOpen("taskAdd");
+                                            setHighlightedBox(cat.id);
                                         }}
                                     />
                                 )}
@@ -492,12 +491,20 @@ export default function Tasks({ taskData }: { taskData: any }) {
                 />
             )}
             
-            {modalOpen === "tagAdd" && (
+            {modalOpen?.startsWith("tagAdd") && (
                 <TagAdd
                     categories={categories}
                     onClose={closeAll}
                     onSubmit={handleTagAdd}
                     modalError={modalError}
+                    preSelectedCategory={modalOpen.includes("noFade") ? selectedCategory : null}
+                    onCategoryReturn={() => {
+                        if (selectedCategory) {
+                            const category = categories.find((c: any) => c.id === selectedCategory);
+                            if (category) setSelectedCategoryRaw(category);
+                            setModalOpen("categoryEdit noFade");
+                        }
+                    }}
                 />
             )}
             
@@ -532,6 +539,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
                     onSubmit={handleCategoryEdit}
                     onDelete={handleCategoryDelete}
                     preSelectedCategory={selectedCategoryRaw}
+                    onTagAdd={() => setModalOpen("tagAdd noFade")}
                     onTagEdit={(tagId) => {
                         const tag = tags.find((t: any) => t.id === tagId);
                         if (tag) setSelectedTagRaw(tag);

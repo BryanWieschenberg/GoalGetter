@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-type TaskAddProps = {
+type TagEditProps = {
     categories: any[];
     modalError?: string | null;
     onClose: () => void;
@@ -12,7 +12,7 @@ type TaskAddProps = {
     onCategoryReturn?: () => void;
 };
 
-export default function TagEdit({ categories, modalError, onClose, onSubmit, onDelete, preSelectedTag, onCategoryReturn }: TaskAddProps) {
+export default function TagEdit({ categories, modalError, onClose, onSubmit, onDelete, preSelectedTag, onCategoryReturn }: TagEditProps) {
     const [title, setTitle] = useState<string>(preSelectedTag.name);
     const [color, setColor] = useState<string>(preSelectedTag.color ? `#${preSelectedTag.color}` : "#ffffff");
     const [useCustomColor, setUseCustomColor] = useState<boolean>(!!preSelectedTag.color);

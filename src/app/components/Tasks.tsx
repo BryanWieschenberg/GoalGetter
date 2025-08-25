@@ -10,6 +10,9 @@ import TagEdit from "./modals/TagEdit";
 import { formatPgDate, daysUntil, dueColor, getPriorityClasses } from "@/lib/tasksHelper";
 import { FiPlus } from "react-icons/fi";
 import { HiBars3, HiCheck } from "react-icons/hi2";
+import { DndContext, useSensor, useSensors, PointerSensor, DragEndEvent, DragStartEvent, DragOverEvent, DragOverlay, closestCenter } from "@dnd-kit/core";
+import { SortableContext, useSortable, arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 export default function Tasks({ taskData }: { taskData: any }) {
     const [categories, setCategories] = useState(taskData?.task_categories);

@@ -9,6 +9,7 @@ import CategoryEdit from "./modals/CategoryEdit";
 import TagEdit from "./modals/TagEdit";
 import { formatPgDate, daysUntil, dueColor, getPriorityClasses } from "@/lib/tasksHelper";
 import { FiPlus } from "react-icons/fi";
+import { HiBars3, HiCheck } from "react-icons/hi2";
 
 export default function Tasks({ taskData }: { taskData: any }) {
     const [categories, setCategories] = useState(taskData?.task_categories);
@@ -445,10 +446,14 @@ export default function Tasks({ taskData }: { taskData: any }) {
                                         setModalOpen("categoryEdit");
                                     }}
                                 >
-                                    <span className="cursor-move text-lg text-black dark:text-white">⠿ </span>
-                                    <span className={`hover:cursor-pointer ${selectedCategoryRaw?.id === cat.id ? "bg-zinc-300 dark:bg-zinc-700" : ""}`}>
-                                        {cat.name}
-                                    </span>
+                                    <div className="flex items-center w-fit text-black dark:text-white">
+                                        <HiBars3 className="mr-2 text-zinc-400 hover:cursor-grab active:cursor-grabbing" />
+                                        <span
+                                            className={`hover:cursor-pointer ${selectedCategoryRaw?.id === cat.id ? "bg-zinc-300 dark:bg-zinc-700" : ""}`}
+                                        >
+                                            {cat.name}
+                                        </span>
+                                    </div>
                                 </span>
                                 {hoveredCat === cat.id && (
                                     <FiPlus
@@ -483,7 +488,11 @@ export default function Tasks({ taskData }: { taskData: any }) {
                                                         ${getPriorityClasses(task.priority)}
                                                         ${completingTaskIds.includes(task.id) ? "animate-[popSpin_0.6s]" : ""}
                                                     `}
-                                                />
+                                                >
+                                                    {completingTaskIds.includes(task.id) && (
+                                                        <HiCheck className="w-3 h-3 text-emerald-300 dark:text-emerald-700" />
+                                                    )}
+                                                </button>
 
                                                 <div className="flex flex-col items-center w-8 text-xs">
                                                     {task.due_date ? (
@@ -506,7 +515,9 @@ export default function Tasks({ taskData }: { taskData: any }) {
                                                     )}
                                                 </div>
 
-                                                <span className="cursor-move text-lg">⠿</span>
+                                                <span className="flex items-center w-fit">
+                                                    <HiBars3 className="mr-2 text-zinc-400 hover:cursor-grab active:cursor-grabbing" />
+                                                </span>
 
                                                 <h3 className={`whitespace-nowrap text-sm
                                                     ${completingTaskIds.includes(task.id) ? "animate-[confettiBurst_0.7s]" : ""}`}

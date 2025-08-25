@@ -8,9 +8,10 @@ import TaskEdit from "./modals/TaskEdit";
 import CategoryEdit from "./modals/CategoryEdit";
 import TagEdit from "./modals/TagEdit";
 import { formatPgDate, daysUntil, dueColor, getPriorityClasses } from "@/lib/tasksHelper";
-import { FiPlus } from "react-icons/fi";
+import { FiPlus, FiEye, FiSearch } from "react-icons/fi";
 import { HiChevronUp, HiChevronDown } from "react-icons/hi";
-import { HiBars3, HiCheck } from "react-icons/hi2";
+import { HiCheck } from "react-icons/hi2";
+import { LuArrowUpDown } from "react-icons/lu";
 
 export default function Tasks({ taskData }: { taskData: any }) {
     const [categories, setCategories] = useState(taskData?.task_categories);
@@ -408,7 +409,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
                         <button
                             type="button"
                             onClick={() => setCreateOpen((v) => !v)}
-                            className="inline-flex items-center gap-2 rounded-lg text-white bg-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 px-4 py-1.5 font-medium shadow-sm hover:dark:bg-black dark:hover:dark:bg-white active:opacity-80 hover:cursor-pointer"
+                            className="inline-flex items-center gap-2 rounded-lg text-white bg-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 px-4 py-[.46rem] font-medium shadow-sm hover:dark:bg-black dark:hover:dark:bg-white active:opacity-80 hover:cursor-pointer"
                             aria-expanded={createOpen}
                         >
                             <span className="text-lg leading-none font-bold">{'\uFF0B'}</span>
@@ -457,23 +458,23 @@ export default function Tasks({ taskData }: { taskData: any }) {
 
                     <button
                         type="button"
-                        className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 bg-white/70 dark:bg-black/20 hover:bg-zinc-200 dark:hover:bg-zinc-800"
+                        className="hover:cursor-pointer inline-flex items-center gap-2 rounded-lg px-3 py-3 text-sm ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 bg-white/70 dark:bg-black/20 hover:bg-zinc-200 dark:hover:bg-zinc-800"
                     >
-                        ⇅
+                        <LuArrowUpDown className="w-4 h-4" />
                     </button>
 
                     <button
                         type="button"
-                        className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 bg-white/70 dark:bg-black/20 hover:bg-zinc-200 dark:hover:bg-zinc-800"
+                        className="hover:cursor-pointer inline-flex items-center gap-2 rounded-lg px-3 py-3 text-sm ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 bg-white/70 dark:bg-black/20 hover:bg-zinc-200 dark:hover:bg-zinc-800"
                         aria-label="Toggle view"
                         title="Toggle view"
                     >
-                        👁️
+                        <FiEye className="w-4 h-4" />
                     </button>
 
                     <div className="relative flex-1 min-w-[20px] max-w-[200px]">
                         <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-zinc-400">
-                            🔍
+                            <FiSearch className="w-4 h-4" />
                         </span>
                         <input
                             type="text"

@@ -11,7 +11,7 @@ export async function GET() {
     
     try {
         const tasks = await pool.query(
-            `SELECT t.*
+            `SELECT t.id, t.title, t.description, t.category_id, t.tag_id, t.priority, t.sort_order, t.due_date::date::text AS due_date
             FROM tasks t
             JOIN task_categories tc ON t.category_id = tc.id
             WHERE tc.user_id = $1

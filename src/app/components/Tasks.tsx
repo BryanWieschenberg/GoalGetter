@@ -7,6 +7,7 @@ import TagAdd from "./modals/TagAdd";
 import TaskEdit from "./modals/TaskEdit";
 import CategoryEdit from "./modals/CategoryEdit";
 import TagEdit from "./modals/TagEdit";
+import { formatPgDate, daysUntil, dueColor, getPriorityClasses } from "@/lib/tasksHelper";
 import { FiPlus } from "react-icons/fi";
 
 export default function Tasks({ taskData }: { taskData: any }) {
@@ -23,6 +24,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
     const [selectedCategoryRaw, setSelectedCategoryRaw] = useState<category | null>(null);
     const [selectedTaskRaw, setSelectedTaskRaw] = useState<task | null>(null);
     const [selectedTagRaw, setSelectedTagRaw] = useState<tag | null>(null);
+    const [completingTaskIds, setCompletingTaskIds] = useState<number[]>([]);
 
     const tagById = (id?: number) =>
         tags.find((t: any) => t.id === id);
@@ -163,6 +165,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
             setModalOpen(null);
             setModalError(null);
             setSelectedCategory(null);
+            setHighlightedBox(null);
         }
     }
 
@@ -314,10 +317,29 @@ export default function Tasks({ taskData }: { taskData: any }) {
         }
     }
 
+    async function handleCompleteTask(id: number) {
+        setCompletingTaskIds(prev => [...prev, id]);
+
+        setTimeout(async () => {
+            const res = await fetch(`/api/user/tasks/tasks?id=${id}`, {
+                method: "DELETE"
+            });
+
+            if (!res.ok) {
+                const res_json = await res.json();
+                setModalError(res_json.error || "An unknown error occurred.");
+                setCompletingTaskIds(prev => prev.filter(tid => tid !== id));
+            } else {
+                fetchTaskData();
+                setModalError(null);
+            }
+        }, 300);
+    }
+
     return (
         <div>
             {/* Top Section */}
-            <div className="border-b-2 border-zinc-300 dark:border-zinc-700 px-3 py-2">
+            <div className="border-b-2 border-zinc-300 dark:border-zinc-700 px-3 py-2 mb-1">
                 <div className="flex flex-wrap items-center gap-2">
                     <div ref={createRef} className="relative">
                         <button
@@ -400,14 +422,14 @@ export default function Tasks({ taskData }: { taskData: any }) {
             </div>
 
             {/* Tasks */}
-            <div className="p-3">
+            <div className="p-1.5">
                 {categories.map((cat: any) => {
                     // Get all categories
                     const catTasks = tasks.filter((t: any) => t.category_id === cat.id);
                     return (
                         <section
                             key={cat.id}
-                            className={`mb-4 inline-block min-w-[300px] w-fit rounded-xl border-[.1rem] mr-8 p-4 ${highlightedBox === cat.id ? "bg-zinc-100 dark:bg-zinc-900" : ""}`}
+                            className={`mb-3 inline-block min-w-[300px] w-fit rounded-xl border-[.1rem] mr-1.5 p-4 ${highlightedBox === cat.id ? "bg-zinc-100 dark:bg-zinc-900" : ""}`}
                             style={{ borderColor: cat.color ? `#${cat.color}` : undefined }}
                         >
                             <h2
@@ -417,14 +439,16 @@ export default function Tasks({ taskData }: { taskData: any }) {
                                 onMouseLeave={() => setHoveredCat(null)}
                             >
                                 <span
-                                    className={`hover:cursor-pointer ${selectedCategoryRaw?.id === cat.id ? "bg-zinc-300 dark:bg-zinc-700" : ""}`}
                                     onClick={() => {
                                         setSelectedCategory(cat.id);
                                         setSelectedCategoryRaw(cat);
                                         setModalOpen("categoryEdit");
                                     }}
                                 >
-                                    {cat.name}
+                                    <span className="cursor-move text-lg text-black dark:text-white">⠿ </span>
+                                    <span className={`hover:cursor-pointer ${selectedCategoryRaw?.id === cat.id ? "bg-zinc-300 dark:bg-zinc-700" : ""}`}>
+                                        {cat.name}
+                                    </span>
                                 </span>
                                 {hoveredCat === cat.id && (
                                     <FiPlus
@@ -449,12 +473,43 @@ export default function Tasks({ taskData }: { taskData: any }) {
                                         return (
                                             <li
                                                 key={task.id}
-                                                className="flex items-center w-fit"
+                                                className={`flex items-center gap-1.5 transition-all duration-700
+                                                    ${completingTaskIds.includes(task.id) ? "opacity-0 translate-x-10" : "opacity-100 translate-x-0"}`}
                                                 style={{ borderColor: cat.color ? `#${cat.color}` : undefined }}
                                             >
-                                                <h3
-                                                    className="whitespace-nowrap text-sm"
-                                                    style={{ color: tag?.color ? `#${tag.color}` : undefined }}
+                                                <button
+                                                    onClick={() => handleCompleteTask(task.id)}
+                                                    className={`h-5 w-5 rounded-full border-[.14rem] border-current flex-shrink-0 hover:cursor-pointer transition
+                                                        ${getPriorityClasses(task.priority)}
+                                                        ${completingTaskIds.includes(task.id) ? "animate-[popSpin_0.6s]" : ""}
+                                                    `}
+                                                />
+
+                                                <div className="flex flex-col items-center w-8 text-xs">
+                                                    {task.due_date ? (
+                                                        <>
+                                                            <span className={`font-semibold leading-none ${dueColor(daysUntil(task.due_date))}`}>
+                                                                {daysUntil(task.due_date) ?? ""}
+                                                            </span>
+                                                            <span>
+                                                                {task.due_date
+                                                                    ? formatPgDate(task.due_date)
+                                                                    : ""
+                                                                }
+                                                            </span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <span className="text-xs text-transparent leading-none">--</span>
+                                                            <span className="text-xs text-transparent leading-none">--</span>
+                                                        </>
+                                                    )}
+                                                </div>
+
+                                                <span className="cursor-move text-lg">⠿</span>
+
+                                                <h3 className={`whitespace-nowrap text-sm
+                                                    ${completingTaskIds.includes(task.id) ? "animate-[confettiBurst_0.7s]" : ""}`}
                                                 >
                                                     <span
                                                         className={`hover:cursor-pointer ${selectedTaskRaw?.id === task.id ? "bg-zinc-300 dark:bg-zinc-700" : ""}`}
@@ -463,11 +518,13 @@ export default function Tasks({ taskData }: { taskData: any }) {
                                                             setModalOpen("taskEdit");
                                                         }}
                                                     >
+                                                        <span style={{ color: tag?.color ? `#${tag.color}` : undefined }}>
+                                                            {tag ? `[${tag.name}] ` : ""}
+                                                        </span>
                                                         {task.title}
                                                     </span>
-                                                    
                                                     {task.description && (
-                                                        <span className="ml-3 text-zinc-400">
+                                                        <span className="ml-2 text-zinc-400">
                                                             {task.description}
                                                         </span>
                                                     )}

@@ -1,13 +1,20 @@
 export function formatPgDate(dateStr: string) {
-    const [y, m, d] = dateStr.split("-").map(Number);
+    const [_, m, d] = dateStr.split("-").map(Number);
     return `${m}/${d}`;
 }
 
 export function daysUntil(dateStr?: string | null) {
     if (!dateStr) return null;
-    const ms = new Date(dateStr).getTime();
-    if (isNaN(ms)) return null;
-    return Math.ceil((ms - Date.now()) / (1000 * 60 * 60 * 24)) + 1;
+
+    const due = new Date(dateStr);
+    if (isNaN(due.getTime())) return null;
+
+    const dueMidnight = new Date(due.getFullYear(), due.getMonth(), due.getDate());
+    const today = new Date();
+    const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+    const diff = dueMidnight.getTime() - todayMidnight.getTime();
+    return Math.floor(diff / (1000 * 60 * 60 * 24)) + 1;
 }
 
 export function dueColor(days: number | null): string {

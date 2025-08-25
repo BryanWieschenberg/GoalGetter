@@ -9,10 +9,8 @@ import CategoryEdit from "./modals/CategoryEdit";
 import TagEdit from "./modals/TagEdit";
 import { formatPgDate, daysUntil, dueColor, getPriorityClasses } from "@/lib/tasksHelper";
 import { FiPlus } from "react-icons/fi";
+import { HiChevronUp, HiChevronDown } from "react-icons/hi";
 import { HiBars3, HiCheck } from "react-icons/hi2";
-import { DndContext, useSensor, useSensors, PointerSensor, DragEndEvent, DragStartEvent, DragOverEvent, DragOverlay, closestCenter } from "@dnd-kit/core";
-import { SortableContext, useSortable, arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 
 export default function Tasks({ taskData }: { taskData: any }) {
     const [categories, setCategories] = useState(taskData?.task_categories);
@@ -29,6 +27,8 @@ export default function Tasks({ taskData }: { taskData: any }) {
     const [selectedTaskRaw, setSelectedTaskRaw] = useState<task | null>(null);
     const [selectedTagRaw, setSelectedTagRaw] = useState<tag | null>(null);
     const [completingTaskIds, setCompletingTaskIds] = useState<number[]>([]);
+    const [isReorderingTask, setIsReorderingTask] = useState(false);
+    const [isReorderingCategory, setIsReorderingCategory] = useState(false);
 
     const tagById = (id?: number) =>
         tags.find((t: any) => t.id === id);
@@ -49,18 +49,27 @@ export default function Tasks({ taskData }: { taskData: any }) {
                 setCreateOpen(false);
             }
         };
-        const onEsc = (e: KeyboardEvent) => {
+        const onKeydown = (e: KeyboardEvent) => {
             if (e.key === "Escape") {
                 setCreateOpen(false);
                 closeAll();
+            } else if (e.key === "t") {
+                setCreateOpen(false);
+                setModalOpen("taskAdd");
+            } else if (e.key === "c") {
+                setCreateOpen(false);
+                setModalOpen("categoryAdd");
+            } else if (e.key === "g") {
+                setCreateOpen(false);
+                setModalOpen("tagAdd");
             }
         };
         document.addEventListener("mousedown", onDocClick);
-        document.addEventListener("keydown", onEsc);
+        document.addEventListener("keydown", onKeydown);
         
         return () => {
             document.removeEventListener("mousedown", onDocClick);
-            document.removeEventListener("keydown", onEsc);
+            document.removeEventListener("keydown", onKeydown);
         };
     }, []);
 
@@ -340,6 +349,56 @@ export default function Tasks({ taskData }: { taskData: any }) {
         }, 300);
     }
 
+    async function handleReorderTask(id: number, direction: "up" | "down") {
+        if (isReorderingTask) return;
+        setIsReorderingTask(true);
+
+        try {
+            const res = await fetch("/api/user/tasks/tasks/reorder", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ task_id: id, direction })
+            });
+
+            if (!res.ok) {
+                const msg = await res.json().catch(() => ({}));
+                setModalError(msg.error || "An unknown error occurred.");
+                return;
+            }
+
+            fetchTaskData();
+        } catch (err) {
+            setModalError("Network error while reordering.");
+        } finally {
+            setIsReorderingTask(false);
+        }
+    }
+
+    async function handleReorderCategory(id: number, direction: "up" | "down") {
+        if (isReorderingCategory) return;
+        setIsReorderingCategory(true);
+
+        try {
+            const res = await fetch("/api/user/tasks/categories/reorder", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ category_id: id, direction })
+            });
+
+            if (!res.ok) {
+                const msg = await res.json().catch(() => ({}));
+                setModalError(msg.error || "An unknown error occurred.");
+                return;
+            }
+
+            fetchCategoryData();
+        } catch (err) {
+            setModalError("Network error while reordering category.");
+        } finally {
+            setIsReorderingCategory(false);
+        }
+    }
+
     return (
         <div>
             {/* Top Section */}
@@ -442,22 +501,29 @@ export default function Tasks({ taskData }: { taskData: any }) {
                                 onMouseEnter={() => setHoveredCat(cat.id)}
                                 onMouseLeave={() => setHoveredCat(null)}
                             >
-                                <span
-                                    onClick={() => {
-                                        setSelectedCategory(cat.id);
-                                        setSelectedCategoryRaw(cat);
-                                        setModalOpen("categoryEdit");
-                                    }}
-                                >
-                                    <div className="flex items-center w-fit text-black dark:text-white">
-                                        <HiBars3 className="mr-2 text-zinc-400 hover:cursor-grab active:cursor-grabbing" />
-                                        <span
-                                            className={`hover:cursor-pointer ${selectedCategoryRaw?.id === cat.id ? "bg-zinc-300 dark:bg-zinc-700" : ""}`}
-                                        >
-                                            {cat.name}
-                                        </span>
+                                <div className="flex items-center w-fit text-black dark:text-white">
+                                    <div className="flex flex-col items-center mr-2 leading-none">
+                                        <HiChevronUp
+                                            className="text-zinc-400 hover:text-black dark:text-zinc-600 dark:hover:text-white hover:cursor-pointer -mb-[.1rem]"
+                                            onClick={() => !isReorderingCategory && handleReorderCategory(cat.id, "up")}
+                                        />
+                                        <HiChevronDown
+                                            className="text-zinc-400 hover:text-black dark:text-zinc-600 dark:hover:text-white hover:cursor-pointer -mt-[.1rem]"
+                                            onClick={() => !isReorderingCategory && handleReorderCategory(cat.id, "down")}
+                                        />
                                     </div>
-                                </span>
+
+                                    <span
+                                        className={`hover:cursor-pointer ${selectedCategoryRaw?.id === cat.id ? "bg-zinc-300 dark:bg-zinc-700" : ""}`}
+                                        onClick={() => {
+                                            setSelectedCategory(cat.id);
+                                            setSelectedCategoryRaw(cat);
+                                            setModalOpen("categoryEdit");
+                                        }}
+                                    >
+                                        {cat.name}
+                                    </span>
+                                </div>
                                 {hoveredCat === cat.id && (
                                     <FiPlus
                                         className="hover:cursor-pointer"
@@ -512,15 +578,22 @@ export default function Tasks({ taskData }: { taskData: any }) {
                                                         </>
                                                     ) : (
                                                         <>
-                                                            <span className="text-xs text-transparent leading-none">--</span>
-                                                            <span className="text-xs text-transparent leading-none">--</span>
+                                                            <span className="text-xs text-transparent leading-none select-none">--</span>
+                                                            <span className="text-xs text-transparent leading-none select-none">--</span>
                                                         </>
                                                     )}
                                                 </div>
 
-                                                <span className="flex items-center w-fit">
-                                                    <HiBars3 className="mr-2 text-zinc-400 hover:cursor-grab active:cursor-grabbing" />
-                                                </span>
+                                                <div className="flex flex-col items-center mr-2">
+                                                    <HiChevronUp
+                                                        className="text-zinc-400 hover:text-black dark:text-zinc-600 dark:hover:text-white hover:cursor-pointer"
+                                                        onClick={() => !isReorderingTask && handleReorderTask(task.id, "up")}
+                                                    />
+                                                    <HiChevronDown
+                                                        className="text-zinc-400 hover:text-black dark:text-zinc-600 dark:hover:text-white hover:cursor-pointer"
+                                                        onClick={() => !isReorderingTask && handleReorderTask(task.id, "down")}
+                                                    />
+                                                </div>
 
                                                 <h3 className={`whitespace-nowrap text-sm
                                                     ${completingTaskIds.includes(task.id) ? "animate-[confettiBurst_0.7s]" : ""}`}

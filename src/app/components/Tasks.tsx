@@ -32,12 +32,11 @@ export default function Tasks({ taskData }: { taskData: any }) {
     const [sortMode, setSortMode] = useState<"orderAsc" | "orderDesc" | "dueAsc" | "dueDesc" | "priorityAsc" | "priorityDesc">("orderAsc");
     const [sortOpen, setSortOpen] = useState(false);
     const [filterOpen, setFilterOpen] = useState(false);
-    const [visibleCategories, setVisibleCategories] = useState<number[]>(
-        taskData?.task_categories?.map((c: any) => c.id) ?? []
-    );
+    const [visibleCategories, setVisibleCategories] = useState<number[]>(taskData?.task_categories?.map((c: any) => c.id) ?? []);
     const [visibleTags, setVisibleTags] = useState<number[]>([]);
-    const [visiblePriorities, setVisiblePriorities] = useState<string[]>([]);
-    const [dueFilter, setDueFilter] = useState<"all" | "today" | "week" | "overdue" | "none">("all");
+    const allPriorities = ["low", "normal", "high", "urgent"];
+    const [visiblePriorities, setVisiblePriorities] = useState<string[]>(allPriorities);
+    const [dueFilter, setDueFilter] = useState<"all" | "tomorrow" | "week" | "none">("all");
 
     const createRef = useRef<HTMLDivElement | null>(null);
     const sortRef = useRef<HTMLDivElement | null>(null);
@@ -542,8 +541,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
                         {filterOpen && (
                             <div
                                 role="menu"
-                                className="absolute z-50 mt-2 w-60 rounded-lg border border-zinc-300/70 dark:border-zinc-700/70 
-                                        bg-white dark:bg-zinc-900 shadow-lg p-2 flex flex-col gap-1"
+                                className="absolute z-50 mt-2 w-60 rounded-lg border border-zinc-300/70 dark:border-zinc-700/70 bg-white dark:bg-zinc-900 shadow-lg p-2 flex flex-col gap-1"
                             >
                                 <span className="px-2 text-xs text-zinc-500">Categories</span>
                                 {categories.map((cat: category) => (
@@ -564,7 +562,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
                                 ))}
 
                                 <span className="px-2 mt-2 text-xs text-zinc-500">Priority</span>
-                                {["Low", "Normal", "High", "Urgent"].map(p => (
+                                {allPriorities.map(p => (
                                     <label key={p} className="flex items-center gap-2 px-2 py-1 text-sm">
                                         <input
                                             type="checkbox"
@@ -577,22 +575,21 @@ export default function Tasks({ taskData }: { taskData: any }) {
                                                 );
                                             }}
                                         />
-                                        {p}
+                                        {p.charAt(0).toUpperCase() + p.slice(1)}
                                     </label>
                                 ))}
 
                                 <span className="px-2 mt-2 text-xs text-zinc-500">Due Date</span>
-                                {["all", "today", "week", "overdue", "none"].map(opt => (
+                                {["all", "tomorrow", "week", "none"].map(opt => (
                                     <button
                                         key={opt}
-                                        className={`px-2 py-1 text-sm text-left rounded 
+                                        className={`px-2 py-1 text-sm text-left 
                                             ${dueFilter === opt ? "bg-zinc-200 dark:bg-zinc-700" : "hover:bg-zinc-100 dark:hover:bg-zinc-800"}`}
                                         onClick={() => setDueFilter(opt as typeof dueFilter)}
                                     >
                                         {opt === "all" ? "All" :
-                                        opt === "today" ? "Today" :
+                                        opt === "tomorrow" ? "Tomorrow" :
                                         opt === "week" ? "This Week" :
-                                        opt === "overdue" ? "Overdue" :
                                         "No Due Date"}
                                     </button>
                                 ))}
@@ -616,32 +613,29 @@ export default function Tasks({ taskData }: { taskData: any }) {
             {/* Tasks */}
             <div className="p-1.5">
                 {categories
-                    .filter((cat: category) => 
-                        visibleCategories.length === 0 || visibleCategories.includes(cat.id)
-                    )
+                    .filter((cat: category) => {
+                        if (visibleCategories.length === 0) return false;
+                        return visibleCategories.includes(cat.id);
+                    })
                     .map((cat: category) =>
                 {
                     // Get all categories
                     let catTasks = tasks
                         .filter((t: any) => t.category_id === cat.id)
                         .filter((t: any) => {
-                            if (visibleTags.length > 0 && !visibleTags.includes(t.tag_id)) return false;
-                            if (visiblePriorities.length > 0 && !visiblePriorities.includes(t.priority)) return false;
+                            if (visiblePriorities.length === 0) return false;
+                            if (!visiblePriorities.includes(t.priority)) return false;
 
-                            if (dueFilter === "today") {
-                                const today = new Date().toDateString();
-                                if (!t.due_date || new Date(t.due_date).toDateString() !== today) return false;
+                            const days = t.due_date ? daysUntil(t.due_date) : null;
+
+                            if (dueFilter === "tomorrow") {
+                                if (days === null) return true;
+                                if (days > 1) return false;
                             } else if (dueFilter === "week") {
-                                const now = new Date();
-                                const oneWeek = new Date();
-                                oneWeek.setDate(now.getDate() + 7);
-                                if (!t.due_date) return false;
-                                const d = new Date(t.due_date);
-                                if (d < now || d > oneWeek) return false;
-                            } else if (dueFilter === "overdue") {
-                                if (!t.due_date || new Date(t.due_date) >= new Date()) return false;
+                                if (days === null) return true;
+                                if (days > 7) return false;
                             } else if (dueFilter === "none") {
-                                if (t.due_date) return false;
+                                if (days !== null) return false;
                             }
 
                             return true;

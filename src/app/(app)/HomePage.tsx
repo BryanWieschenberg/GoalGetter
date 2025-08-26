@@ -76,7 +76,7 @@ export default function HomePage({ body, startWeek }: { body: any, startWeek: an
                         />
                     ) : (
                         <Calendar
-                            eventData={{
+                            calendarData={{
                                 event_categories: body.event_categories,
                                 events: body.events,
                                 tasks: body.tasks
@@ -117,7 +117,7 @@ export default function HomePage({ body, startWeek }: { body: any, startWeek: an
 
                     <div className="flex-1 overflow-y-auto">
                         <Calendar
-                            eventData={{
+                            calendarData={{
                                 event_categories: body.event_categories,
                                 events: body.events,
                                 tasks: body.tasks

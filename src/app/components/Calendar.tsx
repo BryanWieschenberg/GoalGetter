@@ -10,7 +10,8 @@ type calendarData = {
     tasks: task[];
 };
 
-export default function Calendar({ eventData, startWeekPreference }: { eventData: calendarData, startWeekPreference: number }) {
+export default function Calendar({ calendarData, startWeekPreference }: { calendarData: calendarData, startWeekPreference: number }) {
+    console.log(calendarData)
     const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), startWeekPreference));
 
     const hours = useMemo(() => Array.from({ length: 24 }, (_, i) => i), []);
@@ -24,7 +25,7 @@ export default function Calendar({ eventData, startWeekPreference }: { eventData
         for (const day of weekDays) {
             map[key(day)] = [];
         }
-        for (const ev of (eventData?.events ?? [])) {
+        for (const ev of (calendarData?.events ?? [])) {
             const segs = splitEventByDay(ev, weekStart, addDays(weekStart, 7));
             for (const seg of segs) {
                 const k = key(seg.day);
@@ -35,7 +36,7 @@ export default function Calendar({ eventData, startWeekPreference }: { eventData
             map[k].sort((a, b) => a.startMinutes - b.startMinutes);
         }
         return map;
-    }, [eventData?.events, weekDays, weekStart]);
+    }, [calendarData?.events, weekDays, weekStart]);
 
     const goPrev = () => setWeekStart(addDays(weekStart, -7));
     const goNext = () => setWeekStart(addDays(weekStart, 7));

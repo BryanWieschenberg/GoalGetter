@@ -47,13 +47,18 @@ export default async function Home() {
                             'color', e.color,
                             'all_day', e.all_day,
                             'recurrence', (
-                                SELECT er FROM event_recurrence er
+                                SELECT json_build_object(
+                                    'frequency', er.frequency,
+                                    'interval', er.interval,
+                                    'weekly', er.weekly,
+                                    'monthly', er.monthly,
+                                    'monthly_days', er.monthly_days,
+                                    'count', er.count,
+                                    'until', er.until,
+                                    'exceptions', er.exceptions
+                                )
+                                FROM event_recurrence er
                                 WHERE er.event_id = e.id
-                            ),
-                            'exceptions', (
-                                SELECT COALESCE(json_agg(ex.exception_date), '[]'::json)
-                                FROM event_exceptions ex
-                                WHERE ex.event_id = e.id
                             )
                         )
                         ORDER BY e.start_time

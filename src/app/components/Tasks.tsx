@@ -18,7 +18,6 @@ export default function Tasks({ taskData }: { taskData: any }) {
     const [tags, setTags] = useState(taskData?.task_tags);
     const [tasks, setTasks] = useState(taskData?.tasks);
     const [hoveredCat, setHoveredCat] = useState<number | null>(null);
-    const createRef = useRef<HTMLDivElement | null>(null);
     const [createOpen, setCreateOpen] = useState(false);
     const [modalOpen, setModalOpen] = useState<string | null>(null);
     const [modalError, setModalError] = useState<string | null>(null);
@@ -30,9 +29,18 @@ export default function Tasks({ taskData }: { taskData: any }) {
     const [completingTaskIds, setCompletingTaskIds] = useState<number[]>([]);
     const [isReorderingTask, setIsReorderingTask] = useState(false);
     const [isReorderingCategory, setIsReorderingCategory] = useState(false);
+    const [sortMode, setSortMode] = useState<"orderAsc" | "orderDesc" | "dueAsc" | "dueDesc" | "priorityAsc" | "priorityDesc">("orderAsc");
+    const [sortOpen, setSortOpen] = useState(false);
+    const [filterOpen, setFilterOpen] = useState(false);
+
+    const createRef = useRef<HTMLDivElement | null>(null);
+    const sortRef = useRef<HTMLDivElement | null>(null);
+    const filterRef = useRef<HTMLDivElement | null>(null);
 
     const tagById = (id?: number) =>
         tags.find((t: any) => t.id === id);
+
+    const priorityRank: Record<string, number> = { urgent: 3, high: 2, normal: 1, low: 0 };
 
     const closeAll = () => {
         setModalOpen(null);
@@ -49,19 +57,33 @@ export default function Tasks({ taskData }: { taskData: any }) {
             if (createRef.current && !createRef.current.contains(e.target as Node)) {
                 setCreateOpen(false);
             }
+            if (sortRef.current && !sortRef.current.contains(e.target as Node)) {
+                setSortOpen(false);
+            }
+            if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+                setFilterOpen(false);
+            }
         };
         const onKeydown = (e: KeyboardEvent) => {
             if (e.key === "Escape") {
                 setCreateOpen(false);
+                setSortOpen(false);
+                setFilterOpen(false);
                 closeAll();
             } else if (e.key === "t") {
                 setCreateOpen(false);
+                setSortOpen(false);
+                setFilterOpen(false);
                 setModalOpen("taskAdd");
             } else if (e.key === "c") {
                 setCreateOpen(false);
+                setSortOpen(false);
+                setFilterOpen(false);
                 setModalOpen("categoryAdd");
             } else if (e.key === "g") {
                 setCreateOpen(false);
+                setSortOpen(false);
+                setFilterOpen(false);
                 setModalOpen("tagAdd");
             }
         };
@@ -456,12 +478,48 @@ export default function Tasks({ taskData }: { taskData: any }) {
                         )}
                     </div>
 
-                    <button
-                        type="button"
-                        className="hover:cursor-pointer inline-flex items-center gap-2 rounded-lg px-3 py-3 text-sm ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 bg-white/70 dark:bg-black/20 hover:bg-zinc-200 dark:hover:bg-zinc-800"
-                    >
-                        <LuArrowUpDown className="w-4 h-4" />
-                    </button>
+                    <div ref={sortRef} className="relative">
+                        <button
+                            type="button"
+                            onClick={() => setSortOpen(v => !v)}
+                            className="hover:cursor-pointer inline-flex items-center gap-2 rounded-lg px-3 py-3 text-sm ring-1 ring-inset 
+                                    ring-zinc-300/70 dark:ring-zinc-700/70 bg-white/70 dark:bg-black/20 hover:bg-zinc-200 dark:hover:bg-zinc-800"
+                        >
+                            <LuArrowUpDown className="w-4 h-4" />
+                        </button>
+
+                        {sortOpen && (
+                            <div
+                                role="menu"
+                                className="absolute z-50 mt-2 w-44 overflow-hidden rounded-lg border border-zinc-300/70 dark:border-zinc-700/70 
+                                        bg-white dark:bg-zinc-900 shadow-lg"
+                            >
+                                {[
+                                    { key: "orderAsc", label: "Sort Order (Asc)" },
+                                    { key: "orderDesc", label: "Sort Order (Des)" },
+                                    { key: "dueAsc", label: "Due Date (Asc)" },
+                                    { key: "dueDesc", label: "Due Date (Des)" },
+                                    { key: "priorityAsc", label: "Priority (Asc)" },
+                                    { key: "priorityDesc", label: "Priority (Des)" },
+                                ].map(opt => (
+                                    <button
+                                        key={opt.key}
+                                        role="menuitem"
+                                        className={`w-full text-left px-3 py-2 text-sm 
+                                            ${sortMode === opt.key ? "bg-zinc-700" : "hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:cursor-pointer"}`}
+                                        onClick={() => {
+                                            if (sortMode !== opt.key) {
+                                                setSortMode(opt.key as typeof sortMode);
+                                                setSortOpen(false);
+                                            }
+                                        }}
+                                    >
+                                        {opt.label}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
 
                     <button
                         type="button"
@@ -489,7 +547,30 @@ export default function Tasks({ taskData }: { taskData: any }) {
             <div className="p-1.5">
                 {categories.map((cat: any) => {
                     // Get all categories
-                    const catTasks = tasks.filter((t: any) => t.category_id === cat.id);
+                    let catTasks = tasks.filter((t: any) => t.category_id === cat.id);
+
+                    catTasks = [...catTasks].sort((a, b) => {
+                        if (sortMode === "dueAsc") {
+                            if (!a.due_date && !b.due_date) return 0;
+                            if (!a.due_date) return 1;
+                            if (!b.due_date) return -1;
+                            return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+                        }
+                        if (sortMode === "dueDesc") {
+                            if (!a.due_date && !b.due_date) return 0;
+                            if (!a.due_date) return -1;
+                            if (!b.due_date) return 1;
+                            return new Date(b.due_date).getTime() - new Date(a.due_date).getTime();
+                        }
+                        else if (sortMode === "priorityAsc")
+                            return (priorityRank[a.priority] ?? 0) - (priorityRank[b.priority] ?? 0);
+                        else if (sortMode === "priorityDesc")
+                            return (priorityRank[b.priority] ?? 0) - (priorityRank[a.priority] ?? 0);
+                        else if (sortMode === "orderDesc")
+                            return (b.sort_order ?? 0) - (a.sort_order ?? 0);
+                        else return 0;
+                    });
+
                     return (
                         <section
                             key={cat.id}
@@ -516,6 +597,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
 
                                     <span
                                         className={`hover:cursor-pointer ${selectedCategoryRaw?.id === cat.id ? "bg-zinc-300 dark:bg-zinc-700" : ""}`}
+                                        style={{ color: cat.color ? `#${cat.color}` : undefined }}
                                         onClick={() => {
                                             setSelectedCategory(cat.id);
                                             setSelectedCategoryRaw(cat);
@@ -571,10 +653,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
                                                                 {daysUntil(task.due_date) ?? ""}
                                                             </span>
                                                             <span>
-                                                                {task.due_date
-                                                                    ? formatPgDate(task.due_date)
-                                                                    : ""
-                                                                }
+                                                                {task.due_date ? formatPgDate(task.due_date) : ""}
                                                             </span>
                                                         </>
                                                     ) : (
@@ -587,12 +666,30 @@ export default function Tasks({ taskData }: { taskData: any }) {
 
                                                 <div className="flex flex-col items-center mr-2">
                                                     <HiChevronUp
-                                                        className="text-zinc-400 hover:text-black dark:text-zinc-600 dark:hover:text-white hover:cursor-pointer"
-                                                        onClick={() => !isReorderingTask && handleReorderTask(task.id, "up")}
+                                                        className={`text-zinc-400 dark:text-zinc-600 hover:cursor-pointer ${
+                                                            sortMode === "orderAsc" || sortMode === "orderDesc"
+                                                                ? "hover:text-black dark:hover:text-white"
+                                                                : "opacity-0 pointer-events-none"
+                                                        }`}
+                                                        onClick={() => {
+                                                            if (!isReorderingTask && (sortMode === "orderAsc" || sortMode === "orderDesc")) {
+                                                                const dir = sortMode === "orderDesc" ? "down" : "up";
+                                                                handleReorderTask(task.id, dir);
+                                                            }
+                                                        }}
                                                     />
                                                     <HiChevronDown
-                                                        className="text-zinc-400 hover:text-black dark:text-zinc-600 dark:hover:text-white hover:cursor-pointer"
-                                                        onClick={() => !isReorderingTask && handleReorderTask(task.id, "down")}
+                                                        className={`text-zinc-400 dark:text-zinc-600 hover:cursor-pointer ${
+                                                            sortMode === "orderAsc" || sortMode === "orderDesc"
+                                                                ? "hover:text-black dark:hover:text-white"
+                                                                : "opacity-0 pointer-events-none"
+                                                        }`}
+                                                        onClick={() => {
+                                                            if (!isReorderingTask && (sortMode === "orderAsc" || sortMode === "orderDesc")) {
+                                                                const dir = sortMode === "orderDesc" ? "up" : "down";
+                                                                handleReorderTask(task.id, dir);
+                                                            }
+                                                        }}
                                                     />
                                                 </div>
 

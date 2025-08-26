@@ -13,7 +13,13 @@ import { HiChevronUp, HiChevronDown } from "react-icons/hi";
 import { HiCheck } from "react-icons/hi2";
 import { LuArrowUpDown } from "react-icons/lu";
 
-export default function Tasks({ taskData }: { taskData: any }) {
+type taskData = {
+    task_categories: task_category[];
+    task_tags: tag[];
+    tasks: task[];
+};
+
+export default function Tasks({ taskData }: { taskData: taskData }) {
     const [categories, setCategories] = useState(taskData?.task_categories);
     const [tags, setTags] = useState(taskData?.task_tags);
     const [tasks, setTasks] = useState(taskData?.tasks);
@@ -23,7 +29,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
     const [modalError, setModalError] = useState<string | null>(null);
     const [highlightedBox, setHighlightedBox] = useState<number | null>(null);
     const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
-    const [selectedCategoryRaw, setSelectedCategoryRaw] = useState<category | null>(null);
+    const [selectedCategoryRaw, setSelectedCategoryRaw] = useState<task_category | null>(null);
     const [selectedTaskRaw, setSelectedTaskRaw] = useState<task | null>(null);
     const [selectedTagRaw, setSelectedTagRaw] = useState<tag | null>(null);
     const [completingTaskIds, setCompletingTaskIds] = useState<number[]>([]);
@@ -33,7 +39,6 @@ export default function Tasks({ taskData }: { taskData: any }) {
     const [sortOpen, setSortOpen] = useState(false);
     const [filterOpen, setFilterOpen] = useState(false);
     const [visibleCategories, setVisibleCategories] = useState<number[]>(taskData?.task_categories?.map((c: any) => c.id) ?? []);
-    const [visibleTags, setVisibleTags] = useState<number[]>([]);
     const allPriorities = ["low", "normal", "high", "urgent"];
     const [visiblePriorities, setVisiblePriorities] = useState<string[]>(allPriorities);
     const [dueFilter, setDueFilter] = useState<"all" | "tomorrow" | "week" | "none">("all");
@@ -78,6 +83,14 @@ export default function Tasks({ taskData }: { taskData: any }) {
             if (e.key === "/" && !isTyping) {
                 e.preventDefault();
                 searchInputRef.current?.focus();
+                return;
+            }
+
+            if (active === searchInputRef.current) {
+                if (e.key === "Escape") {
+                    e.preventDefault();
+                    searchInputRef.current?.blur();
+                }
                 return;
             }
          
@@ -565,7 +578,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
                                 className="absolute z-50 mt-2 w-60 rounded-lg border border-zinc-300/70 dark:border-zinc-700/70 bg-white dark:bg-zinc-900 shadow-lg p-2 flex flex-col gap-1"
                             >
                                 <span className="px-2 text-xs text-zinc-500">Categories</span>
-                                {categories.map((cat: category) => (
+                                {categories.map((cat: task_category) => (
                                     <label key={cat.id} className="flex items-center gap-2 px-2 py-1 text-sm">
                                         <input
                                             type="checkbox"
@@ -637,11 +650,11 @@ export default function Tasks({ taskData }: { taskData: any }) {
             {/* Tasks */}
             <div className="p-1.5">
                 {categories
-                    .filter((cat: category) => {
+                    .filter((cat: task_category) => {
                         if (visibleCategories.length === 0) return false;
                         return visibleCategories.includes(cat.id);
                     })
-                    .map((cat: category) =>
+                    .map((cat: task_category) =>
                 {
                     // Get all categories
                     let catTasks = tasks

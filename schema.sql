@@ -55,22 +55,36 @@ CREATE TABLE IF NOT EXISTS tasks (
     sort_order              INTEGER NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS today_tasks (
-    task_id                 INTEGER PRIMARY KEY REFERENCES tasks(id) ON DELETE CASCADE,
-    sort_order              INTEGER NOT NULL
+CREATE TABLE IF NOT EXISTS event_categories (
+    id                      SERIAL PRIMARY KEY,
+    user_id                 INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name                    TEXT NOT NULL,
+    color                   VARCHAR(6)
 );
-
--- WARNING: The following below have not been dumby-checked yet
 
 CREATE TABLE IF NOT EXISTS events (
     id                      SERIAL PRIMARY KEY,
+    category_id             INTEGER REFERENCES event_categories(id) ON DELETE CASCADE,
     user_id                 INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     title                   TEXT NOT NULL,
     description             TEXT,
     start_time              TIMESTAMP NOT NULL,
     end_time                TIMESTAMP NOT NULL,
-    recurrence              TEXT[], -- Array of RRULEs like 'FREQ=WEEKLY;COUNT=10'
-    color                   VARCHAR(6)
+    color                   VARCHAR(6),
+    all_day                 BOOLEAN DEFAULT FALSE
+);
+
+CREATE TYPE frequency_type AS ENUM ('daily', 'weekly', 'monthly', 'yearly');
+CREATE TABLE IF NOT EXISTS event_recurrence (
+    event_id                INTEGER PRIMARY KEY REFERENCES events(id) ON DELETE CASCADE,
+    frequency               frequency_type NOT NULL,
+    interval                INTEGER DEFAULT 1, -- every X days/weeks/etc.
+    weekly                  TEXT[],            -- e.g. ['MO','WE','FR']
+    monthly                 INTEGER[],         -- e.g. [1,7] (January & July)
+    monthly_days            INTEGER[],         -- which days of the month (1–31, or negative for backwards, e.g. -1 = last day)
+    count                   INTEGER,           -- total occurrences
+    exceptions              TIMESTAMP[],       -- dates to skip
+    until                   TIMESTAMP          -- recurrence end
 );
 
 -- POST-MVP TABLES, IGNORE FOR NOW

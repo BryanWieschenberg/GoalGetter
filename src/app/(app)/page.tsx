@@ -30,9 +30,35 @@ export default async function Home() {
                         SELECT id FROM task_categories WHERE user_id = $1
                     )
                 ),
+                'event_categories', (
+                    SELECT COALESCE(json_agg(ec), '[]'::json)
+                    FROM event_categories ec
+                    WHERE ec.user_id = $1
+                ),
                 'events', (
-                    SELECT COALESCE(json_agg(e), '[]'::json) 
-                    FROM events e 
+                    SELECT COALESCE(json_agg(
+                        json_build_object(
+                            'id', e.id,
+                            'category_id', e.category_id,
+                            'title', e.title,
+                            'description', e.description,
+                            'start_time', e.start_time,
+                            'end_time', e.end_time,
+                            'color', e.color,
+                            'all_day', e.all_day,
+                            'recurrence', (
+                                SELECT er FROM event_recurrence er
+                                WHERE er.event_id = e.id
+                            ),
+                            'exceptions', (
+                                SELECT COALESCE(json_agg(ex.exception_date), '[]'::json)
+                                FROM event_exceptions ex
+                                WHERE ex.event_id = e.id
+                            )
+                        )
+                        ORDER BY e.start_time
+                    ), '[]'::json)
+                    FROM events e
                     WHERE e.user_id = $1
                 )
             ) AS user_data;`,

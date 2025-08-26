@@ -76,7 +76,11 @@ export default function HomePage({ body, startWeek }: { body: any, startWeek: an
                         />
                     ) : (
                         <Calendar
-                            eventData={{ events: body.events }}
+                            eventData={{
+                                event_categories: body.event_categories,
+                                events: body.events,
+                                tasks: body.tasks
+                            }}
                             startWeekPreference={startWeekCode || 0}
                         />
                     )}
@@ -113,7 +117,11 @@ export default function HomePage({ body, startWeek }: { body: any, startWeek: an
 
                     <div className="flex-1 overflow-y-auto">
                         <Calendar
-                            eventData={{ events: body.events }}
+                            eventData={{
+                                event_categories: body.event_categories,
+                                events: body.events,
+                                tasks: body.tasks
+                            }}
                             startWeekPreference={startWeekCode || 0}
                         />
                     </div>

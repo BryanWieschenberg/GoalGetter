@@ -37,10 +37,12 @@ export default function Tasks({ taskData }: { taskData: any }) {
     const allPriorities = ["low", "normal", "high", "urgent"];
     const [visiblePriorities, setVisiblePriorities] = useState<string[]>(allPriorities);
     const [dueFilter, setDueFilter] = useState<"all" | "tomorrow" | "week" | "none">("all");
+    const [searchQuery, setSearchQuery] = useState("");
 
     const createRef = useRef<HTMLDivElement | null>(null);
     const sortRef = useRef<HTMLDivElement | null>(null);
     const filterRef = useRef<HTMLDivElement | null>(null);
+    const searchInputRef = useRef<HTMLInputElement | null>(null);
 
     const tagById = (id?: number) =>
         tags.find((t: any) => t.id === id);
@@ -70,6 +72,17 @@ export default function Tasks({ taskData }: { taskData: any }) {
             }
         };
         const onKeydown = (e: KeyboardEvent) => {
+            const active = document.activeElement as HTMLElement | null;
+            const isTyping = active?.tagName === "INPUT" || active?.tagName === "TEXTAREA";
+
+            if (e.key === "/" && !isTyping) {
+                e.preventDefault();
+                searchInputRef.current?.focus();
+                return;
+            }
+         
+            if (isTyping) return;
+
             if (e.key === "Escape") {
                 setCreateOpen(false);
                 setSortOpen(false);
@@ -90,6 +103,16 @@ export default function Tasks({ taskData }: { taskData: any }) {
                 setSortOpen(false);
                 setFilterOpen(false);
                 setModalOpen("tagAdd");
+            } else if (e.key === "s") {
+                e.preventDefault();
+                setSortOpen(v => !v);
+                setCreateOpen(false);
+                setFilterOpen(false);
+            } else if (e.key === "v" || e.key === "f") {
+                e.preventDefault();
+                setFilterOpen(v => !v);
+                setCreateOpen(false);
+                setSortOpen(false);
             }
         };
         document.addEventListener("mousedown", onDocClick);
@@ -488,8 +511,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
                         <button
                             type="button"
                             onClick={() => setSortOpen(v => !v)}
-                            className={`hover:cursor-pointer inline-flex items-center gap-2 rounded-lg px-3 py-3 text-sm ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 hover:bg-zinc-200 dark:hover:bg-zinc-800
-                                ${sortMode !== "orderAsc" ? "bg-zinc-100 dark:bg-zinc-900" : "bg-white/70 dark:bg-black/20"}`}
+                            className="hover:cursor-pointer inline-flex items-center gap-2 rounded-lg px-3 py-3 text-sm ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 hover:bg-zinc-200 dark:hover:bg-zinc-800 bg-white/70 dark:bg-black/20"
                         >
                             <LuArrowUpDown className="w-4 h-4" />
                         </button>
@@ -497,8 +519,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
                         {sortOpen && (
                             <div
                                 role="menu"
-                                className="absolute z-50 mt-2 w-44 overflow-hidden rounded-lg border border-zinc-300/70 dark:border-zinc-700/70 
-                                        bg-white dark:bg-zinc-900 shadow-lg"
+                                className="absolute z-50 mt-2 w-44 overflow-hidden rounded-lg border border-zinc-300/70 dark:border-zinc-700/70 bg-white dark:bg-zinc-900 shadow-lg"
                             >
                                 {[
                                     { key: "orderAsc", label: "Sort Order (Asc)" },
@@ -584,7 +605,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
                                     <button
                                         key={opt}
                                         className={`px-2 py-1 text-sm text-left 
-                                            ${dueFilter === opt ? "bg-zinc-200 dark:bg-zinc-700" : "hover:bg-zinc-100 dark:hover:bg-zinc-800"}`}
+                                            ${dueFilter === opt ? "bg-zinc-200 dark:bg-zinc-700" : "hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:cursor-pointer"}`}
                                         onClick={() => setDueFilter(opt as typeof dueFilter)}
                                     >
                                         {opt === "all" ? "All" :
@@ -602,9 +623,12 @@ export default function Tasks({ taskData }: { taskData: any }) {
                             <FiSearch className="w-4 h-4" />
                         </span>
                         <input
+                            ref={searchInputRef}
                             type="text"
                             placeholder="Search..."
-                            className="w-full rounded-lg border border-transparent bg-white/80 dark:bg-black/20 pl-9 pr-3 py-2 text-sm outline-none ring-1 ring-zinc-300/70 dark:ring-zinc-700/70 focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600"
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className={`w-full rounded-lg border border-transparent bg-white/80 dark:bg-black/20 pl-9 pr-3 py-2 text-sm outline-none ring-1 focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600
+                                ${searchQuery.trim() !== "" ? "ring-2 ring-zinc-300 dark:ring-zinc-700" : "ring-zinc-800"}`}
                         />
                     </div>
                 </div>
@@ -636,6 +660,13 @@ export default function Tasks({ taskData }: { taskData: any }) {
                                 if (days > 7) return false;
                             } else if (dueFilter === "none") {
                                 if (days !== null) return false;
+                            }
+
+                            if (searchQuery.trim() !== "") {
+                                const q = searchQuery.toLowerCase();
+                                const title = t.title?.toLowerCase() ?? "";
+                                const desc = t.description?.toLowerCase() ?? "";
+                                if (!title.includes(q) && !desc.includes(q)) return false;
                             }
 
                             return true;

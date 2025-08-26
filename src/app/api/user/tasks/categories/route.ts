@@ -44,14 +44,14 @@ export async function POST(req: Request) {
         );
         const nextOrder = maxRows[0].next_order;
 
-        await pool.query(
+        const category = await pool.query(
             `INSERT INTO task_categories (user_id, name, color, sort_order)
             VALUES ($1, $2, $3, $4)
             RETURNING *`,
             [session?.user.id, title, color || null, nextOrder]
         );
 
-        return NextResponse.json({ ok: true }, { status: 201 });
+        return NextResponse.json({ category: category.rows[0] }, { status: 201 });
     } catch (err) {
         console.error("POST /api/user/tasks/categories error:", err);
         return NextResponse.json({ error: "Failed to add category." }, { status: 500 });

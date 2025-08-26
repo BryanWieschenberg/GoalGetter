@@ -32,6 +32,12 @@ export default function Tasks({ taskData }: { taskData: any }) {
     const [sortMode, setSortMode] = useState<"orderAsc" | "orderDesc" | "dueAsc" | "dueDesc" | "priorityAsc" | "priorityDesc">("orderAsc");
     const [sortOpen, setSortOpen] = useState(false);
     const [filterOpen, setFilterOpen] = useState(false);
+    const [visibleCategories, setVisibleCategories] = useState<number[]>(
+        taskData?.task_categories?.map((c: any) => c.id) ?? []
+    );
+    const [visibleTags, setVisibleTags] = useState<number[]>([]);
+    const [visiblePriorities, setVisiblePriorities] = useState<string[]>([]);
+    const [dueFilter, setDueFilter] = useState<"all" | "today" | "week" | "overdue" | "none">("all");
 
     const createRef = useRef<HTMLDivElement | null>(null);
     const sortRef = useRef<HTMLDivElement | null>(null);
@@ -132,12 +138,13 @@ export default function Tasks({ taskData }: { taskData: any }) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ payload })
         });
+        const res_json = await res.json();
 
         if (!res.ok) {
-            const res_json = await res.json();
             setModalError(res_json.error || "An unknown error occurred.");
         } else {
             fetchCategoryData();
+            if (res_json.category?.id) { setVisibleCategories(prev => [...prev, res_json.category.id]); }
             setModalOpen(null);
             setModalError(null);
         }
@@ -482,8 +489,8 @@ export default function Tasks({ taskData }: { taskData: any }) {
                         <button
                             type="button"
                             onClick={() => setSortOpen(v => !v)}
-                            className="hover:cursor-pointer inline-flex items-center gap-2 rounded-lg px-3 py-3 text-sm ring-1 ring-inset 
-                                    ring-zinc-300/70 dark:ring-zinc-700/70 bg-white/70 dark:bg-black/20 hover:bg-zinc-200 dark:hover:bg-zinc-800"
+                            className={`hover:cursor-pointer inline-flex items-center gap-2 rounded-lg px-3 py-3 text-sm ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 hover:bg-zinc-200 dark:hover:bg-zinc-800
+                                ${sortMode !== "orderAsc" ? "bg-zinc-100 dark:bg-zinc-900" : "bg-white/70 dark:bg-black/20"}`}
                         >
                             <LuArrowUpDown className="w-4 h-4" />
                         </button>
@@ -506,7 +513,7 @@ export default function Tasks({ taskData }: { taskData: any }) {
                                         key={opt.key}
                                         role="menuitem"
                                         className={`w-full text-left px-3 py-2 text-sm 
-                                            ${sortMode === opt.key ? "bg-zinc-700" : "hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:cursor-pointer"}`}
+                                            ${sortMode === opt.key ? "bg-zinc-300 dark:bg-zinc-700" : "hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:cursor-pointer"}`}
                                         onClick={() => {
                                             if (sortMode !== opt.key) {
                                                 setSortMode(opt.key as typeof sortMode);
@@ -521,14 +528,77 @@ export default function Tasks({ taskData }: { taskData: any }) {
                         )}
                     </div>
 
-                    <button
-                        type="button"
-                        className="hover:cursor-pointer inline-flex items-center gap-2 rounded-lg px-3 py-3 text-sm ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 bg-white/70 dark:bg-black/20 hover:bg-zinc-200 dark:hover:bg-zinc-800"
-                        aria-label="Toggle view"
-                        title="Toggle view"
-                    >
-                        <FiEye className="w-4 h-4" />
-                    </button>
+                    <div ref={filterRef} className="relative">
+                        <button
+                            type="button"
+                            onClick={() => setFilterOpen(v => !v)}
+                            className="inline-flex items-center gap-2 rounded-lg px-3 py-3 text-sm ring-1 ring-inset 
+                                    ring-zinc-300/70 dark:ring-zinc-700/70 bg-white/70 dark:bg-black/20 
+                                    hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:cursor-pointer"
+                        >
+                            <FiEye className="w-4 h-4" />
+                        </button>
+
+                        {filterOpen && (
+                            <div
+                                role="menu"
+                                className="absolute z-50 mt-2 w-60 rounded-lg border border-zinc-300/70 dark:border-zinc-700/70 
+                                        bg-white dark:bg-zinc-900 shadow-lg p-2 flex flex-col gap-1"
+                            >
+                                <span className="px-2 text-xs text-zinc-500">Categories</span>
+                                {categories.map((cat: category) => (
+                                    <label key={cat.id} className="flex items-center gap-2 px-2 py-1 text-sm">
+                                        <input
+                                            type="checkbox"
+                                            checked={visibleCategories.includes(cat.id)}
+                                            onChange={() => {
+                                                setVisibleCategories(prev =>
+                                                    prev.includes(cat.id)
+                                                        ? prev.filter(id => id !== cat.id)
+                                                        : [...prev, cat.id]
+                                                );
+                                            }}
+                                        />
+                                        {cat.name}
+                                    </label>
+                                ))}
+
+                                <span className="px-2 mt-2 text-xs text-zinc-500">Priority</span>
+                                {["Low", "Normal", "High", "Urgent"].map(p => (
+                                    <label key={p} className="flex items-center gap-2 px-2 py-1 text-sm">
+                                        <input
+                                            type="checkbox"
+                                            checked={visiblePriorities.includes(p)}
+                                            onChange={() => {
+                                                setVisiblePriorities(prev =>
+                                                    prev.includes(p)
+                                                        ? prev.filter(x => x !== p)
+                                                        : [...prev, p]
+                                                );
+                                            }}
+                                        />
+                                        {p}
+                                    </label>
+                                ))}
+
+                                <span className="px-2 mt-2 text-xs text-zinc-500">Due Date</span>
+                                {["all", "today", "week", "overdue", "none"].map(opt => (
+                                    <button
+                                        key={opt}
+                                        className={`px-2 py-1 text-sm text-left rounded 
+                                            ${dueFilter === opt ? "bg-zinc-200 dark:bg-zinc-700" : "hover:bg-zinc-100 dark:hover:bg-zinc-800"}`}
+                                        onClick={() => setDueFilter(opt as typeof dueFilter)}
+                                    >
+                                        {opt === "all" ? "All" :
+                                        opt === "today" ? "Today" :
+                                        opt === "week" ? "This Week" :
+                                        opt === "overdue" ? "Overdue" :
+                                        "No Due Date"}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
 
                     <div className="relative flex-1 min-w-[20px] max-w-[200px]">
                         <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-zinc-400">
@@ -545,9 +615,37 @@ export default function Tasks({ taskData }: { taskData: any }) {
 
             {/* Tasks */}
             <div className="p-1.5">
-                {categories.map((cat: any) => {
+                {categories
+                    .filter((cat: category) => 
+                        visibleCategories.length === 0 || visibleCategories.includes(cat.id)
+                    )
+                    .map((cat: category) =>
+                {
                     // Get all categories
-                    let catTasks = tasks.filter((t: any) => t.category_id === cat.id);
+                    let catTasks = tasks
+                        .filter((t: any) => t.category_id === cat.id)
+                        .filter((t: any) => {
+                            if (visibleTags.length > 0 && !visibleTags.includes(t.tag_id)) return false;
+                            if (visiblePriorities.length > 0 && !visiblePriorities.includes(t.priority)) return false;
+
+                            if (dueFilter === "today") {
+                                const today = new Date().toDateString();
+                                if (!t.due_date || new Date(t.due_date).toDateString() !== today) return false;
+                            } else if (dueFilter === "week") {
+                                const now = new Date();
+                                const oneWeek = new Date();
+                                oneWeek.setDate(now.getDate() + 7);
+                                if (!t.due_date) return false;
+                                const d = new Date(t.due_date);
+                                if (d < now || d > oneWeek) return false;
+                            } else if (dueFilter === "overdue") {
+                                if (!t.due_date || new Date(t.due_date) >= new Date()) return false;
+                            } else if (dueFilter === "none") {
+                                if (t.due_date) return false;
+                            }
+
+                            return true;
+                        });
 
                     catTasks = [...catTasks].sort((a, b) => {
                         if (sortMode === "dueAsc") {

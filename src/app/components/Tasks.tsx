@@ -471,7 +471,7 @@ export default function Tasks({ taskData, tasks, setTasks, modalOpen, setModalOp
     return (
         <div>
             {/* Top Section */}
-            <div className="border-b-2 border-zinc-300 dark:border-zinc-700 px-3 py-2 mb-1">
+            <div className="border-b-2 border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-[#101012] px-3 py-2 mb-1">
                 <div className="flex flex-wrap items-center gap-2">
                     <div ref={createRef} className="relative">
                         <button
@@ -663,7 +663,7 @@ export default function Tasks({ taskData, tasks, setTasks, modalOpen, setModalOp
                             placeholder="Search..."
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className={`w-full rounded-lg border border-transparent bg-white/70 dark:bg-black/30 pl-9 pr-3 py-[.52rem] text-sm outline-none ring-1 focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600
-                                ${searchQuery.trim() !== "" ? "ring-2 ring-zinc-300 dark:ring-zinc-700" : "ring-zinc-800"}`}
+                                ${searchQuery.trim() !== "" ? "ring-2 ring-zinc-300 dark:ring-zinc-700" : "ring-zinc-200 dark:ring-zinc-800"}`}
                         />
                     </div>
                 </div>

@@ -8,24 +8,28 @@ import TaskEdit from "./modals/TaskEdit";
 import CategoryEdit from "./modals/CategoryEdit";
 import TagEdit from "./modals/TagEdit";
 import { formatPgDate, daysUntil, dueColor, getPriorityClasses } from "@/lib/tasksHelper";
-import { FiPlus, FiEye, FiSearch } from "react-icons/fi";
+import { FiPlus, FiSearch } from "react-icons/fi";
 import { HiChevronUp, HiChevronDown } from "react-icons/hi";
 import { HiCheck } from "react-icons/hi2";
 import { LuArrowUpDown } from "react-icons/lu";
+import { BiFilterAlt } from "react-icons/bi";
 
 type taskData = {
     task_categories: task_category[];
     task_tags: tag[];
-    tasks: task[];
 };
 
-export default function Tasks({ taskData }: { taskData: taskData }) {
+export default function Tasks({ taskData, tasks, setTasks, modalOpen, setModalOpen }: {
+    taskData: taskData,
+    tasks: task[],
+    setTasks: React.Dispatch<React.SetStateAction<task[]>>,
+    modalOpen: string | null,
+    setModalOpen: (value: string | null) => void
+}) {
     const [categories, setCategories] = useState(taskData?.task_categories);
     const [tags, setTags] = useState(taskData?.task_tags);
-    const [tasks, setTasks] = useState(taskData?.tasks);
     const [hoveredCat, setHoveredCat] = useState<number | null>(null);
     const [createOpen, setCreateOpen] = useState(false);
-    const [modalOpen, setModalOpen] = useState<string | null>(null);
     const [modalError, setModalError] = useState<string | null>(null);
     const [highlightedBox, setHighlightedBox] = useState<number | null>(null);
     const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
@@ -110,7 +114,7 @@ export default function Tasks({ taskData }: { taskData: taskData }) {
                 setCreateOpen(false);
                 setSortOpen(false);
                 setFilterOpen(false);
-                setModalOpen("categoryAdd");
+                setModalOpen("taskCategoryAdd");
             } else if (e.key === "g") {
                 setCreateOpen(false);
                 setSortOpen(false);
@@ -210,7 +214,7 @@ export default function Tasks({ taskData }: { taskData: taskData }) {
             setModalError(res_json.error || "An unknown error occurred.");
         } else {
             fetchTagData();
-            setModalOpen(selectedCategory ? "categoryEdit noFade" : null);
+            setModalOpen(selectedCategory ? "taskCategoryEdit noFade" : null);
             setModalError(null);
         }
     }
@@ -308,7 +312,7 @@ export default function Tasks({ taskData }: { taskData: taskData }) {
             setModalError(res_json.error || "An unknown error occurred.");
         } else {
             fetchTagData();
-            setModalOpen("categoryEdit noFade");
+            setModalOpen("taskCategoryEdit noFade");
             setModalError(null);
             setSelectedTagRaw(null);
         }
@@ -375,7 +379,7 @@ export default function Tasks({ taskData }: { taskData: taskData }) {
             setModalError(res_json.error || "An unknown error occurred.");
         } else {
             fetchTagData();
-            setModalOpen("categoryEdit noFade");
+            setModalOpen("taskCategoryEdit noFade");
             setModalError(null);
         }
     }
@@ -501,10 +505,10 @@ export default function Tasks({ taskData }: { taskData: taskData }) {
                                     className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:cursor-pointer"
                                     onClick={() => {
                                         setCreateOpen(false);
-                                        setModalOpen("categoryAdd");
+                                        setModalOpen("taskCategoryAdd");
                                     }}
                                 >
-                                    Category
+                                    Task Category
                                 </button>
                                 <button
                                     role="menuitem"
@@ -515,6 +519,26 @@ export default function Tasks({ taskData }: { taskData: taskData }) {
                                     }}
                                 >
                                     Tag
+                                </button>
+                                <button
+                                    role="menuitem"
+                                    className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:cursor-pointer"
+                                    onClick={() => {
+                                        setCreateOpen(false);
+                                        setModalOpen("eventCategoryAdd");
+                                    }}
+                                >
+                                    Calendar Category
+                                </button>
+                                <button
+                                    role="menuitem"
+                                    className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:cursor-pointer"
+                                    onClick={() => {
+                                        setCreateOpen(false);
+                                        setModalOpen("eventAdd");
+                                    }}
+                                >
+                                    Event
                                 </button>
                             </div>
                         )}
@@ -569,7 +593,7 @@ export default function Tasks({ taskData }: { taskData: taskData }) {
                                     ring-zinc-300/70 dark:ring-zinc-700/70 bg-white/70 dark:bg-black/20 
                                     hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:cursor-pointer"
                         >
-                            <FiEye className="w-4 h-4" />
+                            <BiFilterAlt className="w-4 h-4" />
                         </button>
 
                         {filterOpen && (
@@ -577,25 +601,22 @@ export default function Tasks({ taskData }: { taskData: taskData }) {
                                 role="menu"
                                 className="absolute z-50 mt-2 w-60 rounded-lg border border-zinc-300/70 dark:border-zinc-700/70 bg-white dark:bg-zinc-900 shadow-lg p-2 flex flex-col gap-1"
                             >
-                                <span className="px-2 text-xs text-zinc-500">Categories</span>
-                                {categories.map((cat: task_category) => (
-                                    <label key={cat.id} className="flex items-center gap-2 px-2 py-1 text-sm">
-                                        <input
-                                            type="checkbox"
-                                            checked={visibleCategories.includes(cat.id)}
-                                            onChange={() => {
-                                                setVisibleCategories(prev =>
-                                                    prev.includes(cat.id)
-                                                        ? prev.filter(id => id !== cat.id)
-                                                        : [...prev, cat.id]
-                                                );
-                                            }}
-                                        />
-                                        {cat.name}
-                                    </label>
+                                <span className="px-2 mt-2 text-xs text-zinc-500 font-bold">Due Date</span>
+                                {["all", "tomorrow", "week", "none"].map(opt => (
+                                    <button
+                                        key={opt}
+                                        className={`px-2 py-1 text-sm text-left 
+                                            ${dueFilter === opt ? "bg-zinc-200 dark:bg-zinc-700" : "hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:cursor-pointer"}`}
+                                        onClick={() => setDueFilter(opt as typeof dueFilter)}
+                                    >
+                                        {opt === "all" ? "All" :
+                                        opt === "tomorrow" ? "Tomorrow" :
+                                        opt === "week" ? "This Week" :
+                                        "No Due Date"}
+                                    </button>
                                 ))}
 
-                                <span className="px-2 mt-2 text-xs text-zinc-500">Priority</span>
+                                <span className="px-2 mt-2 text-xs text-zinc-500 font-bold">Priority</span>
                                 {allPriorities.map(p => (
                                     <label key={p} className="flex items-center gap-2 px-2 py-1 text-sm">
                                         <input
@@ -613,19 +634,22 @@ export default function Tasks({ taskData }: { taskData: taskData }) {
                                     </label>
                                 ))}
 
-                                <span className="px-2 mt-2 text-xs text-zinc-500">Due Date</span>
-                                {["all", "tomorrow", "week", "none"].map(opt => (
-                                    <button
-                                        key={opt}
-                                        className={`px-2 py-1 text-sm text-left 
-                                            ${dueFilter === opt ? "bg-zinc-200 dark:bg-zinc-700" : "hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:cursor-pointer"}`}
-                                        onClick={() => setDueFilter(opt as typeof dueFilter)}
-                                    >
-                                        {opt === "all" ? "All" :
-                                        opt === "tomorrow" ? "Tomorrow" :
-                                        opt === "week" ? "This Week" :
-                                        "No Due Date"}
-                                    </button>
+                                <span className="px-2 text-xs text-zinc-500 font-bold">Categories</span>
+                                {categories.map((cat: task_category) => (
+                                    <label key={cat.id} className="flex items-center gap-2 px-2 py-1 text-sm">
+                                        <input
+                                            type="checkbox"
+                                            checked={visibleCategories.includes(cat.id)}
+                                            onChange={() => {
+                                                setVisibleCategories(prev =>
+                                                    prev.includes(cat.id)
+                                                        ? prev.filter(id => id !== cat.id)
+                                                        : [...prev, cat.id]
+                                                );
+                                            }}
+                                        />
+                                        {cat.name}
+                                    </label>
                                 ))}
                             </div>
                         )}
@@ -737,7 +761,7 @@ export default function Tasks({ taskData }: { taskData: taskData }) {
                                         onClick={() => {
                                             setSelectedCategory(cat.id);
                                             setSelectedCategoryRaw(cat);
-                                            setModalOpen("categoryEdit");
+                                            setModalOpen("taskCategoryEdit");
                                         }}
                                     >
                                         {cat.name}
@@ -861,7 +885,7 @@ export default function Tasks({ taskData }: { taskData: taskData }) {
             </div>
 
             {/* Modals */}
-            {modalOpen === "categoryAdd" && (
+            {modalOpen === "taskCategoryAdd" && (
                 <CategoryAdd
                     onClose={closeAll}
                     onSubmit={handleCategoryAdd}
@@ -880,7 +904,7 @@ export default function Tasks({ taskData }: { taskData: taskData }) {
                         if (selectedCategory) {
                             const category = categories.find((c: any) => c.id === selectedCategory);
                             if (category) setSelectedCategoryRaw(category);
-                            setModalOpen("categoryEdit noFade");
+                            setModalOpen("taskCategoryEdit noFade");
                         }
                     }}
                 />
@@ -909,7 +933,7 @@ export default function Tasks({ taskData }: { taskData: taskData }) {
                 />
             )}
             
-            {modalOpen?.startsWith("categoryEdit") && selectedCategoryRaw && (
+            {modalOpen?.startsWith("taskCategoryEdit") && selectedCategoryRaw && (
                 <CategoryEdit 
                     tags={tags}
                     modalError={modalError}
@@ -938,7 +962,7 @@ export default function Tasks({ taskData }: { taskData: taskData }) {
                     onCategoryReturn={() => {
                         const category = categories.find((c: any) => c.id === selectedTagRaw.category_id);
                         if (category) setSelectedCategoryRaw(category);
-                        setModalOpen("categoryEdit noFade");
+                        setModalOpen("taskCategoryEdit noFade");
                     }}
                 />
             )}

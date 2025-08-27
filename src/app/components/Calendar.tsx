@@ -10,8 +10,12 @@ type calendarData = {
     tasks: task[];
 };
 
-export default function Calendar({ calendarData, startWeekPreference }: { calendarData: calendarData, startWeekPreference: number }) {
-    console.log(calendarData)
+export default function Calendar({ calendarData, startWeekPreference, modalOpen, setModalOpen }: {
+    calendarData: calendarData,
+    startWeekPreference: number,
+    modalOpen: string | null,
+    setModalOpen: (value: string | null) => void
+}) {
     const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), startWeekPreference));
 
     const hours = useMemo(() => Array.from({ length: 24 }, (_, i) => i), []);

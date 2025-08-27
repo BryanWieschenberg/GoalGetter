@@ -477,7 +477,7 @@ export default function Tasks({ taskData, tasks, setTasks, modalOpen, setModalOp
                         <button
                             type="button"
                             onClick={() => setCreateOpen((v) => !v)}
-                            className="transition inline-flex items-center gap-2 rounded-lg text-white bg-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 px-4 py-[.46rem] font-medium text-md shadow-sm hover:dark:bg-black dark:hover:dark:bg-white active:opacity-80 hover:cursor-pointer"
+                            className={`transition duration-320 inline-flex items-center gap-2 rounded-lg text-white dark:text-zinc-900 px-4 py-[.46rem] font-medium text-md shadow-sm active:opacity-40 hover:cursor-pointer ${createOpen ? 'bg-[#4bd1ff]' : 'bg-zinc-900 dark:bg-zinc-100 hover:bg-[#4bd1ff] dark:hover:bg-[#4bd1ff]'}`}
                             aria-expanded={createOpen}
                         >
                             <span className="text-lg leading-none font-bold">{'\uFF0B'}</span>

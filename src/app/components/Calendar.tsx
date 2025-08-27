@@ -1,14 +1,13 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { startOfWeek, addDays, key, weekdayShort, formatHour, isSameDate, formatRange, segmentForDay,
-         splitEventByDay, startOfDay, minutesIntoDay, timeRange, chooseTextColor } from '@/lib/calendarHelper';
 import EventAdd from './modals/EventAdd';
 import EventCategoryAdd from './modals/EventCategoryAdd';
 import EventEdit from './modals/EventEdit';
 import EventCategoryEdit from './modals/EventCategoryEdit';
 import { FiEye, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { FaRegCalendarAlt } from 'react-icons/fa';
+import { startOfWeek, parseLocalDate, addDays, formatWeekRange } from '@/lib/calendarHelper';
 
 type calendarData = {
     event_categories: event_category[];
@@ -25,13 +24,9 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
     const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), startWeekPreference));
     const [jumpDate, setJumpDate] = useState('');
     const inputRef = useRef<HTMLInputElement>(null);
-    const [location, setLocation] = useState<string | null>(null);
     const [selectedCategoryRaw, setSelectedCategoryRaw] = useState<event_category | null>(null);
     const [selectedEventRaw, setSelectedEventRaw] = useState<event | null>(null);
     const [modalError, setModalError] = useState<string | null>(null);
-    const [highlightedBox, setHighlightedBox] = useState<string | null>(null);
-
-    const monthLabel = new Intl.DateTimeFormat(undefined, { month: 'long', year: 'numeric' }).format(weekStart);
 
     const goPrev = () => setWeekStart(addDays(weekStart, -7));
     const goNext = () => setWeekStart(addDays(weekStart, 7));
@@ -42,7 +37,6 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
         setSelectedCategoryRaw(null);
         setSelectedEventRaw(null);
         setModalError(null);
-        setHighlightedBox(null);
     }
 
     useEffect(() => {
@@ -82,7 +76,6 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                                         inputRef.current.showPicker();
                                     } else {
                                         inputRef.current.focus();
-                                        inputRef.current.click();
                                     }
                                 }
                             }}
@@ -98,6 +91,16 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                                 WebkitAppearance: "none",
                                 MozAppearance: "textfield"
                             }}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                setJumpDate(val);
+                                if (val) {
+                                    const d = parseLocalDate(val);
+                                    if (!isNaN(d.getTime())) {
+                                        setWeekStart(startOfWeek(d, startWeekPreference));
+                                    }
+                                }
+                            }}
                         />
                     </div>
                     
@@ -111,6 +114,7 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                     <button
                         type="button"
                         className="transition inline-flex items-center gap-2 rounded-lg px-3 py-2 text-md ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 bg-white/70 dark:bg-black/20 hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:cursor-pointer"
+                        onClick={goToday}
                     >
                         Today
                     </button>
@@ -119,25 +123,42 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                         <button
                             type="button"
                             className="inline-flex items-center p-1.5 rounded-lg transition hover:rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:cursor-pointer"
+                            onClick={goPrev}
                         >
                             <FiChevronLeft className="w-5 h-5" />
                         </button>
                         <button
                             type="button"
                             className="inline-flex items-center p-1.5 rounded-lg transition hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:cursor-pointer"
+                            onClick={goNext}
                         >
                             <FiChevronRight className="w-5 h-5" />
                         </button>
                     </div>
 
                     <div className="text-xl font-semibold">
-                        August 2025
+                        {formatWeekRange(weekStart, addDays(weekStart, 6))}
                     </div>
                 </div>
             </div>
 
-            <div className="p-1.5">
-                <p>balls</p>
+            <div className="p-1.5 flex gap-2">
+                {Array.from({ length: 7 }).map((_, i) => {
+                    const day = addDays(weekStart, i);
+                    const label = new Intl.DateTimeFormat(undefined, {
+                        weekday: 'short',
+                        day: 'numeric'
+                    }).format(day);
+
+                    return (
+                        <div
+                            key={i}
+                            className="px-2 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800 text-sm font-medium"
+                        >
+                            {label}
+                        </div>
+                    );
+                })}
             </div>
 
             {/* {modalOpen === "taskCategoryAdd" && (

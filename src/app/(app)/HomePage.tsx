@@ -15,12 +15,12 @@ export default function HomePage({ body, startWeek }: { body: any, startWeek: an
 
     let startWeekCode = 0;
     switch (startWeek) {
-        case 'mon': startWeekCode = -6; break;
-        case 'tue': startWeekCode = -5; break;
-        case 'wed': startWeekCode = -4; break;
-        case 'thu': startWeekCode = -3; break;
-        case 'fri': startWeekCode = -2; break;
-        case 'sat': startWeekCode = -1; break;
+        case 'mon': startWeekCode = 1; break;
+        case 'tue': startWeekCode = 2; break;
+        case 'wed': startWeekCode = 3; break;
+        case 'thu': startWeekCode = 4; break;
+        case 'fri': startWeekCode = 5; break;
+        case 'sat': startWeekCode = 6; break;
         default: startWeekCode = 0;
     }
 

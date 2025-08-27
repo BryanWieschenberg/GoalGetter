@@ -1,10 +1,17 @@
 export function startOfWeek(d: Date, weekStart: number = 0) {
     const date = new Date(d);
-    const day = date.getDay(); // 0 Sun - 6 Sat
-    const diff = (day < weekStart ? 7 : 0) + day - weekStart;
     date.setHours(0, 0, 0, 0);
+
+    const day = date.getDay();
+    const diff = (day - weekStart + 7) % 7;
     date.setDate(date.getDate() - diff);
+
     return date;
+}
+
+export function parseLocalDate(yyyyMmDd: string) {
+    const [y, m, d] = yyyyMmDd.split("-").map(Number);
+    return new Date(y, m - 1, d);
 }
 
 export function addDays(d: Date, n: number) {
@@ -12,6 +19,33 @@ export function addDays(d: Date, n: number) {
     x.setDate(x.getDate() + n);
     return x;
 }
+
+export function formatWeekRange(start: Date, end: Date): string {
+    const sameMonth = start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
+    const sameYear = start.getFullYear() === end.getFullYear();
+
+    if (sameMonth) {
+        // full month name with year
+        return new Intl.DateTimeFormat(undefined, { month: 'long', year: 'numeric' }).format(start);
+    } else if (sameYear) {
+        // two different months, same year
+        const firstLabel = new Intl.DateTimeFormat(undefined, { month: 'short' }).format(start);
+        const lastLabel  = new Intl.DateTimeFormat(undefined, { month: 'short', year: 'numeric' }).format(end);
+        return `${firstLabel} – ${lastLabel}`;
+    } else {
+        // spans into different years
+        const firstLabel = new Intl.DateTimeFormat(undefined, { month: 'short', year: 'numeric' }).format(start);
+        const lastLabel  = new Intl.DateTimeFormat(undefined, { month: 'short', year: 'numeric' }).format(end);
+        return `${firstLabel} – ${lastLabel}`;
+    }
+}
+
+
+
+
+
+
+
 
 export function key(d: Date) {
     return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;

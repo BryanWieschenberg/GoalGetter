@@ -2,19 +2,19 @@
 
 import { useState } from "react";
 
-type CategoryEditProps = {
+type TaskCategoryEditProps = {
     tags: any[];
     modalError?: string | null;
     onClose: () => void;
     onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
     onDelete: (id: number) => void;
-    preSelectedCategory: category;
+    preSelectedCategory: task_category;
     onTagAdd?: () => void;
     onTagEdit?: (tagId: number) => void;
     noFade?: boolean
 };
 
-export default function CategoryEdit({ tags, modalError, onClose, onSubmit, onDelete, preSelectedCategory, onTagAdd, onTagEdit, noFade }: CategoryEditProps) {
+export default function TaskCategoryEdit({ tags, modalError, onClose, onSubmit, onDelete, preSelectedCategory, onTagAdd, onTagEdit, noFade }: TaskCategoryEditProps) {
     const [title, setTitle] = useState<string>(preSelectedCategory.name);
     const [color, setColor] = useState<string>(preSelectedCategory.color ? `#${preSelectedCategory.color}` : "#ffffff");
     const [useCustomColor, setUseCustomColor] = useState<boolean>(!!preSelectedCategory.color);

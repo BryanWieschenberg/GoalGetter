@@ -2,10 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import TaskAdd from "./modals/TaskAdd";
-import CategoryAdd from "./modals/CategoryAdd";
+import CategoryAdd from "./modals/TaskCategoryAdd";
 import TagAdd from "./modals/TagAdd";
 import TaskEdit from "./modals/TaskEdit";
-import CategoryEdit from "./modals/CategoryEdit";
+import CategoryEdit from "./modals/TaskCategoryEdit";
 import TagEdit from "./modals/TagEdit";
 import { formatPgDate, daysUntil, dueColor, getPriorityClasses } from "@/lib/tasksHelper";
 import { FiPlus, FiSearch } from "react-icons/fi";
@@ -477,7 +477,7 @@ export default function Tasks({ taskData, tasks, setTasks, modalOpen, setModalOp
                         <button
                             type="button"
                             onClick={() => setCreateOpen((v) => !v)}
-                            className="inline-flex items-center gap-2 rounded-lg text-white bg-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 px-4 py-[.46rem] font-medium shadow-sm hover:dark:bg-black dark:hover:dark:bg-white active:opacity-80 hover:cursor-pointer"
+                            className="transition inline-flex items-center gap-2 rounded-lg text-white bg-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 px-4 py-[.46rem] font-medium text-md shadow-sm hover:dark:bg-black dark:hover:dark:bg-white active:opacity-80 hover:cursor-pointer"
                             aria-expanded={createOpen}
                         >
                             <span className="text-lg leading-none font-bold">{'\uFF0B'}</span>
@@ -548,7 +548,7 @@ export default function Tasks({ taskData, tasks, setTasks, modalOpen, setModalOp
                         <button
                             type="button"
                             onClick={() => setSortOpen(v => !v)}
-                            className="hover:cursor-pointer inline-flex items-center gap-2 rounded-lg px-3 py-3 text-sm ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 hover:bg-zinc-200 dark:hover:bg-zinc-800 bg-white/70 dark:bg-black/20"
+                            className="transition hover:cursor-pointer inline-flex items-center gap-2 rounded-lg px-3 py-3 text-sm ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 hover:bg-zinc-200 dark:hover:bg-zinc-800 bg-white/70 dark:bg-black/20"
                         >
                             <LuArrowUpDown className="w-4 h-4" />
                         </button>
@@ -589,9 +589,7 @@ export default function Tasks({ taskData, tasks, setTasks, modalOpen, setModalOp
                         <button
                             type="button"
                             onClick={() => setFilterOpen(v => !v)}
-                            className="inline-flex items-center gap-2 rounded-lg px-3 py-3 text-sm ring-1 ring-inset 
-                                    ring-zinc-300/70 dark:ring-zinc-700/70 bg-white/70 dark:bg-black/20 
-                                    hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:cursor-pointer"
+                            className="transition inline-flex items-center gap-2 rounded-lg px-3 py-3 text-sm ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 bg-white/70 dark:bg-black/20 hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:cursor-pointer"
                         >
                             <BiFilterAlt className="w-4 h-4" />
                         </button>
@@ -664,7 +662,7 @@ export default function Tasks({ taskData, tasks, setTasks, modalOpen, setModalOp
                             type="text"
                             placeholder="Search..."
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className={`w-full rounded-lg border border-transparent bg-white/80 dark:bg-black/20 pl-9 pr-3 py-2 text-sm outline-none ring-1 focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600
+                            className={`w-full rounded-lg border border-transparent bg-white/70 dark:bg-black/30 pl-9 pr-3 py-[.52rem] text-sm outline-none ring-1 focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600
                                 ${searchQuery.trim() !== "" ? "ring-2 ring-zinc-300 dark:ring-zinc-700" : "ring-zinc-800"}`}
                         />
                     </div>
@@ -869,7 +867,7 @@ export default function Tasks({ taskData, tasks, setTasks, modalOpen, setModalOp
                                                         {task.title}
                                                     </span>
                                                     {task.description && (
-                                                        <span className="ml-2 text-zinc-400">
+                                                        <span className="ml-2 text-xs text-zinc-400">
                                                             {task.description}
                                                         </span>
                                                     )}

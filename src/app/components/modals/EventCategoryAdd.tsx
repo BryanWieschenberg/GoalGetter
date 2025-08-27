@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 
-type CategoryAddProps = {
+type EventCategoryAddProps = {
     modalError?: string | null;
     onClose: () => void;
     onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
 };
 
-export default function CategoryAdd({ modalError, onClose, onSubmit }: CategoryAddProps) {
+export default function EventCategoryAdd({ modalError, onClose, onSubmit }: EventCategoryAddProps) {
     const [useCustomColor, setUseCustomColor] = useState(false);
     
     return (

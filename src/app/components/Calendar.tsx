@@ -64,101 +64,152 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
 
     return (
         <div>
-            <div className="border-b-2 border-zinc-300 dark:border-zinc-700 px-3 py-2 mb-1">
-                <div className="flex flex-wrap items-center gap-2">
-                    <div className="relative w-fit">
+            <div className="sticky top-0 z-30 bg-zinc-50 dark:bg-zinc-950">
+                <div>
+                    <div className="flex flex-wrap items-center gap-2 border-b-2 border-zinc-300 dark:border-zinc-700 px-3 py-2 mb-1">
+                        <div className="relative w-fit">
+                            <button
+                                type="button"
+                                className="transition rounded-lg ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-3 py-3 outline-none cursor-pointer flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-800"
+                                onClick={() => {
+                                    if (inputRef.current) {
+                                        if (typeof inputRef.current.showPicker === "function") {
+                                            inputRef.current.showPicker();
+                                        } else {
+                                            inputRef.current.focus();
+                                        }
+                                    }
+                                }}
+                            >
+                                <FaRegCalendarAlt className="w-4 h-4"/>
+                            </button>
+                            <input
+                                ref={inputRef}
+                                type="date"
+                                name="due_date"
+                                className="sr-only"
+                                style={{
+                                    WebkitAppearance: "none",
+                                    MozAppearance: "textfield"
+                                }}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    setJumpDate(val);
+                                    if (val) {
+                                        const d = parseLocalDate(val);
+                                        if (!isNaN(d.getTime())) {
+                                            setWeekStart(startOfWeek(d, startWeekPreference));
+                                        }
+                                    }
+                                }}
+                            />
+                        </div>
+                        
                         <button
                             type="button"
-                            className="transition rounded-lg ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-3 py-3 outline-none cursor-pointer flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-800"
-                            onClick={() => {
-                                if (inputRef.current) {
-                                    if (typeof inputRef.current.showPicker === "function") {
-                                        inputRef.current.showPicker();
-                                    } else {
-                                        inputRef.current.focus();
-                                    }
-                                }
-                            }}
+                            className="transition inline-flex items-center gap-2 rounded-lg px-3 py-3 text-sm ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 bg-white/70 dark:bg-black/20 hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:cursor-pointer"
                         >
-                            <FaRegCalendarAlt className="w-4 h-4"/>
+                            <FiEye className="w-4 h-4"/>
                         </button>
-                        <input
-                            ref={inputRef}
-                            type="date"
-                            name="due_date"
-                            className="sr-only"
-                            style={{
-                                WebkitAppearance: "none",
-                                MozAppearance: "textfield"
-                            }}
-                            onChange={(e) => {
-                                const val = e.target.value;
-                                setJumpDate(val);
-                                if (val) {
-                                    const d = parseLocalDate(val);
-                                    if (!isNaN(d.getTime())) {
-                                        setWeekStart(startOfWeek(d, startWeekPreference));
-                                    }
-                                }
-                            }}
-                        />
+
+                        <button
+                            type="button"
+                            className="transition inline-flex items-center gap-2 rounded-lg px-3 py-2 text-md ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 bg-white/70 dark:bg-black/20 hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:cursor-pointer"
+                            onClick={goToday}
+                        >
+                            Today
+                        </button>
+
+                        <div className="flex items-center lg:px-3">
+                            <button
+                                type="button"
+                                className="inline-flex items-center p-1.5 rounded-lg transition hover:rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:cursor-pointer"
+                                onClick={goPrev}
+                            >
+                                <FiChevronLeft className="w-5 h-5" />
+                            </button>
+                            <button
+                                type="button"
+                                className="inline-flex items-center p-1.5 rounded-lg transition hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:cursor-pointer"
+                                onClick={goNext}
+                            >
+                                <FiChevronRight className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="text-md lg:text-xl font-semibold">
+                            {formatWeekRange(weekStart, addDays(weekStart, 6))}
+                        </div>
                     </div>
                     
-                    <button
-                        type="button"
-                        className="transition inline-flex items-center gap-2 rounded-lg px-3 py-3 text-sm ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 bg-white/70 dark:bg-black/20 hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:cursor-pointer"
-                    >
-                        <FiEye className="w-4 h-4"/>
-                    </button>
+                    <div className="grid grid-cols-[64px_repeat(7,1fr)] sticky z-10 border-b border-zinc-200 dark:border-zinc-800">
+                        <div className="h-10" />
+                            {Array.from({ length: 7 }).map((_, i) => {
+                                const day = addDays(weekStart, i);
+                                const isToday =
+                                    day.getFullYear() === new Date().getFullYear() &&
+                                    day.getMonth() === new Date().getMonth() &&
+                                    day.getDate() === new Date().getDate();
 
-                    <button
-                        type="button"
-                        className="transition inline-flex items-center gap-2 rounded-lg px-3 py-2 text-md ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 bg-white/70 dark:bg-black/20 hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:cursor-pointer"
-                        onClick={goToday}
-                    >
-                        Today
-                    </button>
+                                const weekday = new Intl.DateTimeFormat(undefined, { weekday: 'short' }).format(day);
+                                const dateNum = day.getDate();
 
-                    <div className="flex items-center px-3">
-                        <button
-                            type="button"
-                            className="inline-flex items-center p-1.5 rounded-lg transition hover:rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:cursor-pointer"
-                            onClick={goPrev}
-                        >
-                            <FiChevronLeft className="w-5 h-5" />
-                        </button>
-                        <button
-                            type="button"
-                            className="inline-flex items-center p-1.5 rounded-lg transition hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:cursor-pointer"
-                            onClick={goNext}
-                        >
-                            <FiChevronRight className="w-5 h-5" />
-                        </button>
-                    </div>
+                                const isWeekend = day.getDay() === 0 || day.getDay() === 6;
 
-                    <div className="text-xl font-semibold">
-                        {formatWeekRange(weekStart, addDays(weekStart, 6))}
+                                return (
+                                    <div
+                                        key={`head-${i}`}
+                                        className={[
+                                            "h-14 flex flex-col items-center justify-center rounded-md",
+                                            isWeekend ? "opacity-90" : ""
+                                        ].join(" ")}
+                                    >
+                                        <div className="text-[11px] uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                                            {weekday}
+                                        </div>
+
+                                        <div
+                                            className={[
+                                                "h-9 min-w-7 px-2 flex items-center justify-center rounded-full text-xl font-semibold",
+                                                isToday
+                                                    ? "bg-blue-600 text-white"
+                                                    : "text-zinc-900 dark:text-zinc-100"
+                                            ].join(" ")}
+                                            title={day.toDateString()}
+                                        >
+                                            {dateNum}
+                                        </div>
+                                    </div>
+                                );
+                            })}
                     </div>
                 </div>
             </div>
 
-            <div className="p-1.5 flex gap-2">
-                {Array.from({ length: 7 }).map((_, i) => {
-                    const day = addDays(weekStart, i);
-                    const label = new Intl.DateTimeFormat(undefined, {
-                        weekday: 'short',
-                        day: 'numeric'
-                    }).format(day);
+            <div className="p-1.5">
+                <div className="grid grid-cols-[64px_repeat(7,1fr)] auto-rows-[48px] mt-2 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden">
+                    {Array.from({ length: 24 }).map((_, hour) => {
+                        const hourLabel = new Intl.DateTimeFormat(undefined, { hour: 'numeric' })
+                            .format(new Date(2000, 0, 1, hour));
 
-                    return (
-                        <div
-                            key={i}
-                            className="px-2 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800 text-sm font-medium"
-                        >
-                            {label}
-                        </div>
-                    );
-                })}
+                        return (
+                            <div className="contents" key={`row-${hour}`}>
+                                <div className="border-r border-zinc-200 dark:border-zinc-800
+                                                text-xs text-zinc-500 dark:text-zinc-400
+                                                flex items-start justify-end pr-2 pt-1 select-none">
+                                    {hourLabel}
+                                </div>
+
+                                {Array.from({ length: 7 }).map((__, i) => (
+                                    <div
+                                        key={`cell-${hour}-${i}`}
+                                        className="border-t border-r last:border-r-0 border-zinc-200 dark:border-zinc-800"
+                                    />
+                                ))}
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
 
             {/* {modalOpen === "taskCategoryAdd" && (

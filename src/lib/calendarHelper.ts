@@ -143,16 +143,7 @@ export function expandEventForWeek(ev: event, weekStart: Date, weekEnd: Date): E
         
         // Check if event overlaps with the week at all
         const overlaps = startBase <= weekEndFull && endBase >= weekStartFull;
-        
-        console.log('Non-recurring event overlap check:', {
-            eventTitle: ev.title,
-            startBase: startBase.toISOString(),
-            endBase: endBase.toISOString(),
-            weekStartFull: weekStartFull.toISOString(),
-            weekEndFull: weekEndFull.toISOString(),
-            overlaps
-        });
-        
+                
         if (!overlaps) {
             return [];
         }
@@ -226,7 +217,9 @@ export function expandEventForWeek(ev: event, weekStart: Date, weekEnd: Date): E
         const weekStartOf = (d: Date) => {
             const w = new Date(d);
             w.setHours(0,0,0,0);
-            w.setDate(w.getDate() - w.getDay()); // Sunday start baseline
+            // align using weekStartPreference, not always Sunday
+            const diff = (w.getDay() - weekStart.getDay() + 7) % 7;
+            w.setDate(w.getDate() - diff);
             return w;
         };
         const startWeek0 = weekStartOf(startBase).getTime();
@@ -247,7 +240,9 @@ export function expandEventForWeek(ev: event, weekStart: Date, weekEnd: Date): E
             const weeksSince = Math.floor((weekStartOf(d).getTime() - startWeek0) / (7*24*3600*1000));
             if (weeksSince < 0 || (weeksSince % stepWeeks) !== 0) continue;
 
-            if (d < startBase) continue; // don't produce before actual start
+            const startDateOnly = new Date(startBase.getFullYear(), startBase.getMonth(), startBase.getDate());
+
+            if (d < startDateOnly) continue; // don't produce before actual start
 
             pushIfValid(d);
             if (countLimit && occurrences.length >= countLimit) break;

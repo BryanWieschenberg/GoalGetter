@@ -8,6 +8,7 @@ import EventCategoryEdit from './modals/EventCategoryEdit';
 import { FiEye, FiChevronLeft, FiChevronRight, FiBell } from 'react-icons/fi';
 import { FaRegCalendarAlt } from 'react-icons/fa';
 import { startOfWeek, parseLocalDate, addDays, formatWeekRange, buildWeekOccurrences } from '@/lib/calendarHelper';
+import { AnimatePresence, motion } from 'framer-motion';
 
 type calendarData = {
     event_categories: event_category[];
@@ -217,52 +218,58 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                         })}
                     </div>
 
-                    {hoveredDayIndex !== null && tooltipPos && (() => {
-                        const day = addDays(weekStart, hoveredDayIndex);
-                        const tasksDueToday = calendarData.tasks.filter((task) => {
-                            if (!task.due_date) return false;
-                            const due = new Date(task.due_date);
+                    <AnimatePresence>
+                        {hoveredDayIndex !== null && tooltipPos && (() => {
+                            const day = addDays(weekStart, hoveredDayIndex);
+                            const tasksDueToday = calendarData.tasks.filter((task) => {
+                                if (!task.due_date) return false;
+                                const due = new Date(task.due_date);
+                                return (
+                                    due.getFullYear() === day.getFullYear() &&
+                                    due.getMonth() === day.getMonth() &&
+                                    due.getDate() === day.getDate()
+                                );
+                            });
+
                             return (
-                                due.getFullYear() === day.getFullYear() &&
-                                due.getMonth() === day.getMonth() &&
-                                due.getDate() === day.getDate()
+                                <motion.div
+                                    initial={{ opacity: 0, y: 8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: 8 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="fixed z-50 px-2 py-1 text-sm rounded-md bg-white dark:bg-black text-black dark:text-white border-2 border-zinc-500 shadow-lg max-w-xs"
+                                    style={{
+                                        top: tooltipPos.y + 12,
+                                        left: "auto",
+                                        right: `calc(100vw - ${tooltipPos.x}px)`,
+                                        transform: "translateX(-8px)"
+                                    }}
+                                >
+                                    <ul className="space-y-0.5">
+                                        {tasksDueToday.map((task) => {
+                                            const tag = task.tag_id
+                                                ? calendarData.tags.find((t) => t.id === task.tag_id)
+                                                : null;
+
+                                            return (
+                                                <li key={task.id} className="truncate flex items-center gap-1">
+                                                    {tag && tag.color && (
+                                                        <span
+                                                            className="font-semibold"
+                                                            style={{ color: `#${tag.color}` }}
+                                                        >
+                                                            [{tag.name}]
+                                                        </span>
+                                                    )}
+                                                    {task.title}
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                </motion.div>
                             );
-                        });
-
-                        return (
-                            <div
-                                className="fixed z-50 px-2 py-1 text-sm rounded-md bg-white dark:bg-black text-black dark:text-white border-2 border-zinc-500 shadow-lg max-w-xs"
-                                style={{
-                                    top: tooltipPos.y + 12,
-                                    left: "auto",
-                                    right: `calc(100vw - ${tooltipPos.x}px)`,
-                                    transform: "translateX(-8px)"
-                                }}
-                            >
-                                <ul className="space-y-0.5">
-                                    {tasksDueToday.map((task) => {
-                                        const tag = task.tag_id
-                                            ? calendarData.tags.find((t) => t.id === task.tag_id)
-                                            : null;
-
-                                        return (
-                                            <li key={task.id} className="truncate flex items-center gap-1">
-                                                {tag && tag.color && (
-                                                    <span
-                                                        className="font-semibold"
-                                                        style={{ color: `#${tag.color}` }}
-                                                    >
-                                                        [{tag.name}]
-                                                    </span>
-                                                )}
-                                                {task.title}
-                                            </li>
-                                        );
-                                    })}
-                                </ul>
-                            </div>
-                        );
-                    })()}
+                        })()}
+                    </AnimatePresence>
                 </div>
             </div>
 

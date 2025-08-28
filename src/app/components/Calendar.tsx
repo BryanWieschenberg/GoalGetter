@@ -61,7 +61,6 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
         const updateNowPosition = () => {
             const now = new Date();
             const minutes = now.getHours() * 60 + now.getMinutes();
-            // Each row = 48px (your auto-rows-[48px])
             const pxPerMinute = 48 / 60;
             setNowTop(minutes * pxPerMinute);
         };
@@ -212,7 +211,6 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                         })}
                     </div>
 
-                    {/* Floating tooltip (single instance) */}
                     {hoveredDayIndex !== null && tooltipPos && (() => {
                         const day = addDays(weekStart, hoveredDayIndex);
                         const tasksDueToday = calendarData.tasks.filter((task) => {

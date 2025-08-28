@@ -64,7 +64,8 @@ export default async function Home() {
                         ORDER BY e.start_time
                     ), '[]'::json)
                     FROM events e
-                    WHERE e.user_id = $1
+                    JOIN event_categories ec ON e.category_id = ec.id
+                    WHERE ec.user_id = $1
                 )
             ) AS user_data;`,
             [session.user.id]

@@ -65,7 +65,6 @@ CREATE TABLE IF NOT EXISTS event_categories (
 CREATE TABLE IF NOT EXISTS events (
     id                      SERIAL PRIMARY KEY,
     category_id             INTEGER REFERENCES event_categories(id) ON DELETE CASCADE,
-    user_id                 INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     title                   TEXT NOT NULL,
     description             TEXT,
     start_time              TIMESTAMP NOT NULL,

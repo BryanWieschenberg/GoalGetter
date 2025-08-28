@@ -39,7 +39,6 @@ type event = {
     start_time: string;
     end_time: string;
     color: string | null;
-    all_day: boolean;
     recurrence: {
         frequency: string;
         interval: number;

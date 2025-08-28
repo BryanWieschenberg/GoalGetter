@@ -69,8 +69,7 @@ CREATE TABLE IF NOT EXISTS events (
     description             TEXT,
     start_time              TIMESTAMP NOT NULL,
     end_time                TIMESTAMP NOT NULL,
-    color                   VARCHAR(6),
-    all_day                 BOOLEAN DEFAULT FALSE
+    color                   VARCHAR(6)
 );
 
 CREATE TYPE frequency_type AS ENUM ('daily', 'weekly', 'monthly', 'yearly');

@@ -45,7 +45,6 @@ export default async function Home() {
                             'start_time', e.start_time,
                             'end_time', e.end_time,
                             'color', e.color,
-                            'all_day', e.all_day,
                             'recurrence', (
                                 SELECT json_build_object(
                                     'frequency', er.frequency,

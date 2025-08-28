@@ -46,7 +46,6 @@ type EventOccurrence = {
     id: number;
     title: string;
     color?: string | null;
-    all_day?: boolean | null;
     start: Date;
     end: Date;
     dayIndex: number;
@@ -123,7 +122,6 @@ export function expandEventForWeek(ev: event, weekStart: Date, weekEnd: Date): E
             id: ev.id,
             title: ev.title,
             color: ev.color,
-            all_day: ev.all_day,
             start: s,
             end: e,
             dayIndex,

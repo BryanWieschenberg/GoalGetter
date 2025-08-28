@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import EventAdd from './modals/EventAdd';
 import EventCategoryAdd from './modals/EventCategoryAdd';
 import EventEdit from './modals/EventEdit';
 import EventCategoryEdit from './modals/EventCategoryEdit';
 import { FiEye, FiChevronLeft, FiChevronRight, FiBell } from 'react-icons/fi';
 import { FaRegCalendarAlt } from 'react-icons/fa';
-import { startOfWeek, parseLocalDate, addDays, formatWeekRange } from '@/lib/calendarHelper';
+import { startOfWeek, parseLocalDate, addDays, formatWeekRange, buildWeekOccurrences } from '@/lib/calendarHelper';
 
 type calendarData = {
     event_categories: event_category[];
@@ -32,6 +32,12 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
     const [showTooltip, setShowTooltip] = useState(false);
     const [hoveredDayIndex, setHoveredDayIndex] = useState<number | null>(null);
     const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
+
+    const weekEnd = addDays(weekStart, 6);
+
+    const weekOccurrences = useMemo(() => {
+        return buildWeekOccurrences(calendarData.events || [], weekStart);
+    }, [calendarData.events, weekStart]);
 
     const goPrev = () => setWeekStart(addDays(weekStart, -7));
     const goNext = () => setWeekStart(addDays(weekStart, 7));
@@ -159,7 +165,7 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                         </div>
                     </div>
                     
-                    {/* Tasks & day header */}
+                    {/* Tasks & weekday header */}
                     <div className="grid grid-cols-[64px_repeat(7,1fr)] py-[.3rem] border-b border-r bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800">
                         <div className="h-8" />
                         {Array.from({ length: 7 }).map((_, i) => {
@@ -309,6 +315,37 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                                     `}
                                 />
                             ))}
+
+                            {/* Event blocks */}
+                            {weekOccurrences.map(occ => {
+                                const leftExpr = `calc(64px + ((100% - 64px) / 7) * ${occ.dayIndex})`;
+                                const widthExpr = `calc(((100% - 64px) / 7) - 6px)`;
+
+                                const colIndex = (occ as any).__colIndex ?? 0;
+                                const colCount = Math.max(1, (occ as any).__colCount ?? 1);
+                                const widthColExpr = `calc(((${widthExpr}) - 6px) / ${colCount})`;
+                                const leftColExpr = `calc(${leftExpr} + 3px + (${widthColExpr} * ${colIndex}) + (4px * ${colIndex}))`;
+
+                                return (
+                                    <div
+                                        key={`${occ.id}-${occ.start.toISOString()}`}
+                                        className="absolute z-10 rounded-md border text-xs shadow-sm overflow-hidden"
+                                        style={{
+                                            top: `${occ.top}px`,
+                                            left: leftColExpr,
+                                            width: widthColExpr,
+                                            height: `${occ.height}px`,
+                                            background: occ.color ? `#${occ.color}22` : 'var(--bg, rgba(59,130,246,0.15))',
+                                            borderColor: occ.color ? `#${occ.color}` : 'rgb(59,130,246)',
+                                            color: 'inherit'
+                                        }}
+                                    >
+                                        <div className="px-2 py-1 truncate">
+                                            <div className="truncate">{occ.title}</div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
                     );
                 })}

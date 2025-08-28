@@ -14,20 +14,16 @@ import { HiCheck } from "react-icons/hi2";
 import { LuArrowUpDown } from "react-icons/lu";
 import { BiFilterAlt } from "react-icons/bi";
 
-type taskData = {
-    task_categories: task_category[];
-    task_tags: tag[];
-};
-
-export default function Tasks({ taskData, tasks, setTasks, modalOpen, setModalOpen }: {
-    taskData: taskData,
+export default function Tasks({ task_categories, tags, setTags, tasks, setTasks, modalOpen, setModalOpen }: {
+    task_categories: task_category[],
+    tags: tag[],
+    setTags: React.Dispatch<React.SetStateAction<tag[]>>,
     tasks: task[],
     setTasks: React.Dispatch<React.SetStateAction<task[]>>,
     modalOpen: string | null,
     setModalOpen: (value: string | null) => void
 }) {
-    const [categories, setCategories] = useState(taskData?.task_categories);
-    const [tags, setTags] = useState(taskData?.task_tags);
+    const [categories, setCategories] = useState(task_categories);
     const [hoveredCat, setHoveredCat] = useState<number | null>(null);
     const [createOpen, setCreateOpen] = useState(false);
     const [modalError, setModalError] = useState<string | null>(null);
@@ -42,7 +38,7 @@ export default function Tasks({ taskData, tasks, setTasks, modalOpen, setModalOp
     const [sortMode, setSortMode] = useState<"orderAsc" | "orderDesc" | "dueAsc" | "dueDesc" | "priorityAsc" | "priorityDesc">("orderAsc");
     const [sortOpen, setSortOpen] = useState(false);
     const [filterOpen, setFilterOpen] = useState(false);
-    const [visibleCategories, setVisibleCategories] = useState<number[]>(taskData?.task_categories?.map((c: any) => c.id) ?? []);
+    const [visibleCategories, setVisibleCategories] = useState<number[]>(task_categories?.map((c: any) => c.id) ?? []);
     const allPriorities = ["low", "normal", "high", "urgent"];
     const [visiblePriorities, setVisiblePriorities] = useState<string[]>(allPriorities);
     const [dueFilter, setDueFilter] = useState<"all" | "tomorrow" | "week" | "none">("all");
@@ -471,7 +467,7 @@ export default function Tasks({ taskData, tasks, setTasks, modalOpen, setModalOp
     return (
         <div>
             {/* Top Section */}
-            <div className="border-b-2 border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-[#101012] px-3 py-2 mb-1">
+            <div className="sticky top-0 z-30 border-b-2 border-r border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-[#101012] px-3 py-2 mb-1">
                 <div className="flex flex-wrap items-center gap-2">
                     <div ref={createRef} className="relative">
                         <button
@@ -861,7 +857,10 @@ export default function Tasks({ taskData, tasks, setTasks, modalOpen, setModalOp
                                                             setModalOpen("taskEdit");
                                                         }}
                                                     >
-                                                        <span style={{ color: tag?.color ? `#${tag.color}` : undefined }}>
+                                                        <span
+                                                            className="font-bold"
+                                                            style={{ color: tag?.color ? `#${tag.color}` : undefined }}
+                                                        >
                                                             {tag ? `[${tag.name}] ` : ""}
                                                         </span>
                                                         {task.title}

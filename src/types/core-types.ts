@@ -11,7 +11,7 @@ type task = {
     title: string;
     description: string | null;
     category_id: string;
-    tag_id: string | null;
+    tag_id: number | null;
     due_date: string | null;
     priority: string;
     sort_order: number;

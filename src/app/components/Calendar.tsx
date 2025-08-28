@@ -5,7 +5,7 @@ import EventAdd from './modals/EventAdd';
 import EventCategoryAdd from './modals/EventCategoryAdd';
 import EventEdit from './modals/EventEdit';
 import EventCategoryEdit from './modals/EventCategoryEdit';
-import { FiEye, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiEye, FiChevronLeft, FiChevronRight, FiBell } from 'react-icons/fi';
 import { FaRegCalendarAlt } from 'react-icons/fa';
 import { startOfWeek, parseLocalDate, addDays, formatWeekRange } from '@/lib/calendarHelper';
 
@@ -13,6 +13,7 @@ type calendarData = {
     event_categories: event_category[];
     events: event[];
     tasks: task[];
+    tags: tag[];
 };
 
 export default function Calendar({ calendarData, startWeekPreference, modalOpen, setModalOpen }: {
@@ -28,6 +29,9 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
     const [selectedEventRaw, setSelectedEventRaw] = useState<event | null>(null);
     const [modalError, setModalError] = useState<string | null>(null);
     const [nowTop, setNowTop] = useState<number | null>(null);
+    const [showTooltip, setShowTooltip] = useState(false);
+    const [hoveredDayIndex, setHoveredDayIndex] = useState<number | null>(null);
+    const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
 
     const goPrev = () => setWeekStart(addDays(weekStart, -7));
     const goNext = () => setWeekStart(addDays(weekStart, 7));
@@ -80,7 +84,7 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
             <div className="sticky top-0 z-30 bg-zinc-50 dark:bg-[#101012]">
                 <div>
                     {/* Main header */}
-                    <div className="flex flex-wrap items-center gap-2 border-b-2 border-zinc-300 dark:border-zinc-700 px-3 py-2">
+                    <div className="flex flex-wrap items-center gap-2 border-b-2 border-r border-zinc-300 dark:border-zinc-700 px-3 py-2">
                         <div className="relative w-fit">
                             <button
                                 type="button"
@@ -156,47 +160,105 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                         </div>
                     </div>
                     
-                    {/* Day header */}
-                    <div className="grid grid-cols-[64px_repeat(7,1fr)] border-b bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800">
-                        <div className="h-10" />
-                            {Array.from({ length: 7 }).map((_, i) => {
-                                const day = addDays(weekStart, i);
-                                const isToday =
-                                    day.getFullYear() === new Date().getFullYear() &&
-                                    day.getMonth() === new Date().getMonth() &&
-                                    day.getDate() === new Date().getDate();
+                    {/* Tasks & day header */}
+                    <div className="grid grid-cols-[64px_repeat(7,1fr)] py-[.3rem] border-b border-r bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800">
+                        <div className="h-8" />
+                        {Array.from({ length: 7 }).map((_, i) => {
+                            const day = addDays(weekStart, i);
+                            const isToday =
+                                day.getFullYear() === new Date().getFullYear() &&
+                                day.getMonth() === new Date().getMonth() &&
+                                day.getDate() === new Date().getDate();
 
-                                const weekday = new Intl.DateTimeFormat(undefined, { weekday: 'short' }).format(day);
-                                const dateNum = day.getDate();
+                            const weekday = new Intl.DateTimeFormat(undefined, { weekday: "short" }).format(day);
+                            const dateNum = day.getDate();
+                            const isWeekend = day.getDay() === 0 || day.getDay() === 6;
 
-                                const isWeekend = day.getDay() === 0 || day.getDay() === 6;
-
+                            const tasksDueToday = calendarData.tasks.filter((task) => {
+                                if (!task.due_date) return false;
+                                const due = new Date(task.due_date);
                                 return (
+                                    due.getFullYear() === day.getFullYear() &&
+                                    due.getMonth() === day.getMonth() &&
+                                    due.getDate() === day.getDate()
+                                );
+                            });
+
+                            return (
+                                <div
+                                    key={`head-${i}`}
+                                    className={`flex flex-col items-center justify-end rounded-md relative ${isWeekend ? "opacity-90" : ""}`}
+                                >
                                     <div
-                                        key={`head-${i}`}
-                                        className={[
-                                            "h-14 flex flex-col items-center justify-center rounded-md",
-                                            isWeekend ? "opacity-90" : ""
-                                        ].join(" ")}
+                                        className={`h-9 min-w-7 px-2 flex items-center justify-center rounded-xl text-xl font-semibold gap-1
+                                            ${isToday ? "bg-blue-600 text-white" : "text-zinc-900 dark:text-zinc-100"}`}
                                     >
-                                        <div
-                                            className={[
-                                                "h-9 min-w-7 px-2 flex items-center justify-center rounded-full text-xl font-semibold",
-                                                isToday
-                                                    ? "bg-blue-600 text-white"
-                                                    : "text-zinc-900 dark:text-zinc-100"
-                                            ].join(" ")}
-                                            title={day.toDateString()}
-                                        >
-                                        <span className="text-[11px] uppercase tracking-wide text-zinc-500 dark:text-zinc-400 mr-2 mt-[.36rem]">
+                                        <span className={`text-sm uppercase tracking-wide mr-1 mt-[.225rem]
+                                            ${isToday ? "text-zinc-200" : "text-zinc-500 dark:text-zinc-400"}`}>
                                             {weekday}
                                         </span>
                                         {dateNum}
-                                        </div>
+
+                                        {tasksDueToday.length > 0 && (
+                                            <FiBell className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-100 transition w-4 h-4 ml-1 cursor-pointer"
+                                                onMouseEnter={() => setHoveredDayIndex(i)}
+                                                onMouseLeave={() => setHoveredDayIndex(null)}
+                                                onMouseMove={(e) => setTooltipPos({ x: e.clientX, y: e.clientY })}
+                                            />
+                                        )}
                                     </div>
-                                );
-                            })}
+                                </div>
+                            );
+                        })}
                     </div>
+
+                    {/* Floating tooltip (single instance) */}
+                    {hoveredDayIndex !== null && tooltipPos && (() => {
+                        const day = addDays(weekStart, hoveredDayIndex);
+                        const tasksDueToday = calendarData.tasks.filter((task) => {
+                            if (!task.due_date) return false;
+                            const due = new Date(task.due_date);
+                            return (
+                                due.getFullYear() === day.getFullYear() &&
+                                due.getMonth() === day.getMonth() &&
+                                due.getDate() === day.getDate()
+                            );
+                        });
+
+                        return (
+                            <div
+                                className="fixed z-50 px-2 py-1 text-sm rounded-md bg-white dark:bg-black text-black dark:text-white border-2 border-zinc-500 shadow-lg max-w-xs"
+                                style={{
+                                    top: tooltipPos.y + 12,
+                                    left: "auto",
+                                    right: `calc(100vw - ${tooltipPos.x}px)`,
+                                    transform: "translateX(-8px)"
+                                }}
+                            >
+                                <ul className="space-y-0.5">
+                                    {tasksDueToday.map((task) => {
+                                        const tag = task.tag_id
+                                            ? calendarData.tags.find((t) => t.id === task.tag_id)
+                                            : null;
+
+                                        return (
+                                            <li key={task.id} className="truncate flex items-center gap-1">
+                                                {tag && tag.color && (
+                                                    <span
+                                                        className="font-semibold"
+                                                        style={{ color: `#${tag.color}` }}
+                                                    >
+                                                        [{tag.name}]
+                                                    </span>
+                                                )}
+                                                {task.title}
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            </div>
+                        );
+                    })()}
                 </div>
             </div>
 
@@ -242,12 +304,11 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                             {Array.from({ length: 7 }).map((__, i) => (
                                 <div
                                     key={`cell-${hour}-${i}`}
-                                    className={[
-                                        "border-l border-zinc-200 dark:border-zinc-800",
-                                        i === 6 ? "border-r" : "",
-                                        hour !== 0 ? "border-t border-zinc-200 dark:border-zinc-800" : "",
-                                        hour !== 23 ? "border-b border-zinc-200 dark:border-zinc-800" : ""
-                                    ].join(" ")}
+                                    className={`border-l border-zinc-200 dark:border-zinc-800
+                                        ${i === 6 ? "border-r" : ""}
+                                        ${hour !== 0 ? "border-t border-zinc-200 dark:border-zinc-800" : ""}
+                                        ${hour !== 23 ? "border-b border-zinc-200 dark:border-zinc-800" : ""}
+                                    `}
                                 />
                             ))}
                         </div>

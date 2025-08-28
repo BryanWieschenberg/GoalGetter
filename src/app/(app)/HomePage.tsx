@@ -10,8 +10,9 @@ export default function HomePage({ body, startWeek }: { body: any, startWeek: an
     const [leftPct, setLeftPct] = useState(27);
     const [isMobile, setIsMobile] = useState(false);
     const [mobileView, setMobileView] = useState<"tasks" | "calendar">("tasks");
-    const [tasks, setTasks] = useState(body.tasks);
     const [modalOpen, setModalOpen] = useState<string | null>(null);
+    const [tasks, setTasks] = useState(body.tasks);
+    const [tags, setTags] = useState(body.task_tags);
 
     let startWeekCode = 0;
     switch (startWeek) {
@@ -70,10 +71,9 @@ export default function HomePage({ body, startWeek }: { body: any, startWeek: an
                 <>
                     {mobileView === "tasks" ? (
                         <Tasks
-                            taskData={{
-                                task_categories: body.task_categories,
-                                task_tags: body.task_tags,
-                            }}
+                            task_categories={body.task_categories}
+                            tags={tags}
+                            setTags={setTags}
                             tasks={tasks}
                             setTasks={setTasks}
                             modalOpen={modalOpen}
@@ -84,7 +84,8 @@ export default function HomePage({ body, startWeek }: { body: any, startWeek: an
                             calendarData={{
                                 event_categories: body.event_categories,
                                 events: body.events,
-                                tasks
+                                tasks,
+                                tags
                             }}
                             startWeekPreference={startWeekCode || 0}
                             modalOpen={modalOpen}
@@ -105,10 +106,9 @@ export default function HomePage({ body, startWeek }: { body: any, startWeek: an
                 <>
                     <div className="overflow-y-auto" style={{ flex: `0 0 ${leftPct}%` }}>
                         <Tasks
-                            taskData={{
-                                task_categories: body.task_categories,
-                                task_tags: body.task_tags,
-                            }}
+                            task_categories={body.task_categories}
+                            tags={tags}
+                            setTags={setTags}
                             tasks={tasks}
                             setTasks={setTasks}
                             modalOpen={modalOpen}
@@ -130,7 +130,8 @@ export default function HomePage({ body, startWeek }: { body: any, startWeek: an
                             calendarData={{
                                 event_categories: body.event_categories,
                                 events: body.events,
-                                tasks
+                                tasks,
+                                tags
                             }}
                             startWeekPreference={startWeekCode || 0}
                             modalOpen={modalOpen}

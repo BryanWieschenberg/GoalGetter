@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS task_tags (
 CREATE TYPE task_priority AS ENUM ('low', 'normal', 'high', 'urgent');
 CREATE TABLE IF NOT EXISTS tasks (
     id                      SERIAL PRIMARY KEY,
-    category_id             INTEGER REFERENCES task_categories(id) ON DELETE CASCADE,
+    category_id             INTEGER NOT NULL REFERENCES task_categories(id) ON DELETE CASCADE, -- changed to NOT NULL but not reflected in local psql
     tag_id                  INTEGER REFERENCES task_tags(id) ON DELETE SET NULL,
     title                   TEXT NOT NULL,
     description             TEXT,
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS event_categories (
 
 CREATE TABLE IF NOT EXISTS events (
     id                      SERIAL PRIMARY KEY,
-    category_id             INTEGER REFERENCES event_categories(id) ON DELETE CASCADE,
+    category_id             INTEGER NOT NULL REFERENCES event_categories(id) ON DELETE CASCADE, -- changed to NOT NULL but not reflected in local psql
     title                   TEXT NOT NULL,
     description             TEXT,
     start_time              TIMESTAMP NOT NULL,
@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS events (
 
 CREATE TYPE frequency_type AS ENUM ('daily', 'weekly', 'monthly', 'yearly');
 CREATE TABLE IF NOT EXISTS event_recurrence (
-    event_id                INTEGER PRIMARY KEY REFERENCES events(id) ON DELETE CASCADE,
+    event_id                INTEGER NOT NULL PRIMARY KEY REFERENCES events(id) ON DELETE CASCADE, -- changed to NOT NULL but not reflected in local psql
     frequency               frequency_type NOT NULL,
     interval                INTEGER DEFAULT 1, -- every X days/weeks/etc.
     weekly                  TEXT[],            -- e.g. ['MO','WE','FR']

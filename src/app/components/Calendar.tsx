@@ -17,21 +17,21 @@ type calendarData = {
     tags: tag[];
 };
 
-export default function Calendar({ calendarData, startWeekPreference, modalOpen, setModalOpen }: {
+export default function Calendar({ calendarData, startWeekPreference, modalOpen, setModalOpen, nowTopServer }: {
     calendarData: calendarData,
     startWeekPreference: number,
     modalOpen: string | null,
-    setModalOpen: (value: string | null) => void
+    setModalOpen: (value: string | null) => void,
+    nowTopServer: number
 }) {
     const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), startWeekPreference));
-    const [jumpDate, setJumpDate] = useState('');
     const inputRef = useRef<HTMLInputElement>(null);
     const [categories, setCategories] = useState(calendarData.event_categories)
     const [events, setEvents] = useState(calendarData.events)
     const [selectedCategoryRaw, setSelectedCategoryRaw] = useState<event_category | null>(null);
     const [selectedEventRaw, setSelectedEventRaw] = useState<event | null>(null);
     const [modalError, setModalError] = useState<string | null>(null);
-    const [nowTop, setNowTop] = useState<number | null>(null);
+    const [nowTop, setNowTop] = useState<number | null>(nowTopServer ?? null);
     const [hoveredDayIndex, setHoveredDayIndex] = useState<number | null>(null);
     const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
     const [eventTimeslot, setEventTimeslot] = useState<{ start: Date; end: Date } | null>(null);
@@ -70,9 +70,6 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
 
     useEffect(() => {
         const onDocClick = (e: MouseEvent) => {
-            if (inputRef.current && !inputRef.current.contains(e.target as Node)) {
-                setJumpDate('');
-            }
             if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
                 setFilterOpen(false);
             }
@@ -80,7 +77,6 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
 
         const onKeydown = (e: KeyboardEvent) => {
             if (e.key === "Escape") {
-                setJumpDate('');
                 inputRef.current?.blur();
                 filterRef.current?.blur();
                 setFilterOpen(false);
@@ -259,6 +255,8 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
             weekly: form.getAll("weekly[]"),
             exceptions: form.get("exceptions") || ""
         };
+
+        console.log(payload)
         
         const res = await fetch('/api/user/calendar/events', {
             method: 'PUT',
@@ -342,7 +340,6 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                                 }}
                                 onChange={(e) => {
                                     const val = e.target.value;
-                                    setJumpDate(val);
                                     if (val) {
                                         const d = parseLocalDate(val);
                                         if (!isNaN(d.getTime())) {

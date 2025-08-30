@@ -7,6 +7,7 @@ export default async function Home() {
     const session = await getServerSession(authOptions);
     let res = null;
     let startWeek = null;
+    let nowTop = 0;
 
     if (session) {
         res = await pool.query(
@@ -71,12 +72,20 @@ export default async function Home() {
             `SELECT week_start FROM user_settings WHERE user_id = $1`,
             [session.user.id]
         );
+
+        const minutes = new Date().getHours() * 60 + new Date().getMinutes();
+        const pxPerMinute = 48 / 60;
+        nowTop = minutes * pxPerMinute;
     }
 
     return (
         <>
             {res
-                ? <HomePage body={res.rows[0].user_data} startWeek={startWeek?.rows[0].week_start} />
+                ? <HomePage
+                    body={res.rows[0].user_data}
+                    startWeek={startWeek?.rows[0].week_start}
+                    nowTop={nowTop}
+                />
                 : <WelcomePage />
             }
         </>

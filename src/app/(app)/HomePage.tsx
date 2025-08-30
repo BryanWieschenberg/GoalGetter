@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from "react";
 import Tasks from "../components/Tasks";
 import Calendar from "../components/Calendar";
 
-export default function HomePage({ body, startWeek }: { body: any, startWeek: any }) {
+export default function HomePage({ body, startWeek, nowTop }: { body: any, startWeek: any, nowTop: any }) {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const dragging = useRef(false);
     const [leftPct, setLeftPct] = useState(27);
@@ -90,6 +90,7 @@ export default function HomePage({ body, startWeek }: { body: any, startWeek: an
                             startWeekPreference={startWeekCode || 0}
                             modalOpen={modalOpen}
                             setModalOpen={setModalOpen}
+                            nowTopServer={nowTop}
                         />
                     )}
 
@@ -136,6 +137,7 @@ export default function HomePage({ body, startWeek }: { body: any, startWeek: an
                             startWeekPreference={startWeekCode || 0}
                             modalOpen={modalOpen}
                             setModalOpen={setModalOpen}
+                            nowTopServer={nowTop}
                         />
                     </div>
                 </>

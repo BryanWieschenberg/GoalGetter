@@ -108,21 +108,42 @@ export default function EventEdit({ categories, modalError, onClose, onSubmit, o
                                 value={until}
                                 onChange={(e) => setUntil(e.target.value)}
                                 className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-3 py-2 outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600 [appearance:none]"
+                                style={{
+                                    WebkitAppearance: "none",
+                                    MozAppearance: "textfield"
+                                }}
                             />
                             <FaRegCalendarAlt
                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-zinc-400 cursor-pointer"
                                 size={18}
                                 onClick={() => {
-                                    if (untilRef.current) {
-                                        const anyInput = untilRef.current as any;
-                                        if (typeof anyInput.showPicker === "function") {
-                                            anyInput.showPicker();
+                                    const input = document.querySelector<HTMLInputElement>('input[name="until"]');
+                                    if (input) {
+                                        if (typeof (input as any).showPicker === "function") {
+                                            (input as any).showPicker();
                                         } else {
-                                            untilRef.current.focus();
+                                            input.focus();
                                         }
                                     }
                                 }}
                             />
+
+                            <style jsx>{`
+                                input[type="date"]::-webkit-calendar-picker-indicator,
+                                input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+                                    opacity: 0;
+                                    display: none;
+                                    -webkit-appearance: none;
+                                }
+                                input[type="date"]::-webkit-clear-button,
+                                input[type="datetime-local"]::-webkit-clear-button {
+                                    display: none;
+                                }
+                                input[type="date"]::-moz-calendar-picker-indicator,
+                                input[type="datetime-local"]::-moz-calendar-picker-indicator {
+                                    display: none;
+                                }
+                            `}</style>
                         </div>
                     </div>
                 </div>
@@ -155,32 +176,27 @@ export default function EventEdit({ categories, modalError, onClose, onSubmit, o
                                 );
                             })}
                         </div>
-                        <input type="hidden" name="weekly[]" value={JSON.stringify(weekly)} />
+                        {weekly.map((w, i) => (
+                            <input key={w + i} type="hidden" name="weekly[]" value={w} />
+                        ))}
                     </div>
                 )}
 
                 <div className="grid gap-2">
                     <label className="text-sm font-medium">Exception Dates</label>
-                    <input
-                        type="text"
-                        name="exceptions_csv"
-                        value={exceptionsCsv}
-                        onChange={(e) => setExceptionsCsv(e.target.value)}
-                        className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2 outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600"
-                        placeholder="YYYY-MM-DD, YYYY-MM-DD, ..."
-                    />
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                        Comma-separated (YYYY-MM-DD). These dates will be skipped.
-                    </p>
-                    <input
-                        type="hidden"
-                        name="exceptions"
-                        value={JSON.stringify(
-                            exceptionsCsv
-                                .split(",")
-                                .map((s) => s.trim())
-                                .filter(Boolean)
-                        )}
+                        <input
+                            type="text"
+                            name="exceptions_csv"
+                            value={exceptionsCsv}
+                            onChange={(e) => setExceptionsCsv(e.target.value)}
+                            className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2 outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600"
+                            placeholder="YYYY-MM-DD, YYYY-MM-DD, ..."
+                        />
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                            Comma-separated (YYYY-MM-DD). These dates will be skipped.
+                        </p>
+
+                        <input type="hidden" name="exceptions" value={exceptionsCsv}
                     />
                 </div>
             </div>
@@ -225,6 +241,7 @@ export default function EventEdit({ categories, modalError, onClose, onSubmit, o
                             type="text"
                             name="title"
                             value={title}
+                            placeholder="Event name..."
                             onChange={(e) => setTitle(e.target.value)}
                             className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2 outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600"
                         />
@@ -239,7 +256,7 @@ export default function EventEdit({ categories, modalError, onClose, onSubmit, o
                             onChange={(e) => setDescription(e.target.value)}
                             className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2 outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600"
                             rows={3}
-                            placeholder="Additional details…"
+                            placeholder="Additional details..."
                         />
                     </div>
 
@@ -282,9 +299,8 @@ export default function EventEdit({ categories, modalError, onClose, onSubmit, o
                                     name="color"
                                     value={color}
                                     onChange={(e) => setColor(e.target.value)}
-                                    className={`h-10 w-14 rounded-md border-2 ${
-                                        useCustomColor ? "opacity-100" : "opacity-0"
-                                    }`}
+                                    className={`h-10 w-14 rounded-md border-2 border-zinc-300 dark:border-zinc-700 bg-white dark:bg-black p-1
+                                        ${useCustomColor ? "cursor-pointer opacity-100" : "cursor-not-allowed opacity-0"}`}
                                     disabled={!useCustomColor}
                                 />
                             </div>
@@ -295,27 +311,104 @@ export default function EventEdit({ categories, modalError, onClose, onSubmit, o
                     <div className="grid gap-3 sm:grid-cols-2">
                         <div className="grid gap-2">
                             <label className="text-sm font-medium">Start *</label>
-                            <input
-                                ref={startRef}
-                                type="datetime-local"
-                                name="start_time"
-                                required
-                                value={startTime}
-                                onChange={(e) => setStartTime(e.target.value)}
-                                className="w-full rounded-lg border px-3 py-2"
-                            />
+                            <div className="relative w-full">
+                                <input
+                                    ref={startRef}
+                                    type="datetime-local"
+                                    name="start_time"
+                                    required
+                                    value={startTime}
+                                    onChange={(e) => setStartTime(e.target.value)}
+                                    className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-3 py-2 pr-10 outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600 [appearance:none]"
+                                    style={{
+                                        WebkitAppearance: "none",
+                                        MozAppearance: "textfield"
+                                    }}
+                                />
+                                <FaRegCalendarAlt
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-zinc-400 cursor-pointer"
+                                    size={18}
+                                    onClick={() => {
+                                        if (startRef.current) {
+                                            if (typeof (startRef.current as any).showPicker === "function") {
+                                                (startRef.current as any).showPicker();
+                                            } else {
+                                                startRef.current.focus();
+                                            }
+                                        }
+                                    }}
+                                />
+
+                                <style jsx>{`
+                                    input[type="date"]::-webkit-calendar-picker-indicator,
+                                    input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+                                        opacity: 0;
+                                        display: none;
+                                        -webkit-appearance: none;
+                                    }
+
+                                    /* Hide native clear button (optional) */
+                                    input[type="date"]::-webkit-clear-button {
+                                        display: none;
+                                    }
+
+                                    /* Hide in Firefox */
+                                    input[type="date"]::-moz-calendar-picker-indicator {
+                                        display: none;
+                                    }
+                                `}</style>
+                            </div>
                         </div>
+
                         <div className="grid gap-2">
                             <label className="text-sm font-medium">End *</label>
-                            <input
-                                ref={endRef}
-                                type="datetime-local"
-                                name="end_time"
-                                required
-                                value={endTime}
-                                onChange={(e) => setEndTime(e.target.value)}
-                                className="w-full rounded-lg border px-3 py-2"
-                            />
+                            <div className="relative w-full">
+                                <input
+                                    ref={endRef}
+                                    type="datetime-local"
+                                    name="end_time"
+                                    required
+                                    value={endTime}
+                                    onChange={(e) => setEndTime(e.target.value)}
+                                    className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-3 py-2 pr-10 outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600 [appearance:none]"
+                                    style={{
+                                        WebkitAppearance: "none",
+                                        MozAppearance: "textfield"
+                                    }}
+                                />
+                                <FaRegCalendarAlt
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-zinc-400 cursor-pointer"
+                                    size={18}
+                                    onClick={() => {
+                                        if (endRef.current) {
+                                            if (typeof (endRef.current as any).showPicker === "function") {
+                                                (endRef.current as any).showPicker();
+                                            } else {
+                                                endRef.current.focus();
+                                            }
+                                        }
+                                    }}
+                                />
+
+                                <style jsx>{`
+                                    input[type="date"]::-webkit-calendar-picker-indicator,
+                                    input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+                                        opacity: 0;
+                                        display: none;
+                                        -webkit-appearance: none;
+                                    }
+
+                                    /* Hide native clear button (optional) */
+                                    input[type="date"]::-webkit-clear-button {
+                                        display: none;
+                                    }
+
+                                    /* Hide in Firefox */
+                                    input[type="date"]::-moz-calendar-picker-indicator {
+                                        display: none;
+                                    }
+                                `}</style>
+                            </div>
                         </div>
                     </div>
 
@@ -325,7 +418,7 @@ export default function EventEdit({ categories, modalError, onClose, onSubmit, o
                         <select
                             value={frequency}
                             onChange={(e) => setFrequency(e.target.value as Frequency)}
-                            className="w-full rounded-lg border px-3 py-2"
+                            className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2 outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600"
                         >
                             <option value="">Does not repeat</option>
                             <option value="daily">Daily</option>
@@ -348,21 +441,21 @@ export default function EventEdit({ categories, modalError, onClose, onSubmit, o
                         <button
                             type="button"
                             onClick={() => onDelete(preSelectedEvent.id)}
-                            className="bg-red-600 text-white px-4 py-2 rounded"
+                            className="hover:cursor-pointer rounded-lg bg-red-600 text-white px-4 py-2 text-sm font-medium hover:bg-red-700 active:bg-red-800"
                         >
                             Delete
                         </button>
-                        <div className="flex gap-2">
+                        <div className="flex items-center gap-2">
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="px-4 py-2 rounded border"
+                                className="hover:cursor-pointer rounded-lg px-4 py-2 text-sm ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
-                                className="px-4 py-2 rounded bg-zinc-900 text-white"
+                                className="hover:cursor-pointer rounded-lg bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 px-4 py-2 text-sm font-medium hover:opacity-90 active:opacity-80"
                             >
                                 Save
                             </button>

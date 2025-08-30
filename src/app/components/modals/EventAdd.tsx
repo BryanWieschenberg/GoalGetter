@@ -49,7 +49,8 @@ export default function EventAdd({ categories, modalError, onClose, onSubmit, pr
     const [count, setCount] = useState<string>("");
     const [until, setUntil] = useState<string>("");
     const [exceptions, setExceptions] = useState<string>("");
-    const [useCustomColor, setUseCustomColor] = useState(false);
+    const [useCustomColor, setUseCustomColor] = useState<boolean>(!!preSelectedCategory?.color);
+    const [color, setColor] = useState<string>(preSelectedCategory?.color ? `#${preSelectedCategory.color.replace(/^#/, "")}` : "#ffffff");
     const startRef = useRef<HTMLInputElement>(null);
     const endRef = useRef<HTMLInputElement>(null);
 
@@ -67,6 +68,17 @@ export default function EventAdd({ categories, modalError, onClose, onSubmit, pr
             setWeekly([code]);
         }
     }, [frequency, startTime]);
+
+    useEffect(() => {
+        setSelectedCategory(preSelectedCategory ? String(preSelectedCategory.id) : "");
+        if (preSelectedCategory?.color) {
+            setUseCustomColor(true);
+            setColor(`#${preSelectedCategory.color.replace(/^#/, "")}`);
+        } else {
+            setUseCustomColor(false);
+            setColor("#ffffff");
+        }
+    }, [preSelectedCategory]);
 
     const renderRecurrenceFields = () => {
         if (!frequency) return null;
@@ -304,7 +316,8 @@ export default function EventAdd({ categories, modalError, onClose, onSubmit, pr
                                     type="color"
                                     id="eventColor"
                                     name="color"
-                                    defaultValue="#ffffff"
+                                    value={color}
+                                    onChange={(e) => setColor(e.target.value)}
                                     className={`h-10 w-14 rounded-md border-2 border-zinc-300 dark:border-zinc-700 bg-white dark:bg-black p-1
                                         ${useCustomColor ? "cursor-pointer opacity-100" : "cursor-not-allowed opacity-0"}`}
                                     disabled={!useCustomColor}

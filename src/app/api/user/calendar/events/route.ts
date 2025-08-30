@@ -121,8 +121,8 @@ export async function PUT(req: Request) {
 
         await client.query(
             `UPDATE events
-             SET title=$1, description=$2, category_id=$3, color=$4, start_time=$5, end_time=$6
-             WHERE id=$7`,
+            SET title=$1, description=$2, category_id=$3, color=$4, start_time=$5, end_time=$6
+            WHERE id=$7`,
             [title, description || null, category_id, color || null, start_time, end_time, id]
         );
 
@@ -131,7 +131,7 @@ export async function PUT(req: Request) {
         if (frequency) {
             await client.query(
                 `INSERT INTO event_recurrence (event_id, frequency, interval, weekly, count, exceptions, until)
-                 VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+                VALUES ($1,$2,$3,$4,$5,$6,$7)`,
                 [
                     id,
                     frequency,
@@ -171,9 +171,9 @@ export async function DELETE(req: Request) {
 
         const evCheck = await client.query(
             `SELECT 1
-             FROM events e
-             JOIN event_categories ec ON e.category_id = ec.id
-             WHERE e.id=$1 AND ec.user_id=$2`,
+            FROM events e
+            JOIN event_categories ec ON e.category_id = ec.id
+            WHERE e.id=$1 AND ec.user_id=$2`,
             [id, session.user.id]
         );
         if (evCheck.rowCount === 0) {

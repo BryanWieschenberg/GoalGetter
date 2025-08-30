@@ -60,6 +60,17 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
     const goNext = () => setWeekStart(addDays(weekStart, 7));
     const goToday = () => setWeekStart(startOfWeek(new Date(), startWeekPreference));
     
+    const getPreselectedCategory = (): event_category | null => {
+        const showing = categories.filter(c => visibleCategories.includes(c.id));
+        const mainCat = showing.find(c => c.main);
+
+        if (showing.length === 0) return null;
+        if (showing.length > 1 && mainCat) return mainCat;
+        if (showing.length === 1) return showing[0];
+
+        return null;
+    };
+
     const closeAll = () => {
         setModalOpen(null);
         setSelectedCategoryRaw(null);
@@ -369,22 +380,36 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                                     <span className="px-2 mt-1 text-xs text-zinc-500 font-bold">Categories</span>
                                     
                                     {categories.map((cat: event_category) => (
-                                        <label key={cat.id} className="flex items-center gap-2 px-2 py-1 text-sm">
-                                            <input
-                                                type="checkbox"
-                                                checked={visibleCategories.includes(cat.id)}
-                                                onChange={() => {
-                                                    setVisibleCategories(prev =>
-                                                        prev.includes(cat.id)
-                                                            ? prev.filter(id => id !== cat.id)
-                                                            : [...prev, cat.id]
-                                                    );
+                                        <div key={cat.id} className="flex items-center justify-between px-2 py-1 text-sm">
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={visibleCategories.includes(cat.id)}
+                                                    onChange={() => {
+                                                        setVisibleCategories(prev =>
+                                                            prev.includes(cat.id)
+                                                                ? prev.filter(id => id !== cat.id)
+                                                                : [...prev, cat.id]
+                                                        );
+                                                    }}
+                                                />
+                                                <span>
+                                                    {cat.name} {cat.main ? <span className="text-amber-500 font-bold text-[.65rem] pl-1">Main</span> : ""}
+                                                </span>
+                                            </label>
+                                            
+                                            <button
+                                                type="button"
+                                                className="hover:cursor-pointer ml-2 px-2 py-0.5 text-xs rounded-md bg-blue-600 text-white hover:bg-blue-500 active:bg-blue-600 dark:hover:bg-blue-700 dark:active:bg-blue-800"
+                                                onClick={() => {
+                                                    setFilterOpen(false);
+                                                    setSelectedCategoryRaw(cat);
+                                                    setModalOpen("eventCategoryEdit");
                                                 }}
-                                            />
-                                            <span>
-                                                {cat.name} {cat.main ? <span className="text-amber-500 font-bold text-[.65rem] pl-1">Main</span> : ""}
-                                            </span>
-                                        </label>
+                                            >
+                                                Edit
+                                            </button>
+                                        </div>
                                     ))}
 
                                     <div className="h-px my-1 bg-zinc-200 dark:bg-zinc-800" />
@@ -595,6 +620,7 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                                         `}
                                         onClick={() => {
                                             setEventTimeslot({ start: cellStart, end: cellEnd });
+                                            setSelectedCategoryRaw(getPreselectedCategory())
                                             setModalOpen("eventAdd");
                                         }}
                                     />

@@ -37,10 +37,8 @@ export function formatWeekRange(start: Date, end: Date): string {
     }
 }
 
-// FOLLOWING HAVE NOT BEEN TESTED.
-
-// ---- Calendar event helpers ----
 const PX_PER_MIN = 48 / 60; // 48px row height
+const dowCodeToJs: Record<string, number> = { MO:1, TU:2, WE:3, TH:4, FR:5, SA:6, SU:0 };
 
 type EventOccurrence = {
     id: number;
@@ -49,11 +47,9 @@ type EventOccurrence = {
     start: Date;
     end: Date;
     dayIndex: number;
-    top: number;       // px
-    height: number;    // px
+    top: number;
+    height: number;
 };
-
-const dowCodeToJs: Record<string, number> = { MO:1, TU:2, WE:3, TH:4, FR:5, SA:6, SU:0 };
 
 export function toDate(d: string | Date): Date {
     return d instanceof Date ? d : new Date(d);
@@ -364,4 +360,14 @@ export function buildWeekOccurrences(events: event[], weekStart: Date): EventOcc
         });
     }
     return occs;
+}
+
+export function getContrastTextColor(hex: string): string {
+    if (!hex) return "black";
+    hex = hex.replace(/^#/, "");
+    const r = parseInt(hex.slice(0, 2), 16);
+    const g = parseInt(hex.slice(2, 4), 16);
+    const b = parseInt(hex.slice(4, 6), 16);
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    return brightness > 128 ? "black" : "white";
 }

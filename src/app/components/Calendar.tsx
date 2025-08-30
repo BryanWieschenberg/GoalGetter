@@ -7,7 +7,7 @@ import EventEdit from './modals/EventEdit';
 import EventCategoryEdit from './modals/EventCategoryEdit';
 import { FiEye, FiChevronLeft, FiChevronRight, FiBell } from 'react-icons/fi';
 import { FaRegCalendarAlt } from 'react-icons/fa';
-import { startOfWeek, parseLocalDate, addDays, formatWeekRange, buildWeekOccurrences } from '@/lib/calendarHelper';
+import { startOfWeek, parseLocalDate, addDays, formatWeekRange, buildWeekOccurrences, getContrastTextColor } from '@/lib/calendarHelper';
 import { AnimatePresence, motion } from 'framer-motion';
 
 type calendarData = {
@@ -26,6 +26,8 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
     const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), startWeekPreference));
     const [jumpDate, setJumpDate] = useState('');
     const inputRef = useRef<HTMLInputElement>(null);
+    const [categories, setCategories] = useState(calendarData.event_categories)
+    const [events, setEvents] = useState(calendarData.events)
     const [selectedCategoryRaw, setSelectedCategoryRaw] = useState<event_category | null>(null);
     const [selectedEventRaw, setSelectedEventRaw] = useState<event | null>(null);
     const [modalError, setModalError] = useState<string | null>(null);
@@ -33,8 +35,7 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
     const [showTooltip, setShowTooltip] = useState(false);
     const [hoveredDayIndex, setHoveredDayIndex] = useState<number | null>(null);
     const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
-
-    const weekEnd = addDays(weekStart, 6);
+    const [eventTimeslot, setEventTimeslot] = useState<{ start: Date; end: Date } | null>(null);
 
     const weekOccurrences = useMemo(() => {
         return buildWeekOccurrences(calendarData.events || [], weekStart);
@@ -84,6 +85,55 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
             clearInterval(interval);
         };
     }, []);
+
+    const fetchCategoryData = () => {
+        fetch('/api/user/tasks/categories')
+            .then((res) => res.json())
+            .then((data) => setCategories(data.categories));
+    };
+
+    const fetchEventData = () => {
+        fetch('/api/user/tasks/tasks')
+            .then((res) => res.json())
+            .then((data) => setEvents(data.tasks));
+    };
+
+    async function handleEventAdd(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+        setModalError(null);
+
+        const formData = new FormData(e.currentTarget);
+        const title = formData.get("title") as string;
+        const due_date = formData.get("due_date") as string;
+        const tag_id = formData.get("tag_id") as string;
+
+        if (!title || title.trim() === "") {
+            setModalError("Title is required.");
+            return;
+        }
+
+        const payload: any = { title: title.trim() };
+        if (due_date) payload.due_date = due_date;
+        if (tag_id) payload.tag_id = parseInt(tag_id);
+
+        try {
+            const res = await fetch('/api/user/calendar/events', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                closeAll();
+                window.location.reload();
+            } else {
+                const data = await res.json();
+                setModalError(data.error || 'Failed to add task.');
+            }
+        } catch (error) {
+            setModalError('An error occurred while adding the task.');
+        }
+    }
 
     return (
         <div>
@@ -206,7 +256,7 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                                         {dateNum}
 
                                         {tasksDueToday.length > 0 && (
-                                            <FiBell className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-100 transition w-4 h-4 ml-1 cursor-pointer"
+                                            <FiBell className={`transition w-4 h-4 ml-1 cursor-pointer ${isToday ? "text-slate-400 hover:text-slate-100" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-100"}`}
                                                 onMouseEnter={() => setHoveredDayIndex(i)}
                                                 onMouseLeave={() => setHoveredDayIndex(null)}
                                                 onMouseMove={(e) => setTooltipPos({ x: e.clientX, y: e.clientY })}
@@ -336,7 +386,7 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                                 return (
                                     <div
                                         key={`${occ.id}-${occ.start.toISOString()}`}
-                                        className="absolute z-10 rounded-md border text-xs shadow-sm overflow-hidden"
+                                        className="absolute z-10 rounded-md border text-xs overflow-hidden"
                                         style={{
                                             top: `${occ.top}px`,
                                             left: leftColExpr,
@@ -344,11 +394,11 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                                             height: `${occ.height}px`,
                                             background: occ.color ? `#${occ.color}22` : 'var(--bg, rgba(59,130,246,0.15))',
                                             borderColor: occ.color ? `#${occ.color}` : 'rgb(59,130,246)',
-                                            color: 'inherit'
+                                            color: occ.color ? getContrastTextColor(occ.color) : "inherit"
                                         }}
                                     >
                                         <div className="px-2 py-1 truncate">
-                                            <div className="truncate">{occ.title}</div>
+                                            <div className="truncate font-light">{occ.title}</div>
                                         </div>
                                     </div>
                                 );
@@ -359,14 +409,17 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
             </div>
 
             {/* Modals */}
-            {/* {modalOpen === "taskCategoryAdd" && (
-                <EventCategoryAdd
+            {modalOpen === "eventAdd" && (
+                <EventAdd
+                    categories={categories}
                     onClose={closeAll}
-                    onSubmit={handleCategoryAdd}
+                    onSubmit={handleEventAdd}
                     modalError={modalError}
+                    preSelectedCategory={selectedCategoryRaw}
+                    timeslot={eventTimeslot}
                 />
             )}
-            {modalOpen === "taskAdd" && (
+            {/* {modalOpen === "taskAdd" && (
                 <EventAdd
                     categories={categories}
                     tags={tags}

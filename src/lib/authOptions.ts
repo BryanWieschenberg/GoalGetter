@@ -79,22 +79,32 @@ const authOptions: AuthOptions = {
                         
                         await client.query("BEGIN");
                         began = true;
+                        
                         const userId = await client.query(
                             `INSERT INTO users (username, handle, email, email_verified, provider, provider_id)
                             VALUES ($1, $2, $3, $4, $5, $6)
                             RETURNING id`,
                             [username, handle, profile.email, true, account.provider, account.providerAccountId]
                         );
+                        
                         await client.query(
                             `INSERT INTO user_settings (user_id, theme)
                             VALUES ($1, 'system')`,
                             [userId.rows[0].id]
                         );
+                        
                         await client.query(
                             `INSERT INTO task_categories (user_id, name, sort_order) VALUES
                             ($1, 'My Tasks', 0)`,
                             [userId.rows[0].id]
                         )
+                        
+                        await client.query(
+                            `INSERT INTO event_categories (user_id, name, main)
+                            VALUES ($1, $2, $3)`,
+                            [userId.rows[0].id, 'Events', true]
+                        );
+
                         await client.query("COMMIT");
                         began = false;
                     }

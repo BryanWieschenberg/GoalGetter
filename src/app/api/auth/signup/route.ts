@@ -74,11 +74,19 @@ export async function POST(req: Request) {
             VALUES ($1, $2, 'signup')`,
             [userRes.rows[0].id, tokenHash]
         );
+        
         await client.query(
             `INSERT INTO task_categories (user_id, name, sort_order) VALUES
             ($1, 'My Tasks', 0)`,
             [userRes.rows[0].id]
         )
+
+        await client.query(
+            `INSERT INTO event_categories (user_id, name, main)
+            VALUES ($1, $2, $3)`,
+            [userRes.rows[0].id, 'Events', true]
+        );
+
         await client.query("COMMIT");
         began = false;
 

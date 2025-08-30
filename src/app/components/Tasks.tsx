@@ -126,6 +126,11 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
                 setFilterOpen(v => !v);
                 setCreateOpen(false);
                 setSortOpen(false);
+            } else if (e.key === "e") {
+                setCreateOpen(false);
+                setSortOpen(false);
+                setFilterOpen(false);
+                setModalOpen("eventAdd");
             }
         };
         document.addEventListener("mousedown", onDocClick);

@@ -59,7 +59,8 @@ CREATE TABLE IF NOT EXISTS event_categories (
     id                      SERIAL PRIMARY KEY,
     user_id                 INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name                    TEXT NOT NULL,
-    color                   VARCHAR(6)
+    color                   VARCHAR(6),
+    main                    BOOLEAN NOT NULL DEFAULT false
 );
 
 CREATE TABLE IF NOT EXISTS events (

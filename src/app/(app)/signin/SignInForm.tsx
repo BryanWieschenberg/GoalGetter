@@ -115,7 +115,7 @@ export default function SignInForm() {
                 <h1 className={`text-2xl font-bold text-center ${error ? "mb-3" : "mb-8"}`}>Sign In</h1>
 
                 {error && (
-                    <div className="mb-6 rounded px-4 py-3 border bg-red-100 border-red-400 text-red-700 dark:bg-red-900 border dark:border-red-500 dark:text-red-300">
+                    <div className="mb-6 rounded px-4 py-3 bg-red-100 border-red-400 text-red-700 dark:bg-red-900 border dark:border-red-500 dark:text-red-300">
                         <span className="font-bold">Error: </span>{error}
                     </div>
                 )}
@@ -189,36 +189,66 @@ export default function SignInForm() {
             </div>
 
             {forgotOpen && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black/50">
-                    <div className="bg-white dark:bg-zinc-900 p-6 rounded-lg w-full max-w-sm">
-                        <h2 className="text-lg font-bold mb-4">Reset Password</h2>
-                        <form onSubmit={handleForgot} className="space-y-3">
+                <div
+                    className="fixed inset-0 z-[60] flex items-center justify-center animate-fadeIn"
+                    aria-modal="true"
+                    role="dialog"
+                    aria-labelledby="forgot-password-title"
+                >
+                    {/* Overlay */}
+                    <div
+                        className="absolute inset-0 bg-black/50 animate-fadeIn"
+                        onClick={() => setForgotOpen(false)}
+                    />
+
+                    {/* Modal */}
+                    <div className="relative z-[61] w-[90vw] max-w-md rounded-2xl border-[.2rem] border-zinc-500/70 bg-zinc-100 dark:bg-zinc-900 shadow-2xl animate-slideUp">
+                        <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-200 dark:border-zinc-800">
+                            <h2 id="forgot-password-title" className="text-lg font-semibold">
+                                Reset Password
+                            </h2>
+                            <button
+                                type="button"
+                                onClick={() => setForgotOpen(false)}
+                                className="rounded-md p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                                aria-label="Close"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleForgot} className="px-5 py-4 space-y-4">
                             <input
                                 type="email"
                                 value={forgotEmail}
                                 onChange={(e) => setForgotEmail(e.target.value)}
                                 placeholder="Enter your email"
-                                className="w-full border rounded px-3 py-2"
+                                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2 outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600"
                                 required
                             />
+
                             <button
                                 type="submit"
                                 disabled={forgotSubmitting}
-                                className="w-full py-2 rounded bg-blue-500 hover:bg-blue-600 text-white"
+                                className="w-full py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50 hover:cursor-pointer"
                             >
                                 {forgotSubmitting ? "Sending..." : "Send Reset Link"}
                             </button>
+
+                            {forgotMessage && (
+                                <p className="mt-2 text-sm text-center">{forgotMessage}</p>
+                            )}
                         </form>
-                        {forgotMessage && (
-                            <p className="mt-3 text-sm text-center">{forgotMessage}</p>
-                        )}
-                        <button
-                            type="button"
-                            onClick={() => setForgotOpen(false)}
-                            className="mt-4 w-full py-2 rounded bg-zinc-200 dark:bg-zinc-700"
-                        >
-                            Close
-                        </button>
+
+                        <div className="flex items-center justify-end gap-2 border-t border-zinc-200 dark:border-zinc-800 px-5 py-4">
+                            <button
+                                type="button"
+                                onClick={() => setForgotOpen(false)}
+                                className="hover:cursor-pointer rounded-lg px-4 py-2 text-sm ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                            >
+                                Cancel
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

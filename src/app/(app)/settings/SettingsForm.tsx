@@ -137,7 +137,6 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
                 return;
             }
             await signOut({ callbackUrl: "/" });
-            window.location.href = "/signin";
         } catch {
             setDeleting(false);
         }

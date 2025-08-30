@@ -363,5 +363,9 @@ export function buildWeekOccurrences(events: event[], weekStart: Date): EventOcc
         });
     }
 
-    return occs;
+    return occs.sort((a, b) => {
+        if (a.dayIndex !== b.dayIndex) return a.dayIndex - b.dayIndex;
+        if (a.top !== b.top) return a.top - b.top;
+        return b.height - a.height;
+    });
 }

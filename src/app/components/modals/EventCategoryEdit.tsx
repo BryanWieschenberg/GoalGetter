@@ -6,9 +6,11 @@ type EventCategoryEditProps = {
     modalError?: string | null;
     onClose: () => void;
     onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+    onDelete: (id: number) => void;
+    preSelectedCategory: event_category;
 };
 
-export default function EventCategoryEdit({ modalError, onClose, onSubmit }: EventCategoryEditProps) {
+export default function EventCategoryEdit({ modalError, onClose, onSubmit, onDelete, preSelectedCategory }: EventCategoryEditProps) {
     const [useCustomColor, setUseCustomColor] = useState(false);
     
     return (

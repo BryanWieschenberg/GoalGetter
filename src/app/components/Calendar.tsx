@@ -32,14 +32,29 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
     const [selectedEventRaw, setSelectedEventRaw] = useState<event | null>(null);
     const [modalError, setModalError] = useState<string | null>(null);
     const [nowTop, setNowTop] = useState<number | null>(null);
-    const [showTooltip, setShowTooltip] = useState(false);
     const [hoveredDayIndex, setHoveredDayIndex] = useState<number | null>(null);
     const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
     const [eventTimeslot, setEventTimeslot] = useState<{ start: Date; end: Date } | null>(null);
+    const [visibleCategories, setVisibleCategories] = useState<number[]>(categories?.map((c: any) => c.id) ?? []);
+    const [tooltipsVisible, setTooltipsVisible] = useState(true);
+
+    const [filterOpen, setFilterOpen] = useState(false);
+    const filterRef = useRef<HTMLDivElement>(null);
 
     const weekOccurrences = useMemo(() => {
-        return buildWeekOccurrences(events || [], weekStart);
-    }, [events, weekStart]);
+        const filtered = (events || []).filter(
+            (ev: any) => visibleCategories.includes(ev.category_id)
+        );
+        return buildWeekOccurrences(filtered || [], weekStart);
+    }, [events, weekStart, visibleCategories]);
+
+    const eventMap = useMemo(() => {
+        const map: Record<number, event> = {};
+        for (const ev of events) {
+            map[ev.id] = ev;
+        }
+        return map;
+    }, [events]);
 
     const goPrev = () => setWeekStart(addDays(weekStart, -7));
     const goNext = () => setWeekStart(addDays(weekStart, 7));
@@ -58,12 +73,17 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
             if (inputRef.current && !inputRef.current.contains(e.target as Node)) {
                 setJumpDate('');
             }
+            if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+                setFilterOpen(false);
+            }
         };
 
         const onKeydown = (e: KeyboardEvent) => {
             if (e.key === "Escape") {
                 setJumpDate('');
                 inputRef.current?.blur();
+                filterRef.current?.blur();
+                setFilterOpen(false);
             }
         };
         
@@ -87,10 +107,11 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
         };
     }, []);
 
-    const fetchCategoryData = () => {
-        fetch('/api/user/calendar/categories')
-            .then((res) => res.json())
-            .then((data) => setCategories(data.categories));
+    const fetchCategoryData = async () => {
+        const res = await fetch('/api/user/calendar/categories')
+        const data = await res.json();
+        setCategories(data.categories);
+        setVisibleCategories(data.categories.map((c: any) => c.id));
     };
 
     const fetchEventData = () => {
@@ -180,6 +201,114 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
         }
     }
 
+    async function handleCategoryEdit(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+
+        if (!selectedCategoryRaw) return;
+
+        const form = new FormData(e.currentTarget);
+
+        let color = form.get("color") as string | null;
+        color = color ? color.replace(/^#/, "") : null;
+
+        const payload = {
+            id: selectedCategoryRaw.id,
+            title: form.get("title"),
+            color: color
+        };
+
+        const res = await fetch('/api/user/calendar/categories', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ payload })
+        });
+
+        if (!res.ok) {
+            const res_json = await res.json();
+            setModalError(res_json.error || "An unknown error occurred.");
+        } else {
+            fetchCategoryData();
+            setModalOpen(null);
+            setSelectedCategoryRaw(null);
+            setModalError(null);
+        }
+    }
+
+    async function handleEventEdit(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+
+        if (!selectedEventRaw) return;
+
+        const form = new FormData(e.currentTarget);
+
+        let color = form.get("color") as string | null;
+        color = color ? color.replace(/^#/, "") : null;
+
+        const payload = {
+            id: selectedEventRaw.id,
+            title: form.get("title"),
+            description: form.get("description") || null,
+            category_id: form.get("category_id"),
+            color: color,
+            start_time: form.get("start_time"),
+            end_time: form.get("end_time"),
+            frequency: form.get("frequency") || null,
+            interval: form.get("interval") || null,
+            count: form.get("count") || null,
+            until: form.get("until") || null,
+            weekly: form.getAll("weekly[]"),
+            exceptions: form.get("exceptions") || ""
+        };
+        
+        const res = await fetch('/api/user/calendar/events', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ payload })
+        });
+        
+        if (!res.ok) {
+            const res_json = await res.json();
+            setModalError(res_json.error || "An unknown error occurred.");
+        } else {
+            fetchEventData();
+            setModalOpen(null);
+            setSelectedEventRaw(null);
+            setModalError(null);
+        }
+    }
+
+    async function handleCategoryDelete(id: number) {
+        const res = await fetch(`/api/user/calendar/categories?id=${id}`, {
+            method: 'DELETE'
+        });
+
+        if (!res.ok) {
+            const res_json = await res.json();
+            setModalError(res_json.error || "An unknown error occurred.");
+        } else {
+            fetchCategoryData();
+            setModalOpen(null);
+            setSelectedCategoryRaw(null);
+            setModalError(null);
+        }
+    }
+
+    async function handleEventDelete(id: number) {
+        const res = await fetch(`/api/user/calendar/events?id=${id}`, {
+            method: 'DELETE'
+        });
+
+        if (!res.ok) {
+            const res_json = await res.json();
+            setModalError(res_json.error || "An unknown error occurred.");
+        } else {
+            fetchEventData();
+            setModalOpen(null);
+            setSelectedEventRaw(null);
+            setModalError(null);
+        }
+    }
+
     return (
         <div>
             <div className="sticky top-0 z-30 bg-zinc-50 dark:bg-[#101012]">
@@ -224,12 +353,56 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                             />
                         </div>
                         
-                        <button
-                            type="button"
-                            className="transition inline-flex items-center gap-2 rounded-lg px-3 py-3 text-sm ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 bg-white/70 dark:bg-black/20 hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:cursor-pointer"
-                        >
-                            <FiEye className="w-4 h-4"/>
-                        </button>
+                        <div ref={filterRef} className="relative">
+                            <button
+                                type="button"
+                                onClick={() => setFilterOpen(v => !v)}
+                                className="transition inline-flex items-center gap-2 rounded-lg px-3 py-3 text-sm ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 bg-white/70 dark:bg-black/20 hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:cursor-pointer"
+                                aria-haspopup="menu"
+                                aria-expanded={filterOpen}
+                            >
+                                <FiEye className="w-4 h-4" />
+                            </button>
+
+                            {filterOpen && (
+                                <div
+                                    role="menu"
+                                    className="absolute z-50 mt-2 w-64 rounded-lg border border-zinc-300/70 dark:border-zinc-700/70 bg-white dark:bg-zinc-900 shadow-lg p-2 flex flex-col gap-1"
+                                >
+                                    <span className="px-2 mt-1 text-xs text-zinc-500 font-bold">Categories</span>
+                                    
+                                    {categories.map((cat: event_category) => (
+                                        <label key={cat.id} className="flex items-center gap-2 px-2 py-1 text-sm">
+                                            <input
+                                                type="checkbox"
+                                                checked={visibleCategories.includes(cat.id)}
+                                                onChange={() => {
+                                                    setVisibleCategories(prev =>
+                                                        prev.includes(cat.id)
+                                                            ? prev.filter(id => id !== cat.id)
+                                                            : [...prev, cat.id]
+                                                    );
+                                                }}
+                                            />
+                                            <span>
+                                                {cat.name} {cat.main ? <span className="text-amber-500 font-bold text-[.65rem] pl-1">Main</span> : ""}
+                                            </span>
+                                        </label>
+                                    ))}
+
+                                    <div className="h-px my-1 bg-zinc-200 dark:bg-zinc-800" />
+
+                                    <label className="flex items-center gap-2 px-2 py-1 text-sm">
+                                        <input
+                                            type="checkbox"
+                                            checked={tooltipsVisible}
+                                            onChange={(e) => setTooltipsVisible(e.target.checked)}
+                                        />
+                                        Show Upcoming Due Date Bells
+                                    </label>
+                                </div>
+                            )}
+                        </div>
 
                         <button
                             type="button"
@@ -300,7 +473,7 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                                         </span>
                                         {dateNum}
 
-                                        {tasksDueToday.length > 0 && (
+                                        {tooltipsVisible && tasksDueToday.length > 0 && (
                                             <FiBell className={`transition w-4 h-4 ml-1 cursor-pointer ${isToday ? "text-slate-400 hover:text-slate-100" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-100"}`}
                                                 onMouseEnter={() => setHoveredDayIndex(i)}
                                                 onMouseLeave={() => setHoveredDayIndex(null)}
@@ -314,7 +487,7 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                     </div>
 
                     <AnimatePresence>
-                        {hoveredDayIndex !== null && tooltipPos && (() => {
+                        {tooltipsVisible && hoveredDayIndex !== null && tooltipPos && (() => {
                             const day = addDays(weekStart, hoveredDayIndex);
                             const tasksDueToday = calendarData.tasks.filter((task) => {
                                 if (!task.due_date) return false;
@@ -433,6 +606,9 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
 
                             {/* Event blocks */}
                             {weekOccurrences.map(occ => {
+                                const eventRaw = eventMap[occ.id];
+                                if (!eventRaw) return null;
+
                                 const leftExpr = `calc(64px + ((100% - 64px) / 7) * ${occ.dayIndex})`;
                                 const widthExpr = `calc(((100% - 64px) / 7) - 6px)`;
 
@@ -444,21 +620,25 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                                 return (
                                     <div
                                         key={`${occ.id}-${occ.start.toISOString()}`}
-                                            className={`absolute z-10 rounded-md text-xs overflow-hidden
-                                                ${!occ.color ? "bg-zinc-100 text-black dark:bg-black dark:text-white" : ""}`}
-                                            style={{
-                                                top: `${occ.top}px`,
-                                                left: leftColExpr,
-                                                width: widthColExpr,
-                                                height: `${occ.height}px`,
-                                                ...(occ.color
-                                                    ? {
-                                                        background: `#${occ.color}22`,
-                                                        borderColor: `#${occ.color}`,
-                                                        color: getContrastTextColor(occ.color),
-                                                    }
-                                                    : {})
-                                            }}
+                                        className={`absolute z-10 rounded-md text-xs overflow-hidden hover:cursor-pointer
+                                            ${!occ.color ? "bg-zinc-100 text-black dark:bg-black dark:text-white" : ""}`}
+                                        style={{
+                                            top: `${occ.top}px`,
+                                            left: leftColExpr,
+                                            width: widthColExpr,
+                                            height: `${occ.height}px`,
+                                            ...(occ.color
+                                                ? {
+                                                    background: `#${occ.color}22`,
+                                                    borderColor: `#${occ.color}`,
+                                                    color: getContrastTextColor(occ.color),
+                                                }
+                                                : {})
+                                        }}
+                                        onClick={() => {
+                                            setSelectedEventRaw(eventRaw);
+                                            setModalOpen("eventEdit");
+                                        }}
                                     >
                                         <div className="px-2 py-1 truncate">
                                             {occ.title}
@@ -505,45 +685,27 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                     timeslot={eventTimeslot}
                 />
             )}
-            {/* {modalOpen === "taskAdd" && (
-                <EventAdd
-                    categories={categories}
-                    tags={tags}
-                    onClose={closeAll}
-                    onSubmit={handleTaskAdd}
-                    modalError={modalError}
-                    preSelectedCategory={selectedCategory}
-                />
-            )}
 
-            {modalOpen === "taskCategoryEdit" && selectedCategoryRaw && (
-                <CategoryEdit 
-                    tags={tags}
+            {modalOpen === "eventCategoryEdit" && selectedCategoryRaw && (
+                <EventCategoryEdit 
                     modalError={modalError}
                     onClose={closeAll}
                     onSubmit={handleCategoryEdit}
                     onDelete={handleCategoryDelete}
                     preSelectedCategory={selectedCategoryRaw}
-                    onTagAdd={() => setModalOpen("tagAdd noFade")}
-                    onTagEdit={(tagId) => {
-                        const tag = tags.find((t: any) => t.id === tagId);
-                        if (tag) setSelectedTagRaw(tag);
-                        setModalOpen("tagEdit");
-                    }}
-                    noFade={modalOpen.includes("noFade")}
                 />
             )}
-            {modalOpen === "taskEdit" && selectedTaskRaw && (
-                <TaskEdit
+
+            {modalOpen === "eventEdit" && selectedEventRaw && (
+                <EventEdit
                     categories={categories}
-                    tags={tags}
                     modalError={modalError}
                     onClose={closeAll}
-                    onSubmit={handleTaskEdit}
-                    onDelete={handleTaskDelete}
-                    preSelectedTask={selectedTaskRaw}
+                    onSubmit={handleEventEdit}
+                    onDelete={handleEventDelete}
+                    preSelectedEvent={selectedEventRaw}
                 />
-            )} */}
+            )}
         </div>
     );
 }

@@ -29,6 +29,7 @@ type event_category = {
     user_id: number;
     name: string;
     color: string | null;
+    main: boolean;
 }
 
 type event = {
@@ -40,11 +41,11 @@ type event = {
     end_time: string;
     color: string | null;
     recurrence: {
-        frequency: string;
-        interval: number;
-        by_weekday: number[] | null;
+        frequency: string | null;
+        interval: number | null;
+        weekly: string[] | null;
         count: number | null;
-        recurrences: string[] | null;
+        exceptions: string[] | null;
         until: string | null;
     } | null;
 }

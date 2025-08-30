@@ -141,11 +141,12 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
             document.removeEventListener("keydown", onKeydown);
         };
     }, []);
-
-    const fetchCategoryData = () => {
-        fetch('/api/user/tasks/categories')
-            .then((res) => res.json())
-            .then((data) => setCategories(data.categories));
+    
+    const fetchCategoryData = async () => {
+        const res = await fetch('/api/user/tasks/categories')
+        const data = await res.json();
+        setCategories(data.categories);
+        setVisibleCategories(data.categories.map((c: any) => c.id));
     };
 
     const fetchTagData = () => {
@@ -178,13 +179,12 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ payload })
         });
-        const res_json = await res.json();
 
         if (!res.ok) {
+            const res_json = await res.json();
             setModalError(res_json.error || "An unknown error occurred.");
         } else {
             fetchCategoryData();
-            if (res_json.category?.id) { setVisibleCategories(prev => [...prev, res_json.category.id]); }
             setModalOpen(null);
             setModalError(null);
         }
@@ -390,11 +390,12 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
             method: "DELETE"
         });
 
+        const res_json = await res.json();
         if (!res.ok) {
-            const res_json = await res.json();
             setModalError(res_json.error || "An unknown error occurred.");
         } else {
             fetchTaskData();
+            if (res_json.category?.id) { setVisibleCategories(prev => [...prev, res_json.category.id]); }
             setModalOpen(null);
             setModalError(null);
         }

@@ -46,9 +46,9 @@ export default function EventAdd({ categories, modalError, onClose, onSubmit, pr
     const [frequency, setFrequency] = useState<Frequency>("");
     const [weekly, setWeekly] = useState<string[]>([]);
     const [interval, setInterval] = useState<number>(1);
-    const [count, setCount] = useState<string>(""); // optional
-    const [until, setUntil] = useState<string>(""); // date or datetime (we’ll use date)
-    const [exceptions, setExceptions] = useState<string>(""); // comma-separated dates (YYYY-MM-DD)
+    const [count, setCount] = useState<string>("");
+    const [until, setUntil] = useState<string>("");
+    const [exceptions, setExceptions] = useState<string>("");
     const [useCustomColor, setUseCustomColor] = useState(false);
     const startRef = useRef<HTMLInputElement>(null);
     const endRef = useRef<HTMLInputElement>(null);

@@ -60,6 +60,32 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
     const goNext = () => setWeekStart(addDays(weekStart, 7));
     const goToday = () => setWeekStart(startOfWeek(new Date(), startWeekPreference));
     
+    const getTasksForDay = (day: Date) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const dayStart = new Date(day);
+        dayStart.setHours(0, 0, 0, 0);
+        
+        if (dayStart < today) {
+            return [];
+        }
+
+        const isToday = dayStart.getTime() === today.getTime();
+
+        return calendarData.tasks.filter((task) => {
+            if (!task.due_date) return false;
+            
+            const due = new Date(task.due_date);
+            due.setHours(0, 0, 0, 0);
+
+            if (isToday) {
+                return due.getTime() <= today.getTime();
+            } else {
+                return due.getTime() === dayStart.getTime();
+            }
+        });
+    };
+
     const getPreselectedCategory = (): event_category | null => {
         const showing = categories.filter(c => visibleCategories.includes(c.id));
         const mainCat = showing.find(c => c.main);
@@ -470,15 +496,7 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                             const dateNum = day.getDate();
                             const isWeekend = day.getDay() === 0 || day.getDay() === 6;
 
-                            const tasksDueToday = calendarData.tasks.filter((task) => {
-                                if (!task.due_date) return false;
-                                const due = new Date(task.due_date);
-                                return (
-                                    due.getFullYear() === day.getFullYear() &&
-                                    due.getMonth() === day.getMonth() &&
-                                    due.getDate() === day.getDate()
-                                );
-                            });
+                            const tasksDueToday = getTasksForDay(day);
 
                             return (
                                 <div
@@ -511,16 +529,8 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                     <AnimatePresence>
                         {tooltipsVisible && hoveredDayIndex !== null && tooltipPos && (() => {
                             const day = addDays(weekStart, hoveredDayIndex);
-                            const tasksDueToday = calendarData.tasks.filter((task) => {
-                                if (!task.due_date) return false;
-                                const due = new Date(task.due_date);
-                                return (
-                                    due.getFullYear() === day.getFullYear() &&
-                                    due.getMonth() === day.getMonth() &&
-                                    due.getDate() === day.getDate()
-                                );
-                            });
-
+                            const tasksDueToday = getTasksForDay(day);
+                            
                             return (
                                 <motion.div
                                     initial={{ opacity: 0, y: 8 }}

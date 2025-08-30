@@ -38,13 +38,6 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
     const [editUsername, setEditUsername] = useState<string>(account.username);
     const [editHandle, setEditHandle] = useState<string>(account.handle);
     const [editEmail, setEditEmail] = useState<string>(account.email);
-    const [editPasswordVisible, setEditPasswordVisible] = useState(false);
-    
-    const openEditor = (field: EditField) => {
-        setEditorOpen(field);
-        setEditError(null);
-        setEditSuccess(null);
-    };
     
     const closeEditor = () => {
         setEditorOpen(null);
@@ -53,7 +46,6 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
         setEditUsername(account.username);
         setEditHandle(account.handle);
         setEditEmail(account.email);
-        setEditPasswordVisible(false);
     };
 
     const handleAccountSave = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -65,9 +57,9 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
 
         const form = new FormData(e.currentTarget);
         const newValue = String(form.get("newValue"));
-        const password = String(form.get("password"));
+        const password = form.get("password") ? String(form.get("password")) : null;
 
-        if (editorOpen === "handle" && !/^[a-z0-9_]+$/i.test(newValue)) {
+        if (editorOpen === "handle" && !/^[a-z0-9-]+$/i.test(newValue)) {
             setEditError("Handle may only contain letters, numbers, and underscores.");
             return;
         }
@@ -145,6 +137,7 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
                 return;
             }
             await signOut({ callbackUrl: "/" });
+            window.location.href = "/signin";
         } catch {
             setDeleting(false);
         }
@@ -164,7 +157,7 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
                 <button
                     type="button"
                     onClick={() => setEditorOpen("username")}
-                    className="rounded ml-1 px-1 hover:bg-zinc-300 dark:hover:bg-zinc-700"
+                    className="rounded ml-1 px-1 hover:bg-zinc-300 dark:hover:bg-zinc-700 hover:cursor-pointer"
                 >
                     <HiPencil className="inline-block justify-center items-center" />
                 </button>
@@ -175,7 +168,7 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
                 <button
                     type="button"
                     onClick={() => setEditorOpen("handle")}
-                    className="rounded ml-1 px-1 hover:bg-zinc-300 dark:hover:bg-zinc-700"
+                    className="rounded ml-1 px-1 hover:bg-zinc-300 dark:hover:bg-zinc-700 hover:cursor-pointer"
                 >
                     <HiPencil className="inline-block justify-center items-center" />
                 </button>
@@ -187,7 +180,7 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
                     <button
                         type="button"
                         onClick={() => setEditorOpen("email")}
-                        className="rounded ml-1 px-1 hover:bg-zinc-300 dark:hover:bg-zinc-700"
+                        className="rounded ml-1 px-1 hover:bg-zinc-300 dark:hover:bg-zinc-700 hover:cursor-pointer"
                     >
                         <HiPencil className="inline-block justify-center items-center" />
                     </button>
@@ -205,9 +198,16 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
                                 {editorOpen === "handle" && "Change Handle"}
                                 {editorOpen === "email" && "Change Email"}
                             </h3>
-                            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                                Enter your new {editorOpen} and your password to confirm.
-                            </p>
+                            {localProvider && (
+                                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                                    Enter your new {editorOpen} and your password to confirm.
+                                </p>
+                            )}
+                            {!localProvider && (
+                                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                                    Enter your new {editorOpen}.
+                                </p>
+                            )}
                         </div>
                         <button
                             type="button"
@@ -243,33 +243,37 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
                                 />
                             </label>
 
-                            <label className="text-sm">
-                                <span className="block font-medium mb-1 mt-1">Password:</span>
-                                <input
-                                    name="password"
-                                    type="password"
-                                    required
-                                    className="w-full border rounded px-3 py-2 dark:bg-black border-zinc-300 dark:border-zinc-700"
-                                    placeholder="Password"
-                                />
-                            </label>
+                            {localProvider && (
+                                <label className="text-sm">
+                                    <span className="block font-medium mb-1 mt-1">Password:</span>
+                                    <input
+                                        name="password"
+                                        type="password"
+                                        required
+                                        className="w-full border rounded px-3 py-2 dark:bg-black border-zinc-300 dark:border-zinc-700"
+                                        placeholder="Password"
+                                    />
+                                </label>
+                            )}
 
                             <div className="flex items-center gap-3 mt-3">
                                 <button
                                     type="submit"
                                     disabled={editSaving}
-                                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+                                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 hover:cursor-pointer"
                                 >
                                     {editSaving ? "Saving..." : "Save"}
                                 </button>
 
-                                <button
-                                    type="button"
-                                    onClick={triggerForgotPassword}
-                                    className="px-4 py-2 rounded border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                                >
-                                    Forgot password
-                                </button>
+                                {localProvider && (
+                                    <button
+                                        type="button"
+                                        onClick={triggerForgotPassword}
+                                        className="px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:cursor-pointer"
+                                    >
+                                        Forgot password
+                                    </button>
+                                )}
                             </div>
                         </form>
                         {editError && (
@@ -292,9 +296,9 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
                 </button>
 
                 {showDelete && (
-                    <div className="mt-3 rounded-md border p-4 border-red-300 dark:border-red-600">
-                        <p className="text-sm text-red-700 dark:text-red-300">
-                            Are you sure? This action is permanent and cannot be undone.
+                    <div className="mt-3 rounded-md border p-4 border-red-400 dark:border-red-600 bg-zinc-50 dark:bg-zinc-900/40">
+                        <p className="text-sm text-red-700 dark:text-red-400">
+                            <strong>Delete Your Account?</strong> This action is permanent and cannot be undone.
                         </p>
                         <p className="mt-2 text-sm">
                             To confirm, type your handle "{account.handle}":
@@ -320,9 +324,9 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
                             type="button"
                             onClick={onDelete}
                             disabled={!handleMatches || deleting}
-                            className={`mt-4 rounded-md px-4 py-2 text-white transition
+                            className={`mt-4 rounded-md px-4 py-2 transition
                                 ${!handleMatches || deleting
-                                    ? "bg-red-300 cursor-not-allowed"
+                                    ? "bg-zinc-200 dark:bg-zinc-800 text-black cursor-not-allowed"
                                     : "bg-red-600 hover:bg-red-700 cursor-pointer"}`}
                         >
                             {deleting ? "Deleting..." : "Delete My Account"}
@@ -354,7 +358,7 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
                             <button
                                 type="button"
                                 onClick={() => setSettings(s => ({ ...s, theme: original.current.theme }))}
-                                className="text-sm ml-4 px-2 py-[.3rem] rounded border border-yellow-500 bg-yellow-100 text-yellow-700 hover:bg-yellow-200 dark:border-purple-700 dark:bg-purple-200 dark:text-purple-800 dark:hover:bg-purple-300"
+                                className="text-sm ml-4 px-2 py-[.3rem] rounded border border-yellow-500 bg-yellow-100 text-yellow-700 hover:bg-yellow-200 dark:border-purple-700 dark:bg-purple-200 dark:text-purple-800 dark:hover:bg-purple-300 hover:cursor-pointer"
                                 title="Reset Theme"
                             >
                                 Reset
@@ -385,7 +389,7 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
                             <button
                                 type="button"
                                 onClick={() => setSettings(s => ({ ...s, week_start: original.current.week_start }))}
-                                className="text-sm ml-4 px-2 py-[.3rem] rounded border border-yellow-500 bg-yellow-100 text-yellow-700 hover:bg-yellow-200 dark:border-purple-700 dark:bg-purple-200 dark:text-purple-800 dark:hover:bg-purple-300"
+                                className="text-sm ml-4 px-2 py-[.3rem] rounded border border-yellow-500 bg-yellow-100 text-yellow-700 hover:bg-yellow-200 dark:border-purple-700 dark:bg-purple-200 dark:text-purple-800 dark:hover:bg-purple-300 hover:cursor-pointer"
                                 title="Reset Week Start"
                             >
                                 Reset
@@ -397,7 +401,7 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
                 <button
                     onClick={handleSettingSave}
                     disabled={saving}
-                    className="bg-blue-600 text-white px-4 py-2 rounded mt-4 hover:bg-blue-700 disabled:opacity-50"
+                    className="bg-blue-600 text-white px-4 py-2 rounded mt-4 hover:bg-blue-700 disabled:opacity-50 hover:cursor-pointer"
                 >
                     {saving ? "Saving..." : "Save Settings"}
                 </button>

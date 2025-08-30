@@ -32,7 +32,10 @@ export default function Navbar({hasSession}: {hasSession: boolean}) {
                 {hasSession ? (
                     <>
                         <button
-                            onClick={() => signOut({ callbackUrl: "/" })}
+                            onClick={async () => {
+                                await signOut({ redirect: false });
+                                window.location.href = "/signin";
+                            }}
                             className="hover:text-blue-600 dark:hover:text-blue-400 hover:cursor-pointer transition"
                         >
                             Sign Out

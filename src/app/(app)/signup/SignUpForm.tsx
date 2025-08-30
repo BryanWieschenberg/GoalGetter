@@ -19,8 +19,8 @@ export default function SignUpForm() {
     const sanitizeHandle = (value: string) => {
         let cleaned = value.toLowerCase().replace(/\s+/g, "-");
 
-        if (!/^[a-z0-9-_]*$/.test(cleaned)) {
-            setHandleError("Can only contain letters, numbers, dashes, and underscores");
+        if (!/^[a-z0-9-]*$/.test(cleaned)) {
+            setHandleError("Can only contain letters, numbers, and dashes");
         } else {
             setHandleError(null);
         }
@@ -109,7 +109,7 @@ export default function SignUpForm() {
                 <h1 className={`text-2xl font-bold text-center ${error ? "mb-3" : "mb-8"}`}>Sign Up</h1>
 
                 {error && (
-                    <div className="mb-6 rounded px-4 py-3 border bg-red-100 border-red-400 text-red-700 dark:bg-red-900 border dark:border-red-500 dark:text-red-300">
+                    <div className="mb-6 rounded px-4 py-3 bg-red-100 border-red-400 text-red-700 dark:bg-red-900 border dark:border-red-500 dark:text-red-300">
                         <span className="font-bold">Error: </span>{error}
                     </div>
                 )}

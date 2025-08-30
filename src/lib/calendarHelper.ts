@@ -145,15 +145,7 @@ export function expandEventForWeek(ev: event, weekStart: Date, weekEnd: Date): E
         }
         
         const occ = makeOcc(startBase);
-        
-        console.log('Created occurrence:', {
-            title: occ.title,
-            start: occ.start.toISOString(),
-            dayIndex: occ.dayIndex,
-            top: occ.top,
-            height: occ.height
-        });
-        
+                
         // More robust validation for single events
         const eventDate = new Date(startBase.getFullYear(), startBase.getMonth(), startBase.getDate());
         const weekStartDate = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate());
@@ -161,16 +153,7 @@ export function expandEventForWeek(ev: event, weekStart: Date, weekEnd: Date): E
         
         const withinWeekDates = eventDate >= weekStartDate && eventDate <= weekEndDate;
         const validDayIndex = occ.dayIndex >= 0 && occ.dayIndex <= 6;
-        
-        console.log('Validation checks:', {
-            eventDate: eventDate.toISOString(),
-            weekStartDate: weekStartDate.toISOString(),
-            weekEndDate: weekEndDate.toISOString(),
-            withinWeekDates,
-            validDayIndex,
-            finalResult: withinWeekDates && validDayIndex
-        });
-        
+                
         if (withinWeekDates && validDayIndex) {
             return [occ];
         }
@@ -333,32 +316,97 @@ export function expandEventForWeek(ev: event, weekStart: Date, weekEnd: Date): E
     return [];
 }
 /** Expand all events for current week and compute layout metrics */
+// Two options to fix the visual layout:
+
+// OPTION 1: Don't apply column layout to non-overlapping events
+// In your rendering component, use full width when __colCount === 1
+
+// OPTION 2: Modify the collision detection to only create columns for truly overlapping events
 export function buildWeekOccurrences(events: event[], weekStart: Date): EventOccurrence[] {
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekStart.getDate() + 6);
     const occs = events.flatMap(ev => expandEventForWeek(ev, weekStart, weekEnd));
 
-    // (Optional) basic collision stacking within a day (naive): offset events that overlap
-    // so they don't perfectly cover each other.
+    // Group by day and handle collisions
     const byDay: Record<number, EventOccurrence[]> = {0:[],1:[],2:[],3:[],4:[],5:[],6:[]};
     occs.forEach(o => byDay[o.dayIndex]?.push(o));
+    
     for (const k of Object.keys(byDay)) {
         const arr = byDay[Number(k)];
         arr.sort((a,b) => a.top - b.top);
-        // assign columns
-        const cols: EventOccurrence[][] = [];
+        
+        // Find groups of actually overlapping events
+        const overlapGroups: EventOccurrence[][] = [];
+        
         arr.forEach(ev => {
-            let placed = false;
-            for (const col of cols) {
-                if (col[col.length - 1].top + col[col.length - 1].height <= ev.top) {
-                    col.push(ev); placed = true; break;
+            // Find which group this event belongs to (overlaps with)
+            let groupFound = false;
+            
+            for (const group of overlapGroups) {
+                const hasOverlapInGroup = group.some(existingEv => {
+                    const evStart = ev.top;
+                    const evEnd = ev.top + ev.height;
+                    const existingStart = existingEv.top;
+                    const existingEnd = existingEv.top + existingEv.height;
+                    
+                    return evStart < existingEnd && evEnd > existingStart;
+                });
+                
+                if (hasOverlapInGroup) {
+                    group.push(ev);
+                    groupFound = true;
+                    break;
                 }
             }
-            if (!placed) cols.push([ev]);
-            (ev as any).__colIndex = cols.length - 1;
-            (ev as any).__colCount = cols.length;
+            
+            // If no overlapping group found, create a new one
+            if (!groupFound) {
+                overlapGroups.push([ev]);
+            }
+        });
+        
+        // Assign column info only within overlap groups
+        overlapGroups.forEach(group => {
+            if (group.length === 1) {
+                // Single event - use full width
+                (group[0] as any).__colIndex = 0;
+                (group[0] as any).__colCount = 1;
+            } else {
+                // Multiple overlapping events - assign columns
+                const cols: EventOccurrence[][] = [];
+                group.forEach(ev => {
+                    let placed = false;
+                    
+                    for (let colIndex = 0; colIndex < cols.length; colIndex++) {
+                        const col = cols[colIndex];
+                        const hasOverlap = col.some(existingEv => {
+                            const evStart = ev.top;
+                            const evEnd = ev.top + ev.height;
+                            const existingStart = existingEv.top;
+                            const existingEnd = existingEv.top + existingEv.height;
+                            
+                            return evStart < existingEnd && evEnd > existingStart;
+                        });
+                        
+                        if (!hasOverlap) {
+                            col.push(ev);
+                            placed = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!placed) {
+                        cols.push([ev]);
+                    }
+                    
+                    const colIndex = cols.findIndex(col => col.includes(ev));
+                    (ev as any).__colIndex = colIndex;
+                    (ev as any).__colCount = cols.length;
+                });
+            }
         });
     }
+    
     return occs;
 }
 

@@ -494,8 +494,6 @@ export default function EventAdd({ categories, modalError, onClose, onSubmit, pr
                         {!frequency && <input type="hidden" name="interval" value="1" />}
                     </div>
 
-                    {/* Exceptions & Monthly-days hidden mirrors */}
-                    {/* We send CSV strings that backend can split; if left empty they’ll be blank */}
                     <input type="hidden" name="exceptions_csv" value={exceptions} />
                     <input type="hidden" name="monthly_days_csv" value={monthlyDays} />
 

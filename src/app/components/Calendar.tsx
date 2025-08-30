@@ -38,8 +38,8 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
     const [eventTimeslot, setEventTimeslot] = useState<{ start: Date; end: Date } | null>(null);
 
     const weekOccurrences = useMemo(() => {
-        return buildWeekOccurrences(calendarData.events || [], weekStart);
-    }, [calendarData.events, weekStart]);
+        return buildWeekOccurrences(events || [], weekStart);
+    }, [events, weekStart]);
 
     const goPrev = () => setWeekStart(addDays(weekStart, -7));
     const goNext = () => setWeekStart(addDays(weekStart, 7));
@@ -87,51 +87,70 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
     }, []);
 
     const fetchCategoryData = () => {
-        fetch('/api/user/tasks/categories')
+        fetch('/api/user/calendar/categories')
             .then((res) => res.json())
             .then((data) => setCategories(data.categories));
     };
 
     const fetchEventData = () => {
-        fetch('/api/user/tasks/tasks')
+        fetch('/api/user/calendar/events')
             .then((res) => res.json())
-            .then((data) => setEvents(data.tasks));
+            .then((data) => {
+                const transformedEvents = data.events.map((event: any) => ({
+                    ...event,
+                    recurrence: event.frequency ? {
+                        frequency: event.frequency,
+                        interval: event.interval,
+                        weekly: event.weekly,
+                        monthly: event.monthly,
+                        monthly_days: event.monthly_days,
+                        count: event.count,
+                        exceptions: event.exceptions,
+                        until: event.until
+                    } : null
+                }));
+                setEvents(transformedEvents);
+            });
     };
 
     async function handleEventAdd(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        setModalError(null);
 
-        const formData = new FormData(e.currentTarget);
-        const title = formData.get("title") as string;
-        const due_date = formData.get("due_date") as string;
-        const tag_id = formData.get("tag_id") as string;
+        const form = new FormData(e.currentTarget);
 
-        if (!title || title.trim() === "") {
-            setModalError("Title is required.");
-            return;
-        }
+        let color = form.get("color") as string | null;
+        color = color ? color.replace(/^#/, "") : null;
 
-        const payload: any = { title: title.trim() };
-        if (due_date) payload.due_date = due_date;
-        if (tag_id) payload.tag_id = parseInt(tag_id);
+        const payload = {
+            title: form.get("title"),
+            description: form.get("description") || null,
+            category_id: form.get("category_id"),
+            color: color,
+            start_time: form.get("start_time"),
+            end_time: form.get("end_time"),
+            frequency: form.get("frequency") || null,
+            interval: form.get("interval") || null,
+            count: form.get("count") || null,
+            until: form.get("until") || null,
+            weekly: form.getAll("weekly[]"),
+            monthly: form.getAll("monthly[]"),
+            monthly_days: form.get("monthly_days") || "",
+            exceptions: form.get("exceptions") || ""
+        };
 
-        try {
-            const res = await fetch('/api/user/calendar/events', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+        const res = await fetch('/api/user/calendar/events', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ payload })
+        });
 
-            if (res.ok) {
-                closeAll();
-                window.location.reload();
-            } else {
-                const data = await res.json();
-                setModalError(data.error || 'Failed to add task.');
-            }
-        } catch (error) {
-            setModalError('An error occurred while adding the task.');
+        if (!res.ok) {
+            const res_json = await res.json();
+            setModalError(res_json.error || "An unknown error occurred.");
+        } else {
+            fetchEventData();
+            setModalOpen(null);
+            setModalError(null);
         }
     }
 

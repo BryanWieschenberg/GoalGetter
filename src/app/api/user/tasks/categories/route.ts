@@ -21,7 +21,7 @@ export async function GET() {
         return NextResponse.json({ categories: categories.rows }, { status: 200 });
     } catch (err) {
         console.error("GET /api/user/tasks/categories error:", err);
-        return NextResponse.json({ error: "Failed to fetch categories." }, { status: 500 });
+        return NextResponse.json({ error: "Failed to fetch task categories." }, { status: 500 });
     }
 }
 
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ category: category.rows[0] }, { status: 201 });
     } catch (err) {
         console.error("POST /api/user/tasks/categories error:", err);
-        return NextResponse.json({ error: "Failed to add category." }, { status: 500 });
+        return NextResponse.json({ error: "Failed to add task category." }, { status: 500 });
     }
 }
 
@@ -74,7 +74,7 @@ export async function PUT(req: Request) {
             [id, session.user.id]
         );
         if (catCheck.rowCount === 0) {
-            return NextResponse.json({ error: "Invalid category" }, { status: 403 });
+            return NextResponse.json({ error: "Invalid task category" }, { status: 403 });
         }
 
         await pool.query(
@@ -87,7 +87,7 @@ export async function PUT(req: Request) {
         return NextResponse.json({ ok: true }, { status: 200 });
     } catch (err) {
         console.error("PUT /api/user/tasks/categories error:", err);
-        return NextResponse.json({ error: "Failed to update category." }, { status: 500 });
+        return NextResponse.json({ error: "Failed to update task category." }, { status: 500 });
     }
 }
 
@@ -110,7 +110,7 @@ export async function DELETE(req: Request) {
             [id, session.user.id]
         );
         if (catRes.rowCount === 0) {
-            return NextResponse.json({ error: "Invalid category" }, { status: 403 });
+            return NextResponse.json({ error: "Invalid task category" }, { status: 403 });
         }
 
         const { sort_order } = catRes.rows[0];
@@ -136,7 +136,7 @@ export async function DELETE(req: Request) {
     } catch (err) {
         if (began) { await client.query("ROLLBACK"); }
         console.error("DELETE /api/user/tasks/categories error:", err);
-        return NextResponse.json({ error: "Failed to delete category." }, { status: 500 });
+        return NextResponse.json({ error: "Failed to delete task category." }, { status: 500 });
     } finally {
         client.release();
     }

@@ -46,11 +46,24 @@ type EventOccurrence = {
     dayIndex: number;
     top: number;
     height: number;
+    startLabel: string;
+    endLabel: string;
 };
 
 const toDateOnly = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate());
+
 const monthsBetween = (a: Date, b: Date) =>
     (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth());
+
+const pad2 = (n: number) => (n < 10 ? `0${n}` : `${n}`);
+
+const formatHM = (d: Date): string => {
+    let h = d.getHours();
+    const m = pad2(d.getMinutes());
+    const ap = h < 12 ? "am" : "pm";
+    h = h % 12 || 12;
+    return `${h}:${m}${ap}`;
+};
 
 export function toDate(d: string | Date): Date {
     return d instanceof Date ? d : new Date(d);
@@ -139,7 +152,9 @@ export function expandEventForWeek(ev: event, weekStart: Date, weekEnd: Date): E
         const height = Math.max(22, (e.getTime() - s.getTime()) / (60 * 1000) * PX_PER_MIN);
         const dayIndex = dayIndexFrom(s, weekStart);
 
-        return { id: ev.id, title: ev.title, color: ev.color, start: s, end: e, dayIndex, top, height };
+        return {
+            id: ev.id, title: ev.title, color: ev.color, start: s, end: e, dayIndex, top, height, startLabel: formatHM(s), endLabel: formatHM(e)
+        } as EventOccurrence & { startLabel: string; endLabel: string };
     };
 
     if (!rec || !rec.frequency) {

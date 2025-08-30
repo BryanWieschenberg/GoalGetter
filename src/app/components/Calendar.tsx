@@ -7,7 +7,7 @@ import EventEdit from './modals/EventEdit';
 import EventCategoryEdit from './modals/EventCategoryEdit';
 import { FiEye, FiChevronLeft, FiChevronRight, FiBell } from 'react-icons/fi';
 import { FaRegCalendarAlt } from 'react-icons/fa';
-import { startOfWeek, parseLocalDate, addDays, formatWeekRange, buildWeekOccurrences, getContrastTextColor } from '@/lib/calendarHelper';
+import { startOfWeek, parseLocalDate, addDays, formatWeekRange, buildWeekOccurrences, getContrastTextColor, dayIndexFrom } from '@/lib/calendarHelper';
 import { AnimatePresence, motion } from 'framer-motion';
 
 type calendarData = {
@@ -50,6 +50,7 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
         setSelectedCategoryRaw(null);
         setSelectedEventRaw(null);
         setModalError(null);
+        setEventTimeslot(null);
     }
 
     useEffect(() => {
@@ -110,6 +111,35 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                 setEvents(transformedEvents);
             });
     };
+
+    async function handleCategoryAdd(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+        
+        const form = new FormData(e.currentTarget);
+        
+        let color = form.get("color") as string | null;
+        color = color ? color.replace(/^#/, "") : null;
+
+        const payload = {
+            name: form.get("title"),
+            color: color
+        };
+        
+        const res = await fetch('/api/user/calendar/categories', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ payload })
+        });
+        
+        if (!res.ok) {
+            const res_json = await res.json();
+            setModalError(res_json.error || "An unknown error occurred.");
+        } else {
+            fetchCategoryData();
+            setModalOpen(null);
+            setModalError(null);
+        }
+    }
 
     async function handleEventAdd(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -377,16 +407,29 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                                 {hourLabel}
                             </div>
 
-                            {Array.from({ length: 7 }).map((__, i) => (
-                                <div
-                                    key={`cell-${hour}-${i}`}
-                                    className={`border-l border-zinc-200 dark:border-zinc-800
-                                        ${i === 6 ? "border-r" : ""}
-                                        ${hour !== 0 ? "border-t border-zinc-200 dark:border-zinc-800" : ""}
-                                        ${hour !== 23 ? "border-b border-zinc-200 dark:border-zinc-800" : ""}
-                                    `}
-                                />
-                            ))}
+                            {Array.from({ length: 7 }).map((__, i) => {
+                                const cellStart = new Date(weekStart);
+                                cellStart.setDate(weekStart.getDate() + i);
+                                cellStart.setHours(hour, 0, 0, 0);
+
+                                const cellEnd = new Date(cellStart);
+                                cellEnd.setHours(cellEnd.getHours() + 1);
+
+                                return (
+                                    <div
+                                        key={`cell-${hour}-${i}`}
+                                        className={`border-l border-zinc-200 dark:border-zinc-800
+                                            ${i === 6 ? "border-r" : ""}
+                                            ${hour !== 0 ? "border-t border-zinc-200 dark:border-zinc-800" : ""}
+                                            ${hour !== 23 ? "border-b border-zinc-200 dark:border-zinc-800" : ""}
+                                        `}
+                                        onClick={() => {
+                                            setEventTimeslot({ start: cellStart, end: cellEnd });
+                                            setModalOpen("eventAdd");
+                                        }}
+                                    />
+                                );
+                            })}
 
                             {/* Event blocks */}
                             {weekOccurrences.map(occ => {
@@ -401,29 +444,57 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                                 return (
                                     <div
                                         key={`${occ.id}-${occ.start.toISOString()}`}
-                                        className="absolute z-10 rounded-md border text-xs overflow-hidden"
-                                        style={{
-                                            top: `${occ.top}px`,
-                                            left: leftColExpr,
-                                            width: widthColExpr,
-                                            height: `${occ.height}px`,
-                                            background: occ.color ? `#${occ.color}22` : 'var(--bg, rgba(59,130,246,0.15))',
-                                            borderColor: occ.color ? `#${occ.color}` : 'rgb(59,130,246)',
-                                            color: occ.color ? getContrastTextColor(occ.color) : "inherit"
-                                        }}
+                                            className={`absolute z-10 rounded-md text-xs overflow-hidden
+                                                ${!occ.color ? "bg-zinc-100 text-black dark:bg-black dark:text-white" : ""}`}
+                                            style={{
+                                                top: `${occ.top}px`,
+                                                left: leftColExpr,
+                                                width: widthColExpr,
+                                                height: `${occ.height}px`,
+                                                ...(occ.color
+                                                    ? {
+                                                        background: `#${occ.color}22`,
+                                                        borderColor: `#${occ.color}`,
+                                                        color: getContrastTextColor(occ.color),
+                                                    }
+                                                    : {})
+                                            }}
                                     >
                                         <div className="px-2 py-1 truncate">
-                                            <div className="truncate font-light">{occ.title}</div>
+                                            {occ.title}
+                                            <div className="font-light">
+                                                {occ.startLabel} – {occ.endLabel}
+                                            </div>
                                         </div>
                                     </div>
                                 );
                             })}
+
+                            {modalOpen === "eventAdd" && eventTimeslot && (
+                                <div
+                                    className="absolute z-20 border-2 border-blue-500 pointer-events-none rounded-md"
+                                    style={{
+                                        top: `${(eventTimeslot.start.getHours() * 60 + eventTimeslot.start.getMinutes()) * (48 / 60)}px`,
+                                        left: `calc(64px + ((100% - 64px) / 7) * ${dayIndexFrom(eventTimeslot.start, weekStart)})`,
+                                        width: `calc(((100% - 64px) / 7) - 6px)`,
+                                        height: `${(eventTimeslot.end.getTime() - eventTimeslot.start.getTime()) / (60 * 1000) * (48 / 60)}px`,
+                                    }}
+                                />
+                            )}
                         </div>
                     );
                 })}
             </div>
 
             {/* Modals */}
+            {modalOpen === "eventCategoryAdd" && (
+                <EventCategoryAdd
+                    onClose={closeAll}
+                    onSubmit={handleCategoryAdd}
+                    modalError={modalError}
+                />
+            )}
+            
             {modalOpen === "eventAdd" && (
                 <EventAdd
                     categories={categories}

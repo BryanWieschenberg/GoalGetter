@@ -16,7 +16,7 @@ export default function EventCategoryAdd({ modalError, onClose, onSubmit }: Even
             className="fixed inset-0 z-[60] flex items-center justify-center animate-fadeIn"
             aria-modal="true"
             role="dialog"
-            aria-labelledby="new-task-title"
+            aria-labelledby="new-event-category-title"
         >
             <div
                 className="absolute inset-0 bg-black/50 animate-fadeIn"
@@ -25,8 +25,8 @@ export default function EventCategoryAdd({ modalError, onClose, onSubmit }: Even
 
             <div className="relative z-[61] w-[90vw] max-w-xl rounded-2xl border-[.2rem] border-zinc-500/70 bg-zinc-100 dark:bg-zinc-900 shadow-2xl animate-slideUp">
                 <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-200 dark:border-zinc-800">
-                    <h3 id="new-task-title" className="text-lg font-semibold">
-                        Create Category
+                    <h3 id="new-event-category-title" className="text-lg font-semibold">
+                        Create Event Category
                     </h3>
                     <button
                         onClick={onClose}

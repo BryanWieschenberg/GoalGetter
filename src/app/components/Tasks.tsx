@@ -2,10 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import TaskAdd from "./modals/TaskAdd";
-import CategoryAdd from "./modals/TaskCategoryAdd";
+import TaskCategoryAdd from "./modals/TaskCategoryAdd";
 import TagAdd from "./modals/TagAdd";
 import TaskEdit from "./modals/TaskEdit";
-import CategoryEdit from "./modals/TaskCategoryEdit";
+import TaskCategoryEdit from "./modals/TaskCategoryEdit";
 import TagEdit from "./modals/TagEdit";
 import { formatPgDate, daysUntil, dueColor, getPriorityClasses } from "@/lib/tasksHelper";
 import { FiPlus, FiSearch } from "react-icons/fi";
@@ -888,7 +888,7 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
 
             {/* Modals */}
             {modalOpen === "taskCategoryAdd" && (
-                <CategoryAdd
+                <TaskCategoryAdd
                     onClose={closeAll}
                     onSubmit={handleCategoryAdd}
                     modalError={modalError}
@@ -936,7 +936,7 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
             )}
             
             {modalOpen?.startsWith("taskCategoryEdit") && selectedCategoryRaw && (
-                <CategoryEdit 
+                <TaskCategoryEdit 
                     tags={tags}
                     modalError={modalError}
                     onClose={closeAll}

@@ -102,8 +102,6 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                         frequency: event.frequency,
                         interval: event.interval,
                         weekly: event.weekly,
-                        monthly: event.monthly,
-                        monthly_days: event.monthly_days,
                         count: event.count,
                         exceptions: event.exceptions,
                         until: event.until
@@ -133,8 +131,6 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
             count: form.get("count") || null,
             until: form.get("until") || null,
             weekly: form.getAll("weekly[]"),
-            monthly: form.getAll("monthly[]"),
-            monthly_days: form.get("monthly_days") || "",
             exceptions: form.get("exceptions") || ""
         };
 

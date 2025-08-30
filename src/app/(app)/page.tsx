@@ -50,8 +50,6 @@ export default async function Home() {
                                     'frequency', er.frequency,
                                     'interval', er.interval,
                                     'weekly', er.weekly,
-                                    'monthly', er.monthly,
-                                    'monthly_days', er.monthly_days,
                                     'count', er.count,
                                     'until', er.until,
                                     'exceptions', er.exceptions

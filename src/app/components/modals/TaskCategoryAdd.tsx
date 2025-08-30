@@ -26,7 +26,7 @@ export default function TaskCategoryAdd({ modalError, onClose, onSubmit }: TaskC
             <div className="relative z-[61] w-[90vw] max-w-xl rounded-2xl border-[.2rem] border-zinc-500/70 bg-zinc-100 dark:bg-zinc-900 shadow-2xl animate-slideUp">
                 <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-200 dark:border-zinc-800">
                     <h3 id="new-task-title" className="text-lg font-semibold">
-                        Create Category
+                        Create Task Category
                     </h3>
                     <button
                         onClick={onClose}

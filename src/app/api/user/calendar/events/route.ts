@@ -13,7 +13,7 @@ export async function GET() {
         const events = await pool.query(
             `SELECT
                 e.id, e.title, e.description, e.category_id, e.color, e.start_time, e.end_time,
-                r.frequency, r.interval, r.weekly, r.monthly, r.monthly_days, r.count, r.exceptions, r.until
+                r.frequency, r.interval, r.weekly, r.count, r.exceptions, r.until
             FROM events e
             LEFT JOIN event_recurrence r ON e.id = r.event_id
             WHERE e.category_id IN (SELECT id FROM event_categories WHERE user_id = $1)
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
         const payload = body.payload;
         const {
             title, description, category_id, color, start_time, end_time,
-            frequency, interval, count, until, weekly, monthly, monthly_days, exceptions
+            frequency, interval, count, until, weekly, exceptions
          } = payload;
 
         const catCheck = await pool.query(
@@ -61,15 +61,13 @@ export async function POST(req: Request) {
 
         if (frequency) {
             await pool.query(
-                `INSERT INTO event_recurrence (event_id, frequency, interval, weekly, monthly, monthly_days, count, exceptions, until)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+                `INSERT INTO event_recurrence (event_id, frequency, interval, weekly, count, exceptions, until)
+                VALUES ($1, $2, $3, $4, $5, $6, $7)`,
                 [
                     eventId,
                     frequency,
                     interval ? Number(interval) : null,
                     weekly && weekly.length > 0 ? weekly : null,
-                    monthly && monthly.length > 0 ? monthly.map(Number) : null,
-                    monthly_days ? monthly_days.split(",").map((x: string) => Number(x.trim())) : null,
                     count ? Number(count) : null,
                     exceptions ? exceptions.split(",").map((x: string) => x.trim()) : null,
                     until || null

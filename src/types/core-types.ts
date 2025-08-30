@@ -43,21 +43,8 @@ type event = {
         frequency: string;
         interval: number;
         by_weekday: number[] | null;
-        monthly: number[] | null;
-        monthly_days: number[] | null;
         count: number | null;
         recurrences: string[] | null;
         until: string | null;
     } | null;
 }
-
-// type event_recurrence = {
-//     frequency: string;
-//     interval: number;
-//     by_weekday: number[] | null;
-//     monthly: number[] | null;
-//     monthly_days: number[] | null;
-//     count: number | null;
-//     recurrences: string[] | null;
-//     until: string | null;
-// }

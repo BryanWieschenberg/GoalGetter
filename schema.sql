@@ -77,13 +77,11 @@ CREATE TYPE frequency_type AS ENUM ('daily', 'weekly', 'monthly', 'yearly');
 CREATE TABLE IF NOT EXISTS event_recurrence (
     event_id                INTEGER NOT NULL PRIMARY KEY REFERENCES events(id) ON DELETE CASCADE, -- changed to NOT NULL but not reflected in local psql
     frequency               frequency_type NOT NULL,
-    interval                INTEGER DEFAULT 1, -- every X days/weeks/etc.
-    weekly                  TEXT[],            -- e.g. ['MO','WE','FR']
-    monthly                 INTEGER[],         -- e.g. [1,7] (January & July)
-    monthly_days            INTEGER[],         -- which days of the month (1–31, or negative for backwards, e.g. -1 = last day)
-    count                   INTEGER,           -- total occurrences
-    exceptions              TIMESTAMP[],       -- dates to skip
-    until                   TIMESTAMP          -- recurrence end
+    interval                INTEGER DEFAULT 1,
+    weekly                  TEXT[],
+    count                   INTEGER,
+    exceptions              TIMESTAMP[],
+    until                   TIMESTAMP
 );
 
 -- POST-MVP TABLES, IGNORE FOR NOW

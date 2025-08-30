@@ -45,8 +45,6 @@ export default function EventAdd({ categories, modalError, onClose, onSubmit, pr
     const [selectedCategory, setSelectedCategory] = useState<string>(preSelectedCategory ? String(preSelectedCategory.id) : "");
     const [frequency, setFrequency] = useState<Frequency>("");
     const [weekly, setWeekly] = useState<string[]>([]);
-    const [monthlyMonths, setMonthlyMonths] = useState<number[]>([]);
-    const [monthlyDays, setMonthlyDays] = useState<string>(""); // comma-separated (supports negatives)
     const [interval, setInterval] = useState<number>(1);
     const [count, setCount] = useState<string>(""); // optional
     const [until, setUntil] = useState<string>(""); // date or datetime (we’ll use date)
@@ -62,16 +60,11 @@ export default function EventAdd({ categories, modalError, onClose, onSubmit, pr
 
     useEffect(() => {
         if (!startTime) return;
-        const d = new Date(startTime);
 
         if (frequency === "weekly") {
+            const d = new Date(startTime);
             const code = DOW_LABELS[d.getDay()].code;
             setWeekly([code]);
-        }
-
-        if (frequency === "monthly") {
-            const month = d.getMonth() + 1;
-            setMonthlyMonths([month]);
         }
     }, [frequency, startTime]);
 
@@ -187,57 +180,6 @@ export default function EventAdd({ categories, modalError, onClose, onSubmit, pr
                         {weekly.map((w, i) => (
                             <input key={w + i} type="hidden" name="weekly[]" value={w} />
                         ))}
-                    </div>
-                )}
-
-                {frequency === "monthly" && (
-                    <div className="grid gap-3 sm:grid-cols-2">
-                        <div className="grid gap-2">
-                            <label className="text-sm font-medium">Repeat in</label>
-                            <div className="flex flex-wrap gap-2">
-                                {MONTH_OPTIONS.map((m) => {
-                                    const active = monthlyMonths.includes(m.v);
-                                    return (
-                                        <button
-                                            type="button"
-                                            key={m.v}
-                                            onClick={() => {
-                                                setMonthlyMonths((prev) =>
-                                                    prev.includes(m.v)
-                                                        ? prev.filter((x) => x !== m.v)
-                                                        : [...prev, m.v]
-                                                );
-                                            }}
-                                            className={`px-3 py-1 rounded-md border text-xs transition hover:cursor-pointer ${
-                                                active
-                                                    ? "bg-blue-600 text-white border-blue-600"
-                                                    : "bg-white dark:bg-zinc-950 border-zinc-300 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-200 hover:dark:bg-zinc-800"
-                                            }`}
-                                        >
-                                            {m.n}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                            {monthlyMonths.map((m, i) => (
-                                <input key={m + "-" + i} type="hidden" name="monthly[]" value={m} />
-                            ))}
-                        </div>
-
-                        <div className="grid gap-2">
-                            <label className="text-sm font-medium">Days of Month</label>
-                            <input
-                                type="text"
-                                name="monthly_days"
-                                value={monthlyDays}
-                                onChange={(e) => setMonthlyDays(e.target.value)}
-                                className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2 outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600"
-                                placeholder="e.g., 1, 3, 15 ,-1"
-                            />
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                                Comma-separated. Supports negatives (-1 = last day, -2 = second-to-last, etc.).
-                            </p>
-                        </div>
                     </div>
                 )}
 
@@ -495,7 +437,6 @@ export default function EventAdd({ categories, modalError, onClose, onSubmit, pr
                     </div>
 
                     <input type="hidden" name="exceptions_csv" value={exceptions} />
-                    <input type="hidden" name="monthly_days_csv" value={monthlyDays} />
 
                     <div className="mt-2 flex items-center justify-end gap-2 border-t border-zinc-200 dark:border-zinc-800 pt-4">
                         <button

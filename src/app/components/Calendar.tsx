@@ -673,7 +673,7 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                                             setModalOpen("eventEdit");
                                         }}
                                     >
-                                        <div className="px-2 py-1 truncate">
+                                        <div className="px-2 py-1">
                                             {occ.title}
                                             <div className="font-light">
                                                 {occ.startLabel} – {occ.endLabel}

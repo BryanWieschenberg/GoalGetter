@@ -59,10 +59,10 @@ const pad2 = (n: number) => (n < 10 ? `0${n}` : `${n}`);
 
 const formatHM = (d: Date): string => {
     let h = d.getHours();
-    const m = pad2(d.getMinutes());
+    const m = d.getMinutes();
     const ap = h < 12 ? "am" : "pm";
     h = h % 12 || 12;
-    return `${h}:${m}${ap}`;
+    return m === 0 ? `${h}${ap}` : `${h}:${pad2(m)}${ap}`;
 };
 
 export function toDate(d: string | Date): Date {

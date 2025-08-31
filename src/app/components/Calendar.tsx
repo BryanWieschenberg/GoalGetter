@@ -675,9 +675,11 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                                     >
                                         <div className="px-2 py-1">
                                             {occ.title}
-                                            <div className="font-light">
-                                                {occ.startLabel} – {occ.endLabel}
-                                            </div>
+                                            {occ.height >= (45 * (48 / 60)) && (
+                                                <div className="font-light">
+                                                    {occ.startLabel} – {occ.endLabel}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 );

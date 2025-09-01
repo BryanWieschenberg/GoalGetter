@@ -23,8 +23,8 @@ CREATE TABLE IF NOT EXISTS auth_tokens (
     user_id                 INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     token                   TEXT PRIMARY KEY,
     purpose                 token_purpose NOT NULL,
-    expires_at              TIMESTAMP NOT NULL DEFAULT (now() + interval '7 days'),
-    created_at              TIMESTAMP NOT NULL DEFAULT now(),
+    expires_at              TIMESTAMPTZ NOT NULL DEFAULT (now() + interval '7 days'),
+    created_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
     pending_email           TEXT UNIQUE
 );
 

@@ -5,7 +5,7 @@ import SignupVerify from "@/lib/templates/SignupVerify";
 import { Resend } from "resend";
 import crypto from "crypto";
 
-const isValidHandle = (h: string) => /^[a-z0-9-_]{3,20}$/.test(h);
+const isValidHandle = (h: string) => /^[a-z0-9-_]{1,20}$/.test(h);
 const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 
 export async function POST(req: Request) {

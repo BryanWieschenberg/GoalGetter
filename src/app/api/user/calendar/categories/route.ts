@@ -34,7 +34,6 @@ export async function POST(req: Request) {
     try {
         const body = await req.json();
         const payload = body.payload;
-        console.log(payload)
         const { name, color } = payload;
 
         await pool.query(

@@ -292,8 +292,6 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
             weekly: form.getAll("weekly[]"),
             exceptions: form.get("exceptions") || ""
         };
-
-        console.log(payload)
         
         const res = await fetch('/api/user/calendar/events', {
             method: 'PUT',

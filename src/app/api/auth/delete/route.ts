@@ -1,11 +1,9 @@
-
+import { auth } from "@/lib/authOptions";
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import pool from "@/lib/db";
-import authOptions from "@/lib/authOptions";
 
 export async function DELETE() {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.id) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

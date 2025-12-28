@@ -1,7 +1,6 @@
 import "./globals.css";
 import { Providers } from "./Providers";
-import { getServerSession } from "next-auth";
-import authOptions from "@/lib/authOptions";
+import { auth } from "@/lib/authOptions";
 import pool from "@/lib/db";
 import ThemeApplier from "./ThemeApplier";
 
@@ -13,7 +12,7 @@ export const metadata = {
 };
 
 export default async function BareLayout({ children }: { children: React.ReactNode }) {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     let theme = "system";
     if (session?.user?.id) {

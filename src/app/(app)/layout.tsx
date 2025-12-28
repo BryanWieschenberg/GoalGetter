@@ -1,7 +1,6 @@
 import "../globals.css";
 import Navbar from "../components/Navbar";
-import { getServerSession } from "next-auth";
-import authOptions from "@/lib/authOptions";
+import { auth } from "@/lib/authOptions";
 import pool from "@/lib/db";
 import VerifyAccount from "../components/VerifyAccount";
 
@@ -13,7 +12,7 @@ export const metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     let isVerified = false;
 
     let theme = "system";

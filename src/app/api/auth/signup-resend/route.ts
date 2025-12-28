@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import authOptions from "@/lib/authOptions";
+import { auth } from "@/lib/authOptions";
 import pool from "@/lib/db";
 import crypto from "crypto";
 import { Resend } from "resend";
@@ -8,7 +7,7 @@ import SignupResendVerify from "@/lib/templates/SignupResendVerify";
 
 export async function POST() {
     try {
-        const session = await getServerSession(authOptions);
+        const session = await auth();
         const userId = session?.user?.id ? Number(session.user.id) : null;
         if (!userId) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

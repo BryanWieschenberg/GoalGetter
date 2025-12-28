@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { auth } from "@/lib/authOptions";
 import pool from "@/lib/db";
-import authOptions from "@/lib/authOptions";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { Resend } from "resend";
 import EmailChangeVerify from "@/lib/templates/EmailChangeVerify";
 
 export async function PATCH(req: Request) {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

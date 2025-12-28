@@ -1,8 +1,7 @@
-import { getServerSession } from "next-auth";
+import { auth } from "@/lib/authOptions";
 import { redirect } from "next/navigation";
 import pool from "@/lib/db";
 import SettingsForm from "./SettingsForm";
-import authOptions from "@/lib/authOptions";
 
 interface User {
     username: string;
@@ -17,7 +16,7 @@ interface UserSettings {
 }
 
 export default async function Settings() {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session?.user?.id) {
         redirect("/signin");

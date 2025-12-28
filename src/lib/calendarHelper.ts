@@ -70,9 +70,11 @@ export function toDate(d: string | Date): Date {
 }
 
 export function sameYMD(a: Date, b: Date): boolean {
-    return a.getFullYear() === b.getFullYear() &&
-           a.getMonth() === b.getMonth() &&
-           a.getDate() === b.getDate();
+    return (
+        a.getFullYear() === b.getFullYear() &&
+        a.getMonth() === b.getMonth() &&
+        a.getDate() === b.getDate()
+    );
 }
 
 export function minutesSinceMidnight(d: Date): number {

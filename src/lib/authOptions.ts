@@ -2,10 +2,11 @@ import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import bcrypt from "bcrypt";
 import pool from "@/lib/db";
-import type { AuthOptions } from "next-auth";
+import NextAuth from "next-auth";
 import { generateHandle } from "@/lib/generateHandle";
 
-const authOptions: AuthOptions = {
+export const { handlers, auth, signIn, signOut } = NextAuth({
+    trustHost: true,
     session: { strategy: "jwt", maxAge: 604800 }, // Session lasts 7 days
     secret: process.env.NEXTAUTH_SECRET,
     providers: [
@@ -23,29 +24,44 @@ const authOptions: AuthOptions = {
         }),
         Credentials({
             name: "Credentials",
-            credentials: { handleOrEmail: {}, password: {} },
-            async authorize(creds) {
-                if (!creds?.handleOrEmail || !creds?.password) return null;
-                
-                const queryParam = creds.handleOrEmail.includes("@") ? "email" : "handle";
-                const data = await pool.query(
-                    `SELECT id, username, handle, email, password, provider FROM users
-                    WHERE ${queryParam} = $1`,
-                    [creds.handleOrEmail]
-                );
-                const user = data.rows[0];
-                if (!user) return null;
+            credentials: {
+                handleOrEmail: { label: "Email or Handle", type: "text" },
+                password: { label: "Password", type: "password" }
+            },
+            async authorize(credentials) {
+                try {
+                    const creds = credentials as { handleOrEmail: string; password: string } | undefined;
 
-                const ok = await bcrypt.compare(creds.password, user.password);
-                if (!ok) return null;
+                    if (!creds?.handleOrEmail || !creds?.password)
+                        throw new Error("Missing credentials");
+                    
+                    const queryParam = creds.handleOrEmail.includes("@") ? "email" : "handle";
+                    const data = await pool.query(
+                        `SELECT id, username, handle, email, password, provider FROM users
+                        WHERE ${queryParam} = $1`,
+                        [creds.handleOrEmail]
+                    );
+                    const user = data.rows[0];
+                    
+                    if (!user)
+                        throw new Error("User not found");
 
-                return {
-                    email: user.email,
-                    handle: user.handle,
-                    id: String(user.id),
-                    username: user.username,
-                    provider: user.provider && user.provider.trim() !== "" ? user.provider : "local"
-                };
+                    const ok = await bcrypt.compare(creds.password, user.password);
+                    
+                    if (!ok)
+                        throw new Error("Invalid password");
+
+                    return {
+                        email: user.email,
+                        handle: user.handle,
+                        id: String(user.id),
+                        username: user.username,
+                        provider: user.provider && user.provider.trim() !== "" ? user.provider : "local"
+                    };
+                } catch (err) {
+                    console.error("Authorization error:", err);
+                    return null;
+                }
             },
         }),
     ],
@@ -149,10 +165,11 @@ const authOptions: AuthOptions = {
             return token;
         },
         async session({ session, token }) {
-            if (session.user && token.id) session.user.id = String(token.id);
+            if (token.id) {
+                session.user = session.user || {};
+                session.user.id = String(token.id);
+            }
             return session;
         }
     }
-};
-
-export default authOptions;
+});

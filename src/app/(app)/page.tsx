@@ -1,10 +1,10 @@
-import { getServerSession } from "next-auth";
+import { auth } from "@/lib/authOptions";
 import HomePage from "./HomePage";
 import WelcomePage from "../components/WelcomePage";
-import authOptions from "@/lib/authOptions";
 import pool from "@/lib/db";
+
 export default async function Home() {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     let res = null;
     let startWeek = null;
     let nowTop = 0;

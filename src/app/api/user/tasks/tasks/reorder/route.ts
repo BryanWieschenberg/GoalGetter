@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/lib/authOptions";
 import pool from "@/lib/db";
-import authOptions from "@/lib/authOptions";
-import { getServerSession } from "next-auth/next";
 
 export async function PATCH(req: Request) {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.id) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

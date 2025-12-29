@@ -24,12 +24,12 @@ export default async function Settings() {
 
     const account = await pool.query<User>(
         "SELECT username, handle, email, provider FROM users WHERE id=$1",
-        [session.user.id]
+        [session.user.id],
     );
 
     const settingsRes = await pool.query<UserSettings>(
         "SELECT theme, week_start FROM user_settings WHERE user_id=$1",
-        [session.user.id]
+        [session.user.id],
     );
 
     if (settingsRes.rowCount === 0) {

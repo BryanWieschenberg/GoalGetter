@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { HiPencil, HiX, HiEye, HiEyeOff } from "react-icons/hi";
+import { HiPencil, HiX } from "react-icons/hi";
 
 interface User {
     username: string;
@@ -19,7 +19,13 @@ interface UserSettings {
 
 type EditField = "username" | "handle" | "email";
 
-export default function SettingsForm({ account, initialSettings }: { account: User, initialSettings: UserSettings }) {
+export default function SettingsForm({
+    account,
+    initialSettings,
+}: {
+    account: User;
+    initialSettings: UserSettings;
+}) {
     const router = useRouter();
 
     const original = useRef<UserSettings>(initialSettings);
@@ -38,7 +44,7 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
     const [editUsername, setEditUsername] = useState<string>(account.username);
     const [editHandle, setEditHandle] = useState<string>(account.handle);
     const [editEmail, setEditEmail] = useState<string>(account.email);
-    
+
     const closeEditor = () => {
         setEditorOpen(null);
         setEditError(null);
@@ -51,7 +57,10 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
     const handleAccountSave = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        if (!editorOpen) return;
+        if (!editorOpen) {
+            return;
+        }
+
         setEditError(null);
         setEditSuccess(null);
 
@@ -90,7 +99,7 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
             } else {
                 setEditSuccess("Saved!");
             }
-        } catch (e) {
+        } catch {
             setEditError("Unexpected error. Please try again.");
         } finally {
             setEditSaving(false);
@@ -128,7 +137,10 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
     };
 
     const onDelete = async () => {
-        if (!handleMatches || deleting) return;
+        if (!handleMatches || deleting) {
+            return;
+        }
+
         try {
             setDeleting(true);
             const res = await fetch("/api/auth/delete", { method: "DELETE" });
@@ -186,7 +198,12 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
                 )}
             </p>
 
-            {!localProvider && (<p><span className="font-bold">Source: </span>{providerName}</p>)}
+            {!localProvider && (
+                <p>
+                    <span className="font-bold">Source: </span>
+                    {providerName}
+                </p>
+            )}
 
             {editorOpen && (
                 <div className="mt-4 rounded-md border p-4 border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/40">
@@ -224,20 +241,30 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
                                 <input
                                     name="newValue"
                                     type={editorOpen === "email" ? "email" : "text"}
-                                    value={editorOpen === "username" ? editUsername : editorOpen === "handle" ? editHandle : editEmail}
+                                    value={
+                                        editorOpen === "username"
+                                            ? editUsername
+                                            : editorOpen === "handle"
+                                              ? editHandle
+                                              : editEmail
+                                    }
                                     required
                                     onChange={(e) => {
-                                        if (editorOpen === "username") setEditUsername(e.target.value);
-                                        else if (editorOpen === "handle") setEditHandle(e.target.value);
-                                        else setEditEmail(e.target.value);
+                                        if (editorOpen === "username") {
+                                            setEditUsername(e.target.value);
+                                        } else if (editorOpen === "handle") {
+                                            setEditHandle(e.target.value);
+                                        } else {
+                                            setEditEmail(e.target.value);
+                                        }
                                     }}
                                     className="w-full border rounded px-3 py-2 dark:bg-black border-zinc-300 dark:border-zinc-700"
                                     placeholder={
                                         editorOpen === "username"
                                             ? "your new username"
                                             : editorOpen === "handle"
-                                            ? "@your_new_handle"
-                                            : "you@example.com"
+                                              ? "@your_new_handle"
+                                              : "you@example.com"
                                     }
                                 />
                             </label>
@@ -275,12 +302,8 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
                                 )}
                             </div>
                         </form>
-                        {editError && (
-                            <p className="text-sm text-red-500">{editError}</p>
-                        )}
-                        {editSuccess && (
-                            <p className="text-sm text-green-500">{editSuccess}</p>
-                        )}
+                        {editError && <p className="text-sm text-red-500">{editError}</p>}
+                        {editSuccess && <p className="text-sm text-green-500">{editSuccess}</p>}
                     </div>
                 </div>
             )}
@@ -288,7 +311,7 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
             <div className="mt-6">
                 <button
                     type="button"
-                    onClick={() => setShowDelete(v => !v)}
+                    onClick={() => setShowDelete((v) => !v)}
                     className="rounded-md px-3 py-2 hover:cursor-pointer border border-red-300 text-red-700 hover:bg-red-50 dark:border-red-600 dark:text-red-300 dark:hover:bg-red-900/30"
                 >
                     Danger Zone
@@ -297,25 +320,30 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
                 {showDelete && (
                     <div className="mt-3 rounded-md border p-4 border-red-400 dark:border-red-600 bg-zinc-50 dark:bg-zinc-900/40">
                         <p className="text-sm text-red-700 dark:text-red-400">
-                            <strong>Delete Your Account?</strong> This action is permanent and cannot be undone.
+                            <strong>Delete Your Account?</strong> This action is permanent and
+                            cannot be undone.
                         </p>
                         <p className="mt-2 text-sm">
-                            To confirm, type your handle "{account.handle}":
+                            {`To confirm, type your handle ${account.handle}:`}
                         </p>
 
                         <div className="mt-3 relative max-w-md">
-                            <span className="absolute inset-y-0 left-3 flex items-center text-zinc-500 pointer-events-none">@</span>
+                            <span className="absolute inset-y-0 left-3 flex items-center text-zinc-500 pointer-events-none">
+                                @
+                            </span>
                             <input
                                 type="text"
                                 value={confirmHandle}
                                 onChange={(e) => setConfirmHandle(e.target.value)}
                                 placeholder="your-handle"
                                 className={`w-full border rounded px-3 py-2 pl-8 dark:bg-black
-                                    ${confirmHandle.length > 0
-                                        ? handleMatches
-                                            ? "border-green-500 focus:outline-none"
-                                            : "border-red-500 focus:outline-none"
-                                        : "border-zinc-300 dark:border-zinc-700"}`}
+                                    ${
+                                        confirmHandle.length > 0
+                                            ? handleMatches
+                                                ? "border-green-500 focus:outline-none"
+                                                : "border-red-500 focus:outline-none"
+                                            : "border-zinc-300 dark:border-zinc-700"
+                                    }`}
                             />
                         </div>
 
@@ -324,16 +352,18 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
                             onClick={onDelete}
                             disabled={!handleMatches || deleting}
                             className={`mt-4 rounded-md px-4 py-2 transition
-                                ${!handleMatches || deleting
-                                    ? "bg-zinc-200 dark:bg-zinc-800 text-black cursor-not-allowed"
-                                    : "bg-red-600 hover:bg-red-700 cursor-pointer"}`}
+                                ${
+                                    !handleMatches || deleting
+                                        ? "bg-zinc-200 dark:bg-zinc-800 text-black cursor-not-allowed"
+                                        : "bg-red-600 hover:bg-red-700 cursor-pointer"
+                                }`}
                         >
                             {deleting ? "Deleting..." : "Delete My Account"}
                         </button>
                     </div>
                 )}
             </div>
-            
+
             <hr className="my-6" />
 
             <h2 className="font-bold text-xl pb-4">User Preferences</h2>
@@ -344,7 +374,7 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
                     <div className="flex items-center gap-2">
                         <select
                             value={settings.theme}
-                            onChange={e => setSettings(s => ({ ...s, theme: e.target.value }))}
+                            onChange={(e) => setSettings((s) => ({ ...s, theme: e.target.value }))}
                             className={`rounded p-2 border-2 dark:bg-black
                                 ${themeModified ? "border-yellow-500 dark:border-purple-700" : ""}`}
                         >
@@ -356,7 +386,9 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
                         {themeModified && (
                             <button
                                 type="button"
-                                onClick={() => setSettings(s => ({ ...s, theme: original.current.theme }))}
+                                onClick={() =>
+                                    setSettings((s) => ({ ...s, theme: original.current.theme }))
+                                }
                                 className="text-sm ml-4 px-2 py-[.3rem] rounded border border-yellow-500 bg-yellow-100 text-yellow-700 hover:bg-yellow-200 dark:border-purple-700 dark:bg-purple-200 dark:text-purple-800 dark:hover:bg-purple-300 hover:cursor-pointer"
                                 title="Reset Theme"
                             >
@@ -371,7 +403,9 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
                     <div className="flex items-center gap-2">
                         <select
                             value={settings.week_start}
-                            onChange={e => setSettings(s => ({ ...s, week_start: e.target.value }))}
+                            onChange={(e) =>
+                                setSettings((s) => ({ ...s, week_start: e.target.value }))
+                            }
                             className={`rounded p-2 border-2 dark:bg-black
                                 ${weekStartModified ? "border-yellow-500 dark:border-purple-700" : ""}`}
                         >
@@ -387,7 +421,12 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
                         {weekStartModified && (
                             <button
                                 type="button"
-                                onClick={() => setSettings(s => ({ ...s, week_start: original.current.week_start }))}
+                                onClick={() =>
+                                    setSettings((s) => ({
+                                        ...s,
+                                        week_start: original.current.week_start,
+                                    }))
+                                }
                                 className="text-sm ml-4 px-2 py-[.3rem] rounded border border-yellow-500 bg-yellow-100 text-yellow-700 hover:bg-yellow-200 dark:border-purple-700 dark:bg-purple-200 dark:text-purple-800 dark:hover:bg-purple-300 hover:cursor-pointer"
                                 title="Reset Week Start"
                             >
@@ -396,7 +435,7 @@ export default function SettingsForm({ account, initialSettings }: { account: Us
                         )}
                     </div>
                 </label>
-                
+
                 <button
                     onClick={handleSettingSave}
                     disabled={saving}

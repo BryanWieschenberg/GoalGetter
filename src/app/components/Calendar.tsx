@@ -1,55 +1,72 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef, useMemo } from 'react';
-import EventAdd from './modals/EventAdd';
-import EventCategoryAdd from './modals/EventCategoryAdd';
-import EventEdit from './modals/EventEdit';
-import EventCategoryEdit from './modals/EventCategoryEdit';
-import { FiEye, FiChevronLeft, FiChevronRight, FiBell } from 'react-icons/fi';
-import { FaRegCalendarAlt } from 'react-icons/fa';
-import { startOfWeek, parseLocalDate, addDays, formatWeekRange, buildWeekOccurrences, getContrastTextColor, dayIndexFrom } from '@/lib/calendarHelper';
-import { AnimatePresence, motion } from 'framer-motion';
+import { useState, useEffect, useRef, useMemo } from "react";
+import EventAdd from "./modals/EventAdd";
+import EventCategoryAdd from "./modals/EventCategoryAdd";
+import EventEdit from "./modals/EventEdit";
+import EventCategoryEdit from "./modals/EventCategoryEdit";
+import { Task, Tag, Event, EventCategory } from "@/types/core-types";
+import { FiEye, FiChevronLeft, FiChevronRight, FiBell } from "react-icons/fi";
+import { FaRegCalendarAlt } from "react-icons/fa";
+import {
+    startOfWeek,
+    parseLocalDate,
+    addDays,
+    formatWeekRange,
+    buildWeekOccurrences,
+    getContrastTextColor,
+    dayIndexFrom,
+} from "@/lib/calendarHelper";
+import { AnimatePresence, motion } from "framer-motion";
 
 type calendarData = {
-    event_categories: event_category[];
-    events: event[];
-    tasks: task[];
-    tags: tag[];
+    event_categories: EventCategory[];
+    events: Event[];
+    tasks: Task[];
+    tags: Tag[];
 };
 
-export default function Calendar({ calendarData, startWeekPreference, modalOpen, setModalOpen, nowTopServer }: {
-    calendarData: calendarData,
-    startWeekPreference: number,
-    modalOpen: string | null,
-    setModalOpen: (value: string | null) => void,
-    nowTopServer: number
+export default function Calendar({
+    calendarData,
+    startWeekPreference,
+    modalOpen,
+    setModalOpen,
+    nowTopServer,
+}: {
+    calendarData: calendarData;
+    startWeekPreference: number;
+    modalOpen: string | null;
+    setModalOpen: (value: string | null) => void;
+    nowTopServer: number;
 }) {
     const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), startWeekPreference));
     const inputRef = useRef<HTMLInputElement>(null);
-    const [categories, setCategories] = useState(calendarData.event_categories)
-    const [events, setEvents] = useState(calendarData.events)
-    const [selectedCategoryRaw, setSelectedCategoryRaw] = useState<event_category | null>(null);
-    const [selectedEventRaw, setSelectedEventRaw] = useState<event | null>(null);
+    const [categories, setCategories] = useState(calendarData.event_categories);
+    const [events, setEvents] = useState(calendarData.events);
+    const [selectedCategoryRaw, setSelectedCategoryRaw] = useState<EventCategory | null>(null);
+    const [selectedEventRaw, setSelectedEventRaw] = useState<Event | null>(null);
     const [modalError, setModalError] = useState<string | null>(null);
     const [nowTop, setNowTop] = useState<number | null>(nowTopServer ?? null);
     const [hoveredDayIndex, setHoveredDayIndex] = useState<number | null>(null);
     const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
     const [eventTimeslot, setEventTimeslot] = useState<{ start: Date; end: Date } | null>(null);
-    const [visibleCategories, setVisibleCategories] = useState<number[]>(categories?.map((c: any) => c.id) ?? []);
+    const [visibleCategories, setVisibleCategories] = useState<number[]>(
+        categories?.map((c: any) => c.id) ?? [],
+    );
     const [tooltipsVisible, setTooltipsVisible] = useState(true);
 
     const [filterOpen, setFilterOpen] = useState(false);
     const filterRef = useRef<HTMLDivElement>(null);
 
     const weekOccurrences = useMemo(() => {
-        const filtered = (events || []).filter(
-            (ev: any) => visibleCategories.includes(ev.category_id)
+        const filtered = (events || []).filter((ev: any) =>
+            visibleCategories.includes(ev.category_id),
         );
         return buildWeekOccurrences(filtered || [], weekStart);
     }, [events, weekStart, visibleCategories]);
 
     const eventMap = useMemo(() => {
-        const map: Record<number, event> = {};
+        const map: Record<number, Event> = {};
         for (const ev of events) {
             map[ev.id] = ev;
         }
@@ -59,13 +76,13 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
     const goPrev = () => setWeekStart(addDays(weekStart, -7));
     const goNext = () => setWeekStart(addDays(weekStart, 7));
     const goToday = () => setWeekStart(startOfWeek(new Date(), startWeekPreference));
-    
+
     const getTasksForDay = (day: Date) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const dayStart = new Date(day);
         dayStart.setHours(0, 0, 0, 0);
-        
+
         if (dayStart < today) {
             return [];
         }
@@ -73,8 +90,10 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
         const isToday = dayStart.getTime() === today.getTime();
 
         return calendarData.tasks.filter((task) => {
-            if (!task.due_date) return false;
-            
+            if (!task.due_date) {
+                return false;
+            }
+
             const due = new Date(task.due_date);
             due.setHours(0, 0, 0, 0);
 
@@ -86,13 +105,17 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
         });
     };
 
-    const getPreselectedCategory = (): event_category | null => {
-        const showing = categories.filter(c => visibleCategories.includes(c.id));
-        const mainCat = showing.find(c => c.main);
+    const getPreselectedCategory = (): EventCategory | null => {
+        const showing = categories.filter((c) => visibleCategories.includes(c.id));
+        const mainCat = showing.find((c) => c.main);
 
-        if (showing.length === 0) return null;
-        if (showing.length > 1 && mainCat) return mainCat;
-        if (showing.length === 1) return showing[0];
+        if (showing.length === 0) {
+            return null;
+        } else if (showing.length > 1 && mainCat) {
+            return mainCat;
+        } else if (showing.length === 1) {
+            return showing[0];
+        }
 
         return null;
     };
@@ -103,7 +126,7 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
         setSelectedEventRaw(null);
         setModalError(null);
         setEventTimeslot(null);
-    }
+    };
 
     useEffect(() => {
         const onDocClick = (e: MouseEvent) => {
@@ -119,7 +142,7 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                 setFilterOpen(false);
             }
         };
-        
+
         const updateNowPosition = () => {
             const now = new Date();
             const minutes = now.getHours() * 60 + now.getMinutes();
@@ -141,26 +164,28 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
     }, []);
 
     const fetchCategoryData = async () => {
-        const res = await fetch('/api/user/calendar/categories')
+        const res = await fetch("/api/user/calendar/categories");
         const data = await res.json();
         setCategories(data.categories);
         setVisibleCategories(data.categories.map((c: any) => c.id));
     };
 
     const fetchEventData = () => {
-        fetch('/api/user/calendar/events')
+        fetch("/api/user/calendar/events")
             .then((res) => res.json())
             .then((data) => {
                 const transformedEvents = data.events.map((event: any) => ({
                     ...event,
-                    recurrence: event.frequency ? {
-                        frequency: event.frequency,
-                        interval: event.interval,
-                        weekly: event.weekly,
-                        count: event.count,
-                        exceptions: event.exceptions,
-                        until: event.until
-                    } : null
+                    recurrence: event.frequency
+                        ? {
+                              frequency: event.frequency,
+                              interval: event.interval,
+                              weekly: event.weekly,
+                              count: event.count,
+                              exceptions: event.exceptions,
+                              until: event.until,
+                          }
+                        : null,
                 }));
                 setEvents(transformedEvents);
             });
@@ -168,23 +193,23 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
 
     async function handleCategoryAdd(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        
+
         const form = new FormData(e.currentTarget);
-        
+
         let color = form.get("color") as string | null;
         color = color ? color.replace(/^#/, "") : null;
 
         const payload = {
             name: form.get("title"),
-            color: color
+            color: color,
         };
-        
-        const res = await fetch('/api/user/calendar/categories', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ payload })
+
+        const res = await fetch("/api/user/calendar/categories", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ payload }),
         });
-        
+
         if (!res.ok) {
             const res_json = await res.json();
             setModalError(res_json.error || "An unknown error occurred.");
@@ -215,13 +240,13 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
             count: form.get("count") || null,
             until: form.get("until") || null,
             weekly: form.getAll("weekly[]"),
-            exceptions: form.get("exceptions") || ""
+            exceptions: form.get("exceptions") || "",
         };
 
-        const res = await fetch('/api/user/calendar/events', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ payload })
+        const res = await fetch("/api/user/calendar/events", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ payload }),
         });
 
         if (!res.ok) {
@@ -237,7 +262,9 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
     async function handleCategoryEdit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
-        if (!selectedCategoryRaw) return;
+        if (!selectedCategoryRaw) {
+            return;
+        }
 
         const form = new FormData(e.currentTarget);
 
@@ -247,13 +274,13 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
         const payload = {
             id: selectedCategoryRaw.id,
             title: form.get("title"),
-            color: color
+            color: color,
         };
 
-        const res = await fetch('/api/user/calendar/categories', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ payload })
+        const res = await fetch("/api/user/calendar/categories", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ payload }),
         });
 
         if (!res.ok) {
@@ -270,7 +297,9 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
     async function handleEventEdit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
-        if (!selectedEventRaw) return;
+        if (!selectedEventRaw) {
+            return;
+        }
 
         const form = new FormData(e.currentTarget);
 
@@ -290,15 +319,15 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
             count: form.get("count") || null,
             until: form.get("until") || null,
             weekly: form.getAll("weekly[]"),
-            exceptions: form.get("exceptions") || ""
+            exceptions: form.get("exceptions") || "",
         };
-        
-        const res = await fetch('/api/user/calendar/events', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ payload })
+
+        const res = await fetch("/api/user/calendar/events", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ payload }),
         });
-        
+
         if (!res.ok) {
             const res_json = await res.json();
             setModalError(res_json.error || "An unknown error occurred.");
@@ -312,7 +341,7 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
 
     async function handleCategoryDelete(id: number) {
         const res = await fetch(`/api/user/calendar/categories?id=${id}`, {
-            method: 'DELETE'
+            method: "DELETE",
         });
 
         if (!res.ok) {
@@ -328,7 +357,7 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
 
     async function handleEventDelete(id: number) {
         const res = await fetch(`/api/user/calendar/events?id=${id}`, {
-            method: 'DELETE'
+            method: "DELETE",
         });
 
         if (!res.ok) {
@@ -362,7 +391,7 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                                     }
                                 }}
                             >
-                                <FaRegCalendarAlt className="w-4 h-4"/>
+                                <FaRegCalendarAlt className="w-4 h-4" />
                             </button>
                             <input
                                 ref={inputRef}
@@ -371,7 +400,7 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                                 className="sr-only"
                                 style={{
                                     WebkitAppearance: "none",
-                                    MozAppearance: "textfield"
+                                    MozAppearance: "textfield",
                                 }}
                                 onChange={(e) => {
                                     const val = e.target.value;
@@ -384,11 +413,11 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                                 }}
                             />
                         </div>
-                        
+
                         <div ref={filterRef} className="relative">
                             <button
                                 type="button"
-                                onClick={() => setFilterOpen(v => !v)}
+                                onClick={() => setFilterOpen((v) => !v)}
                                 className="transition inline-flex items-center gap-2 rounded-lg px-3 py-3 text-sm ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 bg-white/70 dark:bg-black/20 hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:cursor-pointer"
                                 aria-haspopup="menu"
                                 aria-expanded={filterOpen}
@@ -401,27 +430,39 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                                     role="menu"
                                     className="absolute z-50 mt-2 w-64 rounded-lg border border-zinc-300/70 dark:border-zinc-700/70 bg-white dark:bg-zinc-900 shadow-lg p-2 flex flex-col gap-1"
                                 >
-                                    <span className="px-2 mt-1 text-xs text-zinc-500 font-bold">Categories</span>
-                                    
-                                    {categories.map((cat: event_category) => (
-                                        <div key={cat.id} className="flex items-center justify-between px-2 py-1 text-sm">
+                                    <span className="px-2 mt-1 text-xs text-zinc-500 font-bold">
+                                        Categories
+                                    </span>
+
+                                    {categories.map((cat: EventCategory) => (
+                                        <div
+                                            key={cat.id}
+                                            className="flex items-center justify-between px-2 py-1 text-sm"
+                                        >
                                             <label className="flex items-center gap-2 cursor-pointer">
                                                 <input
                                                     type="checkbox"
                                                     checked={visibleCategories.includes(cat.id)}
                                                     onChange={() => {
-                                                        setVisibleCategories(prev =>
+                                                        setVisibleCategories((prev) =>
                                                             prev.includes(cat.id)
-                                                                ? prev.filter(id => id !== cat.id)
-                                                                : [...prev, cat.id]
+                                                                ? prev.filter((id) => id !== cat.id)
+                                                                : [...prev, cat.id],
                                                         );
                                                     }}
                                                 />
                                                 <span>
-                                                    {cat.name} {cat.main ? <span className="text-amber-500 font-bold text-[.65rem] pl-1">Main</span> : ""}
+                                                    {cat.name}{" "}
+                                                    {cat.main ? (
+                                                        <span className="text-amber-500 font-bold text-[.65rem] pl-1">
+                                                            Main
+                                                        </span>
+                                                    ) : (
+                                                        ""
+                                                    )}
                                                 </span>
                                             </label>
-                                            
+
                                             <button
                                                 type="button"
                                                 className="hover:cursor-pointer ml-2 px-2 py-0.5 text-xs rounded-md bg-blue-600 text-white hover:bg-blue-500 active:bg-blue-600 dark:hover:bg-blue-700 dark:active:bg-blue-800"
@@ -479,7 +520,7 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                             {formatWeekRange(weekStart, addDays(weekStart, 6))}
                         </div>
                     </div>
-                    
+
                     {/* Tasks & weekday header */}
                     <div className="grid grid-cols-[64px_repeat(7,1fr)] py-[.3rem] border-b border-r bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800">
                         <div className="h-8" />
@@ -490,7 +531,9 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                                 day.getMonth() === new Date().getMonth() &&
                                 day.getDate() === new Date().getDate();
 
-                            const weekday = new Intl.DateTimeFormat(undefined, { weekday: "short" }).format(day);
+                            const weekday = new Intl.DateTimeFormat(undefined, {
+                                weekday: "short",
+                            }).format(day);
                             const dateNum = day.getDate();
                             const isWeekend = day.getDay() === 0 || day.getDay() === 6;
 
@@ -505,17 +548,22 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                                         className={`h-9 min-w-7 px-2 flex items-center justify-center rounded-xl text-xl font-semibold gap-1
                                             ${isToday ? "bg-blue-600 text-white" : "text-zinc-900 dark:text-zinc-100"}`}
                                     >
-                                        <span className={`text-sm uppercase tracking-wide mr-1 mt-[.225rem]
-                                            ${isToday ? "text-zinc-200" : "text-zinc-500 dark:text-zinc-400"}`}>
+                                        <span
+                                            className={`text-sm uppercase tracking-wide mr-1 mt-[.225rem]
+                                            ${isToday ? "text-zinc-200" : "text-zinc-500 dark:text-zinc-400"}`}
+                                        >
                                             {weekday}
                                         </span>
                                         {dateNum}
 
                                         {tooltipsVisible && tasksDueToday.length > 0 && (
-                                            <FiBell className={`transition w-4 h-4 ml-1 cursor-pointer ${isToday ? "text-slate-400 hover:text-slate-100" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-100"}`}
+                                            <FiBell
+                                                className={`transition w-4 h-4 ml-1 cursor-pointer ${isToday ? "text-slate-400 hover:text-slate-100" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-100"}`}
                                                 onMouseEnter={() => setHoveredDayIndex(i)}
                                                 onMouseLeave={() => setHoveredDayIndex(null)}
-                                                onMouseMove={(e) => setTooltipPos({ x: e.clientX, y: e.clientY })}
+                                                onMouseMove={(e) =>
+                                                    setTooltipPos({ x: e.clientX, y: e.clientY })
+                                                }
                                             />
                                         )}
                                     </div>
@@ -525,84 +573,96 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                     </div>
 
                     <AnimatePresence>
-                        {tooltipsVisible && hoveredDayIndex !== null && tooltipPos && (() => {
-                            const day = addDays(weekStart, hoveredDayIndex);
-                            const tasksDueToday = getTasksForDay(day);
-                            
-                            return (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 8 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: 8 }}
-                                    transition={{ duration: 0.2 }}
-                                    className="fixed z-50 px-2 py-1 text-sm rounded-md bg-white dark:bg-black text-black dark:text-white border-2 border-zinc-500 shadow-lg max-w-xs"
-                                    style={{
-                                        top: tooltipPos.y + 12,
-                                        left: "auto",
-                                        right: `calc(100vw - ${tooltipPos.x}px)`,
-                                        transform: "translateX(-8px)"
-                                    }}
-                                >
-                                    <ul className="space-y-0.5">
-                                        {tasksDueToday.map((task) => {
-                                            const tag = task.tag_id
-                                                ? calendarData.tags.find((t) => t.id === task.tag_id)
-                                                : null;
+                        {tooltipsVisible &&
+                            hoveredDayIndex !== null &&
+                            tooltipPos &&
+                            (() => {
+                                const day = addDays(weekStart, hoveredDayIndex);
+                                const tasksDueToday = getTasksForDay(day);
 
-                                            return (
-                                                <li key={task.id} className="truncate flex items-center gap-1">
-                                                    {tag && tag.color && (
-                                                        <span
-                                                            className="font-semibold"
-                                                            style={{ color: `#${tag.color}` }}
-                                                        >
-                                                            [{tag.name}]
-                                                        </span>
-                                                    )}
-                                                    {task.title}
-                                                </li>
-                                            );
-                                        })}
-                                    </ul>
-                                </motion.div>
-                            );
-                        })()}
+                                return (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 8 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 8 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="fixed z-50 px-2 py-1 text-sm rounded-md bg-white dark:bg-black text-black dark:text-white border-2 border-zinc-500 shadow-lg max-w-xs"
+                                        style={{
+                                            top: tooltipPos.y + 12,
+                                            left: "auto",
+                                            right: `calc(100vw - ${tooltipPos.x}px)`,
+                                            transform: "translateX(-8px)",
+                                        }}
+                                    >
+                                        <ul className="space-y-0.5">
+                                            {tasksDueToday.map((task) => {
+                                                const tag = task.tag_id
+                                                    ? calendarData.tags.find(
+                                                          (t) => t.id === task.tag_id,
+                                                      )
+                                                    : null;
+
+                                                return (
+                                                    <li
+                                                        key={task.id}
+                                                        className="truncate flex items-center gap-1"
+                                                    >
+                                                        {tag && tag.color && (
+                                                            <span
+                                                                className="font-semibold"
+                                                                style={{ color: `#${tag.color}` }}
+                                                            >
+                                                                [{tag.name}]
+                                                            </span>
+                                                        )}
+                                                        {task.title}
+                                                    </li>
+                                                );
+                                            })}
+                                        </ul>
+                                    </motion.div>
+                                );
+                            })()}
                     </AnimatePresence>
                 </div>
             </div>
 
             {/* Calendar cells */}
             <div className="relative grid grid-cols-[64px_repeat(7,1fr)] auto-rows-[48px] overflow-hidden">
-                {nowTop !== null && (() => {
-                    const today = new Date();
-                    const todayIndex = Array.from({ length: 7 }).findIndex((_, i) => {
-                        const d = addDays(weekStart, i);
+                {nowTop !== null &&
+                    (() => {
+                        const today = new Date();
+                        const todayIndex = Array.from({ length: 7 }).findIndex((_, i) => {
+                            const d = addDays(weekStart, i);
+                            return (
+                                d.getFullYear() === today.getFullYear() &&
+                                d.getMonth() === today.getMonth() &&
+                                d.getDate() === today.getDate()
+                            );
+                        });
+
+                        if (todayIndex === -1) {
+                            return null;
+                        }
+
                         return (
-                            d.getFullYear() === today.getFullYear() &&
-                            d.getMonth() === today.getMonth() &&
-                            d.getDate() === today.getDate()
+                            <div
+                                className="absolute h-0.5 bg-zinc-700 dark:bg-zinc-300 z-20"
+                                style={{
+                                    top: `${nowTop}px`,
+                                    left: `calc(64px + (100% - 64px) / 7 * ${todayIndex})`,
+                                    width: `calc((100% - 64px) / 7)`,
+                                }}
+                            >
+                                <div className="absolute -left-1.25 top-1/2 w-3 h-3 rounded-full bg-zinc-700 dark:bg-zinc-300 -translate-y-1/2" />
+                            </div>
                         );
-                    });
+                    })()}
 
-                    if (todayIndex === -1) return null;
-
-                    return (
-                        <div
-                            className="absolute h-0.5 bg-zinc-700 dark:bg-zinc-300 z-20"
-                            style={{
-                                top: `${nowTop}px`,
-                                left: `calc(64px + (100% - 64px) / 7 * ${todayIndex})`,
-                                width: `calc((100% - 64px) / 7)`
-                            }}
-                        >
-                            <div className="absolute -left-1.25 top-1/2 w-3 h-3 rounded-full bg-zinc-700 dark:bg-zinc-300 -translate-y-1/2" />
-                        </div>
-                    );
-                })()}
-                
                 {Array.from({ length: 24 }).map((_, hour) => {
-                    const hourLabel = new Intl.DateTimeFormat(undefined, { hour: 'numeric' })
-                        .format(new Date(2000, 0, 1, hour));
+                    const hourLabel = new Intl.DateTimeFormat(undefined, {
+                        hour: "numeric",
+                    }).format(new Date(2000, 0, 1, hour));
 
                     return (
                         <div className="contents" key={`row-${hour}`}>
@@ -628,7 +688,7 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                                         `}
                                         onClick={() => {
                                             setEventTimeslot({ start: cellStart, end: cellEnd });
-                                            setSelectedCategoryRaw(getPreselectedCategory())
+                                            setSelectedCategoryRaw(getPreselectedCategory());
                                             setModalOpen("eventAdd");
                                         }}
                                     />
@@ -636,9 +696,12 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                             })}
 
                             {/* Event blocks */}
-                            {weekOccurrences.map(occ => {
+                            {weekOccurrences.map((occ) => {
                                 const eventRaw = eventMap[occ.id];
-                                if (!eventRaw) return null;
+
+                                if (!eventRaw) {
+                                    return null;
+                                }
 
                                 const leftExpr = `calc(64px + ((100% - 64px) / 7) * ${occ.dayIndex})`;
                                 const widthExpr = `calc(((100% - 64px) / 7) - 6px)`;
@@ -660,11 +723,11 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                                             height: `${occ.height}px`,
                                             ...(occ.color
                                                 ? {
-                                                    background: `#${occ.color}22`,
-                                                    borderColor: `#${occ.color}`,
-                                                    color: getContrastTextColor(occ.color),
-                                                }
-                                                : {})
+                                                      background: `#${occ.color}22`,
+                                                      borderColor: `#${occ.color}`,
+                                                      color: getContrastTextColor(occ.color),
+                                                  }
+                                                : {}),
                                         }}
                                         onClick={() => {
                                             setSelectedEventRaw(eventRaw);
@@ -673,7 +736,7 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                                     >
                                         <div className="px-2 py-1">
                                             {occ.title}
-                                            {occ.height >= (45 * (48 / 60)) && (
+                                            {occ.height >= 45 * (48 / 60) && (
                                                 <div className="font-light">
                                                     {occ.startLabel} – {occ.endLabel}
                                                 </div>
@@ -690,7 +753,7 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                                         top: `${(eventTimeslot.start.getHours() * 60 + eventTimeslot.start.getMinutes()) * (48 / 60)}px`,
                                         left: `calc(64px + ((100% - 64px) / 7) * ${dayIndexFrom(eventTimeslot.start, weekStart)})`,
                                         width: `calc(((100% - 64px) / 7) - 6px)`,
-                                        height: `${(eventTimeslot.end.getTime() - eventTimeslot.start.getTime()) / (60 * 1000) * (48 / 60)}px`,
+                                        height: `${((eventTimeslot.end.getTime() - eventTimeslot.start.getTime()) / (60 * 1000)) * (48 / 60)}px`,
                                     }}
                                 />
                             )}
@@ -707,7 +770,7 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
                     modalError={modalError}
                 />
             )}
-            
+
             {modalOpen === "eventAdd" && (
                 <EventAdd
                     categories={categories}
@@ -720,7 +783,7 @@ export default function Calendar({ calendarData, startWeekPreference, modalOpen,
             )}
 
             {modalOpen === "eventCategoryEdit" && selectedCategoryRaw && (
-                <EventCategoryEdit 
+                <EventCategoryEdit
                     modalError={modalError}
                     onClose={closeAll}
                     onSubmit={handleCategoryEdit}

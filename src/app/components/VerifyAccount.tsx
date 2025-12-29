@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useEffect, useState } from "react";
 
@@ -29,8 +29,11 @@ export default function VerifyAccount() {
     };
 
     useEffect(() => {
-        if (cooldown <= 0) return;
-        const id = setInterval(() => setCooldown(s => Math.max(0, s - 1)), 1000);
+        if (cooldown <= 0) {
+            return;
+        }
+
+        const id = setInterval(() => setCooldown((s) => Math.max(0, s - 1)), 1000);
         return () => clearInterval(id);
     }, [cooldown]);
 
@@ -40,9 +43,10 @@ export default function VerifyAccount() {
             aria-live="polite"
             className="w-full border-y py-[.2rem] bg-amber-100 border-amber-300 text-amber-900 dark:border-purple-600 dark:bg-purple-950 dark:text-purple-100"
         >
-            <div className="mx-auto flex items-center justify-center ">
+            <div className="mx-auto flex items-center justify-center">
                 <p className="text-sm sm:text-base">
-                    <span className="font-semibold">Verify your email:</span> You haven't confirmed your account yet.
+                    <span className="font-semibold">Verify your email:</span>{" "}
+                    {"You haven't confirmed your account yet."}
                 </p>
                 <button
                     type="button"
@@ -50,16 +54,17 @@ export default function VerifyAccount() {
                     disabled={status === "sending" || cooldown > 0}
                     aria-busy={status === "sending"}
                     className={`shrink-0 rounded-md border ml-2 px-2 py-0.5 text-sm font-medium
-                        ${status === "sending" || cooldown > 0
-                            ? "opacity-60 cursor-not-allowed border-amber-300 bg-amber-200 dark:border-purple-600 dark:bg-purple-800"
-                            : "hover:cursor-pointer border-amber-300 bg-amber-200 hover:bg-amber-300 dark:border-purple-600 dark:bg-purple-800 dark:hover:bg-purple-600"
+                        ${
+                            status === "sending" || cooldown > 0
+                                ? "opacity-60 cursor-not-allowed border-amber-300 bg-amber-200 dark:border-purple-600 dark:bg-purple-800"
+                                : "hover:cursor-pointer border-amber-300 bg-amber-200 hover:bg-amber-300 dark:border-purple-600 dark:bg-purple-800 dark:hover:bg-purple-600"
                         }`}
                 >
                     {cooldown > 0
                         ? `${cooldown}s`
                         : status === "sending"
-                            ? "Sending..."
-                            : "Resend Verification Email"}
+                          ? "Sending..."
+                          : "Resend Verification Email"}
                 </button>
             </div>
         </div>

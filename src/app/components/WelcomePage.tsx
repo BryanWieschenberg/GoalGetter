@@ -2,29 +2,10 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { CheckSquare, Palette, Bell, Zap, Sparkles } from "lucide-react";
+import { CheckSquare, Bell, Zap, Sparkles } from "lucide-react";
+import Image from "next/image";
 
 export default function WelcomePage() {
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.2,
-                delayChildren: 0.3
-            }
-        }
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 30 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: { duration: 0.6, ease: "easeOut" as const }
-        }
-    };
-
     return (
         <div className="flex-1 overflow-y-auto bg-gradient-to-b from-white to-zinc-300 dark:from-zinc-800 dark:to-black">
             <motion.div
@@ -46,44 +27,48 @@ export default function WelcomePage() {
                         animate={{ y: [0, 20, 0], x: [0, -10, 0] }}
                         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
                     />
-                        <motion.div
-                            initial={{ scale: 0.8, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ duration: 1, delay: 0.2 }}
-                            className="mb-8"
+                    <motion.div
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ duration: 1, delay: 0.2 }}
+                        className="mb-8"
+                    >
+                        <motion.h1
+                            className="text-6xl md:text-8xl font-black text-white"
+                            style={{
+                                WebkitTextStroke: "1.5px black",
+                            }}
+                            animate={{
+                                textShadow: [
+                                    "0 7px 3px rgba(0,0,0,0.7), 0 0 12px #4bd0ff, 0 0 24px #4bd0ff",
+                                    "0 7px 5px rgba(0,0,0,0.8), 0 0 30px #4bd0ff, 0 0 60px #4bd0ff",
+                                    "0 7px 3px rgba(0,0,0,0.7), 0 0 12px #4bd0ff, 0 0 24px #4bd0ff",
+                                ],
+                            }}
+                            transition={{
+                                duration: 3,
+                                repeat: Infinity,
+                                repeatType: "mirror",
+                                ease: "easeInOut",
+                            }}
                         >
-                            <motion.h1
-                                className="text-6xl md:text-8xl font-black text-white"
-                                style={{
-                                    WebkitTextStroke: "1.5px black",
-                                }}
-                                animate={{
-                                    textShadow: [
-                                        "0 7px 3px rgba(0,0,0,0.7), 0 0 12px #4bd0ff, 0 0 24px #4bd0ff",
-                                        "0 7px 5px rgba(0,0,0,0.8), 0 0 30px #4bd0ff, 0 0 60px #4bd0ff",
-                                        "0 7px 3px rgba(0,0,0,0.7), 0 0 12px #4bd0ff, 0 0 24px #4bd0ff"
-                                    ]
-                                }}
-                                transition={{
-                                    duration: 3,
-                                    repeat: Infinity,
-                                    repeatType: "mirror",
-                                    ease: "easeInOut"
-                                }}
-                            >
                             GoalGetter
                         </motion.h1>
                     </motion.div>
-                    
+
                     <motion.h2
                         className="text-2xl md:text-4xl font-light mb-12 max-w-4xl leading-relaxed"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, delay: 0.5 }}
                     >
-
                         {/* blue-700 to-sky-400 from-blue-500 dark:to-sky-200*/}
-                        One space for <span className="font-semibold text-blue-500 dark:text-blue-400">everything</span> you need to stay on <span className="font-semibold text-sky-400 dark:text-sky-300">track</span>.
+                        One space for{" "}
+                        <span className="font-semibold text-blue-500 dark:text-blue-400">
+                            everything
+                        </span>{" "}
+                        you need to stay on{" "}
+                        <span className="font-semibold text-sky-400 dark:text-sky-300">track</span>.
                     </motion.h2>
 
                     <motion.p
@@ -92,9 +77,11 @@ export default function WelcomePage() {
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.8, delay: 0.7 }}
                     >
-                        The productivity experience built with <span className="text-black dark:text-white font-bold">you</span> at the forefront.
-                        <br/>
-                        A seamless split-screen interface, endless customization possibilities, and a thoughtful design built for your success.
+                        The productivity experience built with{" "}
+                        <span className="text-black dark:text-white font-bold">you</span> at the
+                        forefront.
+                        <br />A seamless split-screen interface, endless customization
+                        possibilities, and a thoughtful design built for your success.
                     </motion.p>
 
                     <motion.div
@@ -138,8 +125,13 @@ export default function WelcomePage() {
                         </h2>
                         <p className="text-xl text-zinc-600 dark:text-zinc-400 max-w-3xl mx-auto">
                             Every feature designed with one goal:
-                            <br/>
-                            Making your productivity <span className="font-bold text-black dark:text-white">effortless</span> and <span className="font-bold text-black dark:text-white">intuitive</span>.
+                            <br />
+                            Making your productivity{" "}
+                            <span className="font-bold text-black dark:text-white">
+                                effortless
+                            </span>{" "}
+                            and{" "}
+                            <span className="font-bold text-black dark:text-white">intuitive</span>.
                         </p>
                     </motion.div>
 
@@ -156,7 +148,9 @@ export default function WelcomePage() {
                                     Everything in One Place
                                 </h3>
                                 <p className="text-lg text-zinc-700 dark:text-zinc-300 mb-6">
-                                    See your tasks and calendar simultaneously. Use the vertical bar in the center to change the width of each panel. Sort, filter, search, and customize each panel independently.
+                                    See your tasks and calendar simultaneously. Use the vertical bar
+                                    in the center to change the width of each panel. Sort, filter,
+                                    search, and customize each panel independently.
                                 </p>
                                 <ul className="space-y-3 text-zinc-600 dark:text-zinc-400">
                                     <li className="flex items-center gap-3">
@@ -174,7 +168,7 @@ export default function WelcomePage() {
                                 </ul>
                             </div>
                         </motion.div>
-                        
+
                         <motion.div
                             className="bg-gradient-to-br from-white to-zinc-500 dark:from-zinc-300 dark:to-zinc-600 p-1.5 rounded-3xl border-2 border-black dark:border-white"
                             initial={{ opacity: 0, scale: 0.8 }}
@@ -183,7 +177,11 @@ export default function WelcomePage() {
                             viewport={{ once: true }}
                         >
                             <div className="text-center text-zinc-500 dark:text-zinc-400 text-sm">
-                                <img src="/welcome1-using.png" alt="Split-Screen Interface Preview" className="mx-auto rounded-xl shadow-md" />
+                                <Image
+                                    src="/welcome1-using.png"
+                                    alt="Split-Screen Interface Preview"
+                                    className="mx-auto rounded-xl shadow-md"
+                                />
                             </div>
                         </motion.div>
                     </div>
@@ -197,10 +195,14 @@ export default function WelcomePage() {
                             viewport={{ once: true }}
                         >
                             <div className="text-center text-zinc-500 dark:text-zinc-400 text-sm">
-                                <img src="/welcome2-creating.png" alt="Customization Panel Preview" className="mx-auto rounded-xl shadow-md" />
+                                <Image
+                                    src="/welcome2-creating.png"
+                                    alt="Customization Panel Preview"
+                                    className="mx-auto rounded-xl shadow-md"
+                                />
                             </div>
                         </motion.div>
-                        
+
                         <motion.div
                             className="order-1 lg:order-2"
                             initial={{ opacity: 0, x: 50 }}
@@ -214,7 +216,9 @@ export default function WelcomePage() {
                                     Infinite Customization
                                 </h3>
                                 <p className="text-lg text-zinc-700 dark:text-zinc-300 mb-6">
-                                    Create unlimited categories and separate tasks by tags. Set custom colors, due dates, priority levels, and repeating event capabilities. Create the perfect view for any situation.
+                                    Create unlimited categories and separate tasks by tags. Set
+                                    custom colors, due dates, priority levels, and repeating event
+                                    capabilities. Create the perfect view for any situation.
                                 </p>
                                 <ul className="space-y-3 text-zinc-600 dark:text-zinc-400">
                                     <li className="flex items-center gap-3">
@@ -247,7 +251,9 @@ export default function WelcomePage() {
                                     Never Miss a Deadline
                                 </h3>
                                 <p className="text-lg text-zinc-700 dark:text-zinc-300 mb-6">
-                                    Visual indicators appear right on your tasks and calendar, giving you an instant overview of approaching deadlines. Stay ahead of the game with smart, non-intrusive alerts.
+                                    Visual indicators appear right on your tasks and calendar,
+                                    giving you an instant overview of approaching deadlines. Stay
+                                    ahead of the game with smart, non-intrusive alerts.
                                 </p>
                                 <ul className="space-y-3 text-zinc-600 dark:text-zinc-400">
                                     <li className="flex items-center gap-3">
@@ -265,7 +271,7 @@ export default function WelcomePage() {
                                 </ul>
                             </div>
                         </motion.div>
-                        
+
                         <motion.div
                             className="bg-gradient-to-br from-white to-zinc-500 dark:from-zinc-300 dark:to-zinc-600 p-1.5 rounded-3xl border-2 border-black dark:border-white"
                             initial={{ opacity: 0, scale: 0.8 }}
@@ -274,7 +280,11 @@ export default function WelcomePage() {
                             viewport={{ once: true }}
                         >
                             <div className="text-center text-zinc-500 dark:text-zinc-400 text-sm">
-                                <img src="/welcome3-alarm.png" alt="[Smart Alerts Preview]" className="mx-auto rounded-xl shadow-md" />
+                                <Image
+                                    src="/welcome3-alarm.png"
+                                    alt="[Smart Alerts Preview]"
+                                    className="mx-auto rounded-xl shadow-md"
+                                />
                             </div>
                         </motion.div>
                     </div>
@@ -293,9 +303,11 @@ export default function WelcomePage() {
                             Ready to Get Your Goals?
                         </h2>
                         <p className="text-xl text-zinc-600 dark:text-zinc-400 mb-8">
-                            Transform your productivity today with GoalGetter. It's completely free.
+                            {
+                                "Transform your productivity today with GoalGetter. It's completely free."
+                            }
                         </p>
-                        
+
                         <motion.div
                             className="flex flex-col sm:flex-row gap-6 justify-center"
                             initial={{ opacity: 0, y: 20 }}

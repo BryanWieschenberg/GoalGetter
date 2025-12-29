@@ -32,6 +32,15 @@ export type EventCategory = {
     main: boolean;
 };
 
+export type Recurrence = {
+    frequency: string | null;
+    interval: number | null;
+    weekly: string[] | null;
+    count: number | null;
+    exceptions: string[] | null;
+    until: string | null;
+};
+
 export type Event = {
     id: number;
     category_id: number;
@@ -40,12 +49,5 @@ export type Event = {
     start_time: string;
     end_time: string;
     color: string | null;
-    recurrence: {
-        frequency: string | null;
-        interval: number | null;
-        weekly: string[] | null;
-        count: number | null;
-        exceptions: string[] | null;
-        until: string | null;
-    } | null;
+    recurrence: Recurrence | null;
 };

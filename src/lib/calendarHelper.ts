@@ -73,6 +73,8 @@ type EventOccurrence = {
     height: number;
     startLabel: string;
     endLabel: string;
+    __colIndex?: number;
+    __colCount?: number;
 };
 
 const toDateOnly = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate());
@@ -125,7 +127,10 @@ export function dayIndexFrom(date: Date, weekStart: Date): number {
 }
 
 export function getContrastTextColor(hex: string): string {
-    if (!hex) return "black";
+    if (!hex) {
+        return "black";
+    }
+
     hex = hex.replace(/^#/, "");
     const r = parseInt(hex.slice(0, 2), 16);
     const g = parseInt(hex.slice(2, 4), 16);
@@ -142,30 +147,44 @@ function occurrenceIndex(
 ): number | null {
     const s = new Date(start.getFullYear(), start.getMonth(), start.getDate());
     const c = new Date(candidate.getFullYear(), candidate.getMonth(), candidate.getDate());
-    if (c < s) return null;
+
+    if (c < s) {
+        return null;
+    }
 
     if (frequency === "daily") {
         const days = Math.floor((c.getTime() - s.getTime()) / (24 * 3600 * 1000));
-        if (days % interval !== 0) return null;
+        if (days % interval !== 0) {
+            return null;
+        }
         return Math.floor(days / interval) + 1;
     }
 
     if (frequency === "weekly") {
         const weeks = Math.floor((c.getTime() - s.getTime()) / (7 * 24 * 3600 * 1000));
-        if (weeks % interval !== 0) return null;
+        if (weeks % interval !== 0) {
+            return null;
+        }
         return Math.floor(weeks / interval) + 1;
     }
 
     if (frequency === "monthly") {
         const months = (c.getFullYear() - s.getFullYear()) * 12 + (c.getMonth() - s.getMonth());
-        if (months % interval !== 0 || c.getDate() !== s.getDate()) return null;
+        if (months % interval !== 0 || c.getDate() !== s.getDate()) {
+            return null;
+        }
         return Math.floor(months / interval) + 1;
     }
 
     if (frequency === "yearly") {
         const years = c.getFullYear() - s.getFullYear();
-        if (years % interval !== 0 || c.getMonth() !== s.getMonth() || c.getDate() !== s.getDate())
+        if (
+            years % interval !== 0 ||
+            c.getMonth() !== s.getMonth() ||
+            c.getDate() !== s.getDate()
+        ) {
             return null;
+        }
         return Math.floor(years / interval) + 1;
     }
 
@@ -175,7 +194,7 @@ function occurrenceIndex(
 export function expandEventForWeek(ev: Event, weekStart: Date, weekEnd: Date): EventOccurrence[] {
     const startBase = toDate(ev.start_time);
     const endBase = toDate(ev.end_time);
-    const rec = (ev as any).recurrence as any | null;
+    const rec = ev.recurrence;
 
     const makeOcc = (target: Date): EventOccurrence => {
         const s = new Date(target);
@@ -183,7 +202,10 @@ export function expandEventForWeek(ev: Event, weekStart: Date, weekEnd: Date): E
 
         const e = new Date(target);
         e.setHours(endBase.getHours(), endBase.getMinutes(), 0, 0);
-        if (e <= s) e.setDate(e.getDate() + 1);
+
+        if (e <= s) {
+            e.setDate(e.getDate() + 1);
+        }
 
         const top = minutesSinceMidnight(s) * PX_PER_MIN;
         const height = Math.max(22, ((e.getTime() - s.getTime()) / (60 * 1000)) * PX_PER_MIN);
@@ -209,6 +231,7 @@ export function expandEventForWeek(ev: Event, weekStart: Date, weekEnd: Date): E
         const weekStartFull = new Date(weekStart);
         weekStartFull.setHours(0, 0, 0, 0);
         const overlaps = startBase <= weekEndFull && endBase >= weekStartFull;
+
         if (!overlaps) {
             return [];
         }
@@ -237,14 +260,21 @@ export function expandEventForWeek(ev: Event, weekStart: Date, weekEnd: Date): E
         : [];
 
     const pushIfValid = (d: Date) => {
-        if (until && d > until) return;
-        if (exceptions.some((ex) => sameYMD(ex, d))) return;
+        if (until && d > until) {
+            return;
+        }
+
+        if (exceptions.some((ex) => sameYMD(ex, d))) {
+            return;
+        }
 
         const occ = makeOcc(d);
         const withinWeek = clampToWeek(d, weekStart, weekEnd);
         const validDayIndex = occ.dayIndex >= 0 && occ.dayIndex <= 6;
 
-        if (withinWeek && validDayIndex) occurrences.push(occ);
+        if (withinWeek && validDayIndex) {
+            occurrences.push(occ);
+        }
     };
 
     if (rec.frequency === "daily") {
@@ -293,21 +323,31 @@ export function expandEventForWeek(ev: Event, weekStart: Date, weekEnd: Date): E
         for (let i = -1; i <= 7; i++) {
             const d = new Date(weekStart);
             d.setDate(weekStart.getDate() + i);
-            if (!allowedDows.includes(d.getDay())) continue;
+
+            if (!allowedDows.includes(d.getDay())) {
+                continue;
+            }
 
             const weeksSince = Math.floor(
                 (weekStartOf(d).getTime() - startWeek0) / (7 * 24 * 3600 * 1000),
             );
-            if (weeksSince < 0 || weeksSince % stepWeeks !== 0) continue;
+
+            if (weeksSince < 0 || weeksSince % stepWeeks !== 0) {
+                continue;
+            }
 
             const startDateOnly = new Date(
                 startBase.getFullYear(),
                 startBase.getMonth(),
                 startBase.getDate(),
             );
-            if (d < startDateOnly) continue;
+
+            if (d < startDateOnly) {
+                continue;
+            }
 
             const idx = occurrenceIndex(startBase, d, rec.frequency, rec.interval || 1);
+
             if (idx && (!countLimit || idx <= countLimit)) {
                 pushIfValid(d);
             }
@@ -323,11 +363,16 @@ export function expandEventForWeek(ev: Event, weekStart: Date, weekEnd: Date): E
             const d = new Date(weekStart);
             d.setDate(weekStart.getDate() + i);
 
-            if (toDateOnly(d) < startDateOnly) continue;
-            if (d.getDate() !== startBase.getDate()) continue;
-            if (monthsBetween(startBase, d) % step !== 0) continue;
+            if (
+                toDateOnly(d) < startDateOnly ||
+                d.getDate() !== startBase.getDate() ||
+                monthsBetween(startBase, d) % step !== 0
+            ) {
+                continue;
+            }
 
             const idx = occurrenceIndex(startBase, d, rec.frequency, rec.interval || 1);
+
             if (idx && (!countLimit || idx <= countLimit)) {
                 pushIfValid(d);
             }
@@ -343,14 +388,16 @@ export function expandEventForWeek(ev: Event, weekStart: Date, weekEnd: Date): E
             d.setDate(weekStart.getDate() + i);
 
             const yearsSince = d.getFullYear() - startBase.getFullYear();
-            if (yearsSince < 0 || yearsSince % stepYears !== 0) continue;
-
-            const startDateOnly = toDateOnly(startBase);
-            if (toDateOnly(d) < startDateOnly) continue;
-
-            if (d.getMonth() !== startBase.getMonth() || d.getDate() !== startBase.getDate())
+            if (yearsSince < 0 || yearsSince % stepYears !== 0) {
                 continue;
-
+            }
+            const startDateOnly = toDateOnly(startBase);
+            if (toDateOnly(d) < startDateOnly) {
+                continue;
+            }
+            if (d.getMonth() !== startBase.getMonth() || d.getDate() !== startBase.getDate()) {
+                continue;
+            }
             const idx = occurrenceIndex(startBase, d, rec.frequency, rec.interval || 1);
             if (idx && (!countLimit || idx <= countLimit)) {
                 pushIfValid(d);
@@ -405,8 +452,8 @@ export function buildWeekOccurrences(events: Event[], weekStart: Date): EventOcc
 
         groups.forEach((group) => {
             if (group.length === 1) {
-                (group[0] as any).__colIndex = 0;
-                (group[0] as any).__colCount = 1;
+                group[0].__colIndex = 0;
+                group[0].__colCount = 1;
                 return;
             }
 
@@ -424,17 +471,23 @@ export function buildWeekOccurrences(events: Event[], weekStart: Date): EventOcc
                     }
                 }
 
-                if (!placed) cols.push([ev]);
+                if (!placed) {
+                    cols.push([ev]);
+                }
                 const colIndex = cols.findIndex((c) => c.includes(ev));
-                (ev as any).__colIndex = colIndex;
-                (ev as any).__colCount = cols.length;
+                ev.__colIndex = colIndex;
+                ev.__colCount = cols.length;
             });
         });
     }
 
     return occs.sort((a, b) => {
-        if (a.dayIndex !== b.dayIndex) return a.dayIndex - b.dayIndex;
-        if (a.top !== b.top) return a.top - b.top;
+        if (a.dayIndex !== b.dayIndex) {
+            return a.dayIndex - b.dayIndex;
+        }
+        if (a.top !== b.top) {
+            return a.top - b.top;
+        }
         return b.height - a.height;
     });
 }

@@ -17,7 +17,7 @@ export default function SignUpForm() {
     const [handleError, setHandleError] = useState<string | null>(null);
 
     const sanitizeHandle = (value: string) => {
-        let cleaned = value.toLowerCase().replace(/\s+/g, "-");
+        const cleaned = value.toLowerCase().replace(/\s+/g, "-");
 
         if (!/^[a-z0-9-]*$/.test(cleaned)) {
             setHandleError("Can only contain letters, numbers, and dashes");
@@ -32,17 +32,17 @@ export default function SignUpForm() {
         e.preventDefault();
         setError(null);
         setSubmitting(true);
-    
+
         const form = new FormData(e.currentTarget);
         const payload = {
             username: String(form.get("username")),
             handle: String(form.get("handle")),
             email: String(form.get("email")),
             password: String(form.get("password")),
-            confirmPassword: String(form.get("confirmPassword"))
+            confirmPassword: String(form.get("confirmPassword")),
         };
 
-        const gre = (window as any).grecaptcha;
+        const gre = window.grecaptcha;
         if (!gre) {
             setError("reCAPTCHA not loaded yet. Please try again in a moment");
             setSubmitting(false);
@@ -51,15 +51,20 @@ export default function SignUpForm() {
 
         gre.ready(async () => {
             try {
-                const token = await gre.execute(
-                    process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY,
-                    { action: "signup" }
-                );
+                const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+
+                if (!siteKey) {
+                    throw new Error("NEXT_PUBLIC_RECAPTCHA_SITE_KEY is not defined.");
+                }
+
+                const token = await gre.execute(siteKey, {
+                    action: "signup",
+                });
 
                 const res = await fetch("/api/auth/signup", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ ...payload, recaptchaToken: token })
+                    body: JSON.stringify({ ...payload, recaptchaToken: token }),
                 });
 
                 const data = await res.json();
@@ -72,7 +77,7 @@ export default function SignUpForm() {
                 const loginRes = await signIn("credentials", {
                     redirect: false,
                     handleOrEmail: payload.email,
-                    password: payload.password
+                    password: payload.password,
                 });
 
                 if (loginRes?.ok) {
@@ -99,18 +104,28 @@ export default function SignUpForm() {
         return () => {
             script.remove();
             document.querySelector(".grecaptcha-badge")?.remove();
-            try { delete (window as any).grecaptcha; } catch {}
+            const w = window as Window & { grecaptcha?: unknown };
+            try {
+                delete w.grecaptcha;
+            } catch (err) {
+                if (process.env.NODE_ENV === "development") {
+                    console.error("Failed to delete grecaptcha:", err);
+                }
+            }
         };
     }, []);
 
     return (
         <div className="flex justify-center pt-8">
             <div className="max-w-md w-full p-8 border-2 rounded-2xl">
-                <h1 className={`text-2xl font-bold text-center ${error ? "mb-3" : "mb-8"}`}>Sign Up</h1>
+                <h1 className={`text-2xl font-bold text-center ${error ? "mb-3" : "mb-8"}`}>
+                    Sign Up
+                </h1>
 
                 {error && (
                     <div className="mb-6 rounded px-4 py-3 bg-red-100 border-red-400 text-red-700 dark:bg-red-900 border dark:border-red-500 dark:text-red-300">
-                        <span className="font-bold">Error: </span>{error}
+                        <span className="font-bold">Error: </span>
+                        {error}
                     </div>
                 )}
 
@@ -141,7 +156,11 @@ export default function SignUpForm() {
                             required
                         />
                     </div>
-                    {handleError && <p className="text-red-600 dark:text-red-400 text-sm text-center">{handleError}</p>}
+                    {handleError && (
+                        <p className="text-red-600 dark:text-red-400 text-sm text-center">
+                            {handleError}
+                        </p>
+                    )}
 
                     <input
                         name="email"
@@ -197,7 +216,15 @@ export default function SignUpForm() {
                     </button>
                 </form>
 
-                <p className="pt-4 text-center text-zinc-500">Already have an account? <Link href="/signin" className="text-blue-500 hover:text-blue-700 dark:hover:text-blue-400">Sign in</Link></p>
+                <p className="pt-4 text-center text-zinc-500">
+                    Already have an account?{" "}
+                    <Link
+                        href="/signin"
+                        className="text-blue-500 hover:text-blue-700 dark:hover:text-blue-400"
+                    >
+                        Sign in
+                    </Link>
+                </p>
                 <p className="pt-4 text-center">Or you can sign up with:</p>
                 <div className="pt-4">
                     <button
@@ -206,12 +233,28 @@ export default function SignUpForm() {
                         className="w-full flex items-center justify-center gap-2 border rounded py-2 hover:cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900"
                     >
                         <span className="w-5 h-5">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-5 h-5">
-                                <path fill="#4285F4" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.84-6.84C35.9 2.7 30.34 0 24 0 14.64 0 6.4 5.84 2.54 14.22l7.98 6.19C12.3 13.32 17.74 9.5 24 9.5z"/>
-                                <path fill="#34A853" d="M46.5 24c0-1.61-.15-3.15-.43-4.63H24v9.1h12.65c-.54 2.92-2.14 5.4-4.55 7.06l7.02 5.46C43.72 37.14 46.5 30.96 46.5 24z"/>
-                                <path fill="#FBBC05" d="M10.52 28.41c-.62-1.86-.98-3.84-.98-5.91s.36-4.05.98-5.91l-7.98-6.19C.9 13.93 0 18.82 0 24s.9 10.07 2.54 14.22l7.98-6.19z"/>
-                                <path fill="#EA4335" d="M24 48c6.48 0 11.91-2.15 15.88-5.84l-7.02-5.46c-2.03 1.36-4.65 2.15-8.86 2.15-6.26 0-11.7-3.82-13.48-9.06l-7.98 6.19C6.4 42.16 14.64 48 24 48z"/>
-                                <path fill="none" d="M0 0h48v48H0z"/>
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 48 48"
+                                className="w-5 h-5"
+                            >
+                                <path
+                                    fill="#4285F4"
+                                    d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.84-6.84C35.9 2.7 30.34 0 24 0 14.64 0 6.4 5.84 2.54 14.22l7.98 6.19C12.3 13.32 17.74 9.5 24 9.5z"
+                                />
+                                <path
+                                    fill="#34A853"
+                                    d="M46.5 24c0-1.61-.15-3.15-.43-4.63H24v9.1h12.65c-.54 2.92-2.14 5.4-4.55 7.06l7.02 5.46C43.72 37.14 46.5 30.96 46.5 24z"
+                                />
+                                <path
+                                    fill="#FBBC05"
+                                    d="M10.52 28.41c-.62-1.86-.98-3.84-.98-5.91s.36-4.05.98-5.91l-7.98-6.19C.9 13.93 0 18.82 0 24s.9 10.07 2.54 14.22l7.98-6.19z"
+                                />
+                                <path
+                                    fill="#EA4335"
+                                    d="M24 48c6.48 0 11.91-2.15 15.88-5.84l-7.02-5.46c-2.03 1.36-4.65 2.15-8.86 2.15-6.26 0-11.7-3.82-13.48-9.06l-7.98 6.19C6.4 42.16 14.64 48 24 48z"
+                                />
+                                <path fill="none" d="M0 0h48v48H0z" />
                             </svg>
                         </span>
                         Google

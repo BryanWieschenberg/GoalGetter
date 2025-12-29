@@ -2,13 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import { FaRegCalendarAlt } from "react-icons/fa";
+import { EventCategory } from "@/types/core-types";
 
 type EventAddProps = {
     categories: any[];
     modalError?: string | null;
     onClose: () => void;
     onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-    preSelectedCategory: event_category | null;
+    preSelectedCategory: EventCategory | null;
     timeslot: { start: Date; end: Date } | null;
 };
 
@@ -21,13 +22,22 @@ const DOW_LABELS: { code: string; label: string }[] = [
     { code: "WE", label: "Wed" },
     { code: "TH", label: "Thu" },
     { code: "FR", label: "Fri" },
-    { code: "SA", label: "Sat" }
+    { code: "SA", label: "Sat" },
 ];
 
 const MONTH_OPTIONS = [
-    { v: 1, n: "Jan" }, { v: 2, n: "Feb" }, { v: 3, n: "Mar" }, { v: 4, n: "Apr" },
-    { v: 5, n: "May" }, { v: 6, n: "Jun" }, { v: 7, n: "Jul" }, { v: 8, n: "Aug" },
-    { v: 9, n: "Sep" }, { v: 10, n: "Oct" }, { v: 11, n: "Nov" }, { v: 12, n: "Dec" }
+    { v: 1, n: "Jan" },
+    { v: 2, n: "Feb" },
+    { v: 3, n: "Mar" },
+    { v: 4, n: "Apr" },
+    { v: 5, n: "May" },
+    { v: 6, n: "Jun" },
+    { v: 7, n: "Jul" },
+    { v: 8, n: "Aug" },
+    { v: 9, n: "Sep" },
+    { v: 10, n: "Oct" },
+    { v: 11, n: "Nov" },
+    { v: 12, n: "Dec" },
 ];
 
 function toLocalInput(dt: Date | null): string {
@@ -41,8 +51,17 @@ function toLocalInput(dt: Date | null): string {
     return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
 }
 
-export default function EventAdd({ categories, modalError, onClose, onSubmit, preSelectedCategory, timeslot }: EventAddProps) {
-    const [selectedCategory, setSelectedCategory] = useState<string>(preSelectedCategory ? String(preSelectedCategory.id) : "");
+export default function EventAdd({
+    categories,
+    modalError,
+    onClose,
+    onSubmit,
+    preSelectedCategory,
+    timeslot,
+}: EventAddProps) {
+    const [selectedCategory, setSelectedCategory] = useState<string>(
+        preSelectedCategory ? String(preSelectedCategory.id) : "",
+    );
     const [frequency, setFrequency] = useState<Frequency>("");
     const [weekly, setWeekly] = useState<string[]>([]);
     const [interval, setInterval] = useState<number>(1);
@@ -50,7 +69,9 @@ export default function EventAdd({ categories, modalError, onClose, onSubmit, pr
     const [until, setUntil] = useState<string>("");
     const [exceptions, setExceptions] = useState<string>("");
     const [useCustomColor, setUseCustomColor] = useState<boolean>(!!preSelectedCategory?.color);
-    const [color, setColor] = useState<string>(preSelectedCategory?.color ? `#${preSelectedCategory.color.replace(/^#/, "")}` : "#ffffff");
+    const [color, setColor] = useState<string>(
+        preSelectedCategory?.color ? `#${preSelectedCategory.color.replace(/^#/, "")}` : "#ffffff",
+    );
     const startRef = useRef<HTMLInputElement>(null);
     const endRef = useRef<HTMLInputElement>(null);
 
@@ -122,14 +143,17 @@ export default function EventAdd({ categories, modalError, onClose, onSubmit, pr
                                 className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-3 py-2 outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600 [appearence:none]"
                                 style={{
                                     WebkitAppearance: "none",
-                                    MozAppearance: "textfield"
+                                    MozAppearance: "textfield",
                                 }}
                             />
                             <FaRegCalendarAlt
                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-zinc-400 cursor-pointer"
                                 size={18}
                                 onClick={() => {
-                                    const input = document.querySelector<HTMLInputElement>('input[name="until"]');
+                                    const input =
+                                        document.querySelector<HTMLInputElement>(
+                                            'input[name="until"]',
+                                        );
                                     if (input) {
                                         if (typeof (input as any).showPicker === "function") {
                                             (input as any).showPicker();
@@ -174,7 +198,7 @@ export default function EventAdd({ categories, modalError, onClose, onSubmit, pr
                                             setWeekly((prev) =>
                                                 prev.includes(d.code)
                                                     ? prev.filter((x) => x !== d.code)
-                                                    : [...prev, d.code]
+                                                    : [...prev, d.code],
                                             );
                                         }}
                                         className={`px-3 py-1 rounded-full border text-sm transition hover:cursor-pointer ${
@@ -221,14 +245,13 @@ export default function EventAdd({ categories, modalError, onClose, onSubmit, pr
             role="dialog"
             aria-labelledby="new-event-title"
         >
-            <div
-                className="absolute inset-0 bg-black/50 animate-fadeIn"
-                onClick={onClose}
-            />
+            <div className="absolute inset-0 bg-black/50 animate-fadeIn" onClick={onClose} />
 
-            <div className="relative z-[61] w-full max-w-xl max-h-[90vh] overflow-y-auto overflow-x-hidden
+            <div
+                className="relative z-[61] w-full max-w-xl max-h-[90vh] overflow-y-auto overflow-x-hidden
                rounded-2xl border-[.2rem] border-zinc-500/70 
-               bg-zinc-100 dark:bg-zinc-900 shadow-2xl animate-slideUp">
+               bg-zinc-100 dark:bg-zinc-900 shadow-2xl animate-slideUp"
+            >
                 <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-200 dark:border-zinc-800">
                     <h3 id="new-event-title" className="text-lg font-semibold">
                         Create Event
@@ -244,7 +267,8 @@ export default function EventAdd({ categories, modalError, onClose, onSubmit, pr
 
                 {modalError && (
                     <div className="px-5 py-3 bg-red-300 text-black dark:bg-red-800 dark:text-white">
-                        <strong>Error: </strong>{modalError}
+                        <strong>Error: </strong>
+                        {modalError}
                     </div>
                 )}
 
@@ -340,7 +364,7 @@ export default function EventAdd({ categories, modalError, onClose, onSubmit, pr
                                     className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-3 py-2 pr-10 outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600 [appearance:none]"
                                     style={{
                                         WebkitAppearance: "none",
-                                        MozAppearance: "textfield"
+                                        MozAppearance: "textfield",
                                     }}
                                     onChange={(e) => setStartTime(e.target.value)}
                                 />
@@ -349,7 +373,10 @@ export default function EventAdd({ categories, modalError, onClose, onSubmit, pr
                                     size={18}
                                     onClick={() => {
                                         if (startRef.current) {
-                                            if (typeof (startRef.current as any).showPicker === "function") {
+                                            if (
+                                                typeof (startRef.current as any).showPicker ===
+                                                "function"
+                                            ) {
                                                 (startRef.current as any).showPicker();
                                             } else {
                                                 startRef.current.focus();
@@ -395,7 +422,10 @@ export default function EventAdd({ categories, modalError, onClose, onSubmit, pr
                                     size={18}
                                     onClick={() => {
                                         if (endRef.current) {
-                                            if (typeof (endRef.current as any).showPicker === "function") {
+                                            if (
+                                                typeof (endRef.current as any).showPicker ===
+                                                "function"
+                                            ) {
                                                 (endRef.current as any).showPicker();
                                             } else {
                                                 endRef.current.focus();

@@ -7,8 +7,8 @@ import ThemeApplier from "./ThemeApplier";
 export const metadata = {
     title: {
         default: "GoalGetter",
-        template: "%s"
-    }
+        template: "%s",
+    },
 };
 
 export default async function BareLayout({ children }: { children: React.ReactNode }) {
@@ -18,11 +18,11 @@ export default async function BareLayout({ children }: { children: React.ReactNo
     if (session?.user?.id) {
         const themeRes = await pool.query<{ theme: string }>(
             "SELECT theme FROM user_settings WHERE user_id=$1",
-            [session.user.id]
+            [session.user.id],
         );
         theme = themeRes.rows[0]?.theme || "system";
     }
-    
+
     return (
         <html lang="en" className={theme} suppressHydrationWarning>
             <head>
@@ -46,9 +46,7 @@ export default async function BareLayout({ children }: { children: React.ReactNo
             <body>
                 <ThemeApplier theme={theme as "system" | "light" | "dark"} />
                 <Providers session={session}>
-                    <main className="h-screen overflow-hidden flex flex-col">
-                        {children}
-                    </main>
+                    <main className="h-screen overflow-hidden flex flex-col">{children}</main>
                 </Providers>
             </body>
         </html>

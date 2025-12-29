@@ -66,12 +66,11 @@ export default async function Home() {
                     WHERE ec.user_id = $1
                 )
             ) AS user_data;`,
-            [session.user.id]
+            [session.user.id],
         );
-        startWeek = await pool.query(
-            `SELECT week_start FROM user_settings WHERE user_id = $1`,
-            [session.user.id]
-        );
+        startWeek = await pool.query(`SELECT week_start FROM user_settings WHERE user_id = $1`, [
+            session.user.id,
+        ]);
 
         const minutes = new Date().getHours() * 60 + new Date().getMinutes();
         const pxPerMinute = 48 / 60;
@@ -80,14 +79,15 @@ export default async function Home() {
 
     return (
         <>
-            {res
-                ? <HomePage
+            {res ? (
+                <HomePage
                     body={res.rows[0].user_data}
                     startWeek={startWeek?.rows[0].week_start}
                     nowTop={nowTop}
                 />
-                : <WelcomePage />
-            }
+            ) : (
+                <WelcomePage />
+            )}
         </>
     );
 }

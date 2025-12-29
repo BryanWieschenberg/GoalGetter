@@ -4,7 +4,23 @@ import { useRef, useState, useEffect } from "react";
 import Tasks from "../components/Tasks";
 import Calendar from "../components/Calendar";
 
-export default function HomePage({ body, startWeek, nowTop }: { body: any, startWeek: any, nowTop: any }) {
+interface Body {
+    task_categories: unknown[];
+    task_tags: unknown[];
+    tasks: unknown[];
+    event_categories: unknown[];
+    events: unknown[];
+}
+
+export default function HomePage({
+    body,
+    startWeek,
+    nowTop,
+}: {
+    body: Body;
+    startWeek: string;
+    nowTop: number;
+}) {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const dragging = useRef(false);
     const [leftPct, setLeftPct] = useState(27);
@@ -16,17 +32,29 @@ export default function HomePage({ body, startWeek, nowTop }: { body: any, start
 
     let startWeekCode = 0;
     switch (startWeek) {
-        case 'mon': startWeekCode = 1; break;
-        case 'tue': startWeekCode = 2; break;
-        case 'wed': startWeekCode = 3; break;
-        case 'thu': startWeekCode = 4; break;
-        case 'fri': startWeekCode = 5; break;
-        case 'sat': startWeekCode = 6; break;
-        default: startWeekCode = 0;
+        case "mon":
+            startWeekCode = 1;
+            break;
+        case "tue":
+            startWeekCode = 2;
+            break;
+        case "wed":
+            startWeekCode = 3;
+            break;
+        case "thu":
+            startWeekCode = 4;
+            break;
+        case "fri":
+            startWeekCode = 5;
+            break;
+        case "sat":
+            startWeekCode = 6;
+            break;
+        default:
+            startWeekCode = 0;
     }
 
-    const clamp = (n: number, min: number, max: number) =>
-        Math.max(min, Math.min(max, n));
+    const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
 
     const startDrag = (e: React.MouseEvent | React.TouchEvent) => {
         e.preventDefault();
@@ -35,7 +63,10 @@ export default function HomePage({ body, startWeek, nowTop }: { body: any, start
 
     useEffect(() => {
         const onMove = (clientX: number) => {
-            if (!dragging.current || !containerRef.current) return;
+            if (!dragging.current || !containerRef.current) {
+                return;
+            }
+
             const rect = containerRef.current.getBoundingClientRect();
             const x = clamp(clientX - rect.left, 0, rect.width);
             const pct = (x / rect.width) * 100;
@@ -44,7 +75,9 @@ export default function HomePage({ body, startWeek, nowTop }: { body: any, start
 
         const handleMouseMove = (e: MouseEvent) => onMove(e.clientX);
         const handleTouchMove = (e: TouchEvent) => {
-            if (e.touches.length > 0) onMove(e.touches[0].clientX);
+            if (e.touches.length > 0) {
+                onMove(e.touches[0].clientX);
+            }
         };
         const stop = () => (dragging.current = false);
 
@@ -85,7 +118,7 @@ export default function HomePage({ body, startWeek, nowTop }: { body: any, start
                                 event_categories: body.event_categories,
                                 events: body.events,
                                 tasks,
-                                tags
+                                tags,
                             }}
                             startWeekPreference={startWeekCode || 0}
                             modalOpen={modalOpen}
@@ -95,9 +128,7 @@ export default function HomePage({ body, startWeek, nowTop }: { body: any, start
                     )}
 
                     <button
-                        onClick={() =>
-                            setMobileView(mobileView === "tasks" ? "calendar" : "tasks")
-                        }
+                        onClick={() => setMobileView(mobileView === "tasks" ? "calendar" : "tasks")}
                         className="fixed bottom-4 right-4 rounded-full bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 px-4 py-3 shadow-lg hover:opacity-90 active:opacity-80"
                     >
                         ⇆
@@ -132,7 +163,7 @@ export default function HomePage({ body, startWeek, nowTop }: { body: any, start
                                 event_categories: body.event_categories,
                                 events: body.events,
                                 tasks,
-                                tags
+                                tags,
                             }}
                             startWeekPreference={startWeekCode || 0}
                             modalOpen={modalOpen}

@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useEffect, useRef, useState } from "react";
 import TaskAdd from "./modals/TaskAdd";
@@ -7,6 +7,7 @@ import TagAdd from "./modals/TagAdd";
 import TaskEdit from "./modals/TaskEdit";
 import TaskCategoryEdit from "./modals/TaskCategoryEdit";
 import TagEdit from "./modals/TagEdit";
+import { TaskCategory, Task, Tag } from "@/types/core-types";
 import { formatPgDate, daysUntil, dueColor, getPriorityClasses } from "@/lib/tasksHelper";
 import { FiPlus, FiSearch } from "react-icons/fi";
 import { HiChevronUp, HiChevronDown } from "react-icons/hi";
@@ -14,14 +15,22 @@ import { HiCheck } from "react-icons/hi2";
 import { LuArrowUpDown } from "react-icons/lu";
 import { BiFilterAlt } from "react-icons/bi";
 
-export default function Tasks({ task_categories, tags, setTags, tasks, setTasks, modalOpen, setModalOpen }: {
-    task_categories: task_category[],
-    tags: tag[],
-    setTags: React.Dispatch<React.SetStateAction<tag[]>>,
-    tasks: task[],
-    setTasks: React.Dispatch<React.SetStateAction<task[]>>,
-    modalOpen: string | null,
-    setModalOpen: (value: string | null) => void
+export default function Tasks({
+    task_categories,
+    tags,
+    setTags,
+    tasks,
+    setTasks,
+    modalOpen,
+    setModalOpen,
+}: {
+    task_categories: TaskCategory[];
+    tags: Tag[];
+    setTags: React.Dispatch<React.SetStateAction<Tag[]>>;
+    tasks: Task[];
+    setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
+    modalOpen: string | null;
+    setModalOpen: (value: string | null) => void;
 }) {
     const [categories, setCategories] = useState(task_categories);
     const [hoveredCat, setHoveredCat] = useState<number | null>(null);
@@ -29,16 +38,20 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
     const [modalError, setModalError] = useState<string | null>(null);
     const [highlightedBox, setHighlightedBox] = useState<number | null>(null);
     const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
-    const [selectedCategoryRaw, setSelectedCategoryRaw] = useState<task_category | null>(null);
-    const [selectedTaskRaw, setSelectedTaskRaw] = useState<task | null>(null);
-    const [selectedTagRaw, setSelectedTagRaw] = useState<tag | null>(null);
+    const [selectedCategoryRaw, setSelectedCategoryRaw] = useState<TaskCategory | null>(null);
+    const [selectedTaskRaw, setSelectedTaskRaw] = useState<Task | null>(null);
+    const [selectedTagRaw, setSelectedTagRaw] = useState<Tag | null>(null);
     const [completingTaskIds, setCompletingTaskIds] = useState<number[]>([]);
     const [isReorderingTask, setIsReorderingTask] = useState(false);
     const [isReorderingCategory, setIsReorderingCategory] = useState(false);
-    const [sortMode, setSortMode] = useState<"orderAsc" | "orderDesc" | "dueAsc" | "dueDesc" | "priorityAsc" | "priorityDesc">("orderAsc");
+    const [sortMode, setSortMode] = useState<
+        "orderAsc" | "orderDesc" | "dueAsc" | "dueDesc" | "priorityAsc" | "priorityDesc"
+    >("orderAsc");
     const [sortOpen, setSortOpen] = useState(false);
     const [filterOpen, setFilterOpen] = useState(false);
-    const [visibleCategories, setVisibleCategories] = useState<number[]>(task_categories?.map((c: any) => c.id) ?? []);
+    const [visibleCategories, setVisibleCategories] = useState<number[]>(
+        task_categories?.map((c: any) => c.id) ?? [],
+    );
     const allPriorities = ["low", "normal", "high", "urgent"];
     const [visiblePriorities, setVisiblePriorities] = useState<string[]>(allPriorities);
     const [dueFilter, setDueFilter] = useState<"all" | "tomorrow" | "week" | "none">("all");
@@ -49,8 +62,7 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
     const filterRef = useRef<HTMLDivElement | null>(null);
     const searchInputRef = useRef<HTMLInputElement | null>(null);
 
-    const tagById = (id?: number) =>
-        tags.find((t: any) => t.id === id);
+    const tagById = (id?: number) => tags.find((t: any) => t.id === id);
 
     const priorityRank: Record<string, number> = { urgent: 3, high: 2, normal: 1, low: 0 };
 
@@ -62,7 +74,7 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
         setSelectedTaskRaw(null);
         setModalError(null);
         setHighlightedBox(null);
-    }
+    };
 
     useEffect(() => {
         const onDocClick = (e: MouseEvent) => {
@@ -93,7 +105,7 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
                 }
                 return;
             }
-         
+
             if (isTyping) return;
 
             if (e.key === "Escape") {
@@ -118,12 +130,12 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
                 setModalOpen("tagAdd");
             } else if (e.key === "s") {
                 e.preventDefault();
-                setSortOpen(v => !v);
+                setSortOpen((v) => !v);
                 setCreateOpen(false);
                 setFilterOpen(false);
             } else if (e.key === "v" || e.key === "f") {
                 e.preventDefault();
-                setFilterOpen(v => !v);
+                setFilterOpen((v) => !v);
                 setCreateOpen(false);
                 setSortOpen(false);
             } else if (e.key === "e") {
@@ -135,28 +147,28 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
         };
         document.addEventListener("mousedown", onDocClick);
         document.addEventListener("keydown", onKeydown);
-        
+
         return () => {
             document.removeEventListener("mousedown", onDocClick);
             document.removeEventListener("keydown", onKeydown);
         };
     }, []);
-    
+
     const fetchCategoryData = async () => {
-        const res = await fetch('/api/user/tasks/categories')
+        const res = await fetch("/api/user/tasks/categories");
         const data = await res.json();
         setCategories(data.categories);
         setVisibleCategories(data.categories.map((c: any) => c.id));
     };
 
     const fetchTagData = () => {
-        fetch('/api/user/tasks/tags')
+        fetch("/api/user/tasks/tags")
             .then((res) => res.json())
             .then((data) => setTags(data.tags));
     };
 
     const fetchTaskData = () => {
-        fetch('/api/user/tasks/tasks')
+        fetch("/api/user/tasks/tasks")
             .then((res) => res.json())
             .then((data) => setTasks(data.tasks));
     };
@@ -168,16 +180,16 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
 
         let color = form.get("color") as string | null;
         color = color ? color.replace(/^#/, "") : null;
-        
+
         const payload = {
             title: form.get("title"),
-            color: color
+            color: color,
         };
 
         const res = await fetch("/api/user/tasks/categories", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ payload })
+            body: JSON.stringify({ payload }),
         });
 
         if (!res.ok) {
@@ -194,20 +206,20 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
         e.preventDefault();
 
         const form = new FormData(e.currentTarget);
-        
+
         let color = form.get("color") as string | null;
         color = color ? color.replace(/^#/, "") : null;
-        
+
         const payload = {
             title: form.get("title"),
             category_id: form.get("category_id"),
-            color: color
+            color: color,
         };
 
         const res = await fetch("/api/user/tasks/tags", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ payload })
+            body: JSON.stringify({ payload }),
         });
 
         if (!res.ok) {
@@ -222,7 +234,7 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
 
     async function handleTaskAdd(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        
+
         const form = new FormData(e.currentTarget);
 
         const payload = {
@@ -231,13 +243,13 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
             category_id: form.get("category_id"),
             tag_id: form.get("tag_id") || null,
             due_date: form.get("due_date") || null,
-            priority: form.get("priority") || "normal"
+            priority: form.get("priority") || "normal",
         };
 
         const res = await fetch("/api/user/tasks/tasks", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ payload })
+            body: JSON.stringify({ payload }),
         });
 
         if (!res.ok) {
@@ -265,13 +277,13 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
         const payload = {
             id: selectedCategoryRaw.id,
             title: form.get("title"),
-            color: color
+            color: color,
         };
 
         const res = await fetch("/api/user/tasks/categories", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ payload })
+            body: JSON.stringify({ payload }),
         });
 
         if (!res.ok) {
@@ -299,13 +311,13 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
             id: selectedTagRaw.id,
             title: form.get("title"),
             category_id: form.get("category_id"),
-            color: color
+            color: color,
         };
 
         const res = await fetch("/api/user/tasks/tags", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ payload })
+            body: JSON.stringify({ payload }),
         });
 
         if (!res.ok) {
@@ -335,13 +347,13 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
             category_id: category_id,
             tag_id: form.get("tag_id") || null,
             due_date: form.get("due_date") || null,
-            priority: form.get("priority") || "normal"
+            priority: form.get("priority") || "normal",
         };
 
         const res = await fetch("/api/user/tasks/tasks", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ payload })
+            body: JSON.stringify({ payload }),
         });
 
         if (!res.ok) {
@@ -357,7 +369,7 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
 
     async function handleCategoryDelete(id: number) {
         const res = await fetch(`/api/user/tasks/categories?id=${id}`, {
-            method: "DELETE"
+            method: "DELETE",
         });
 
         if (!res.ok) {
@@ -372,7 +384,7 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
 
     async function handleTagDelete(id: number) {
         const res = await fetch(`/api/user/tasks/tags?id=${id}`, {
-            method: "DELETE"
+            method: "DELETE",
         });
 
         if (!res.ok) {
@@ -387,7 +399,7 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
 
     async function handleTaskDelete(id: number) {
         const res = await fetch(`/api/user/tasks/tasks?id=${id}`, {
-            method: "DELETE"
+            method: "DELETE",
         });
 
         const res_json = await res.json();
@@ -395,24 +407,26 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
             setModalError(res_json.error || "An unknown error occurred.");
         } else {
             fetchTaskData();
-            if (res_json.category?.id) { setVisibleCategories(prev => [...prev, res_json.category.id]); }
+            if (res_json.category?.id) {
+                setVisibleCategories((prev) => [...prev, res_json.category.id]);
+            }
             setModalOpen(null);
             setModalError(null);
         }
     }
 
     async function handleCompleteTask(id: number) {
-        setCompletingTaskIds(prev => [...prev, id]);
+        setCompletingTaskIds((prev) => [...prev, id]);
 
         setTimeout(async () => {
             const res = await fetch(`/api/user/tasks/tasks?id=${id}`, {
-                method: "DELETE"
+                method: "DELETE",
             });
 
             if (!res.ok) {
                 const res_json = await res.json();
                 setModalError(res_json.error || "An unknown error occurred.");
-                setCompletingTaskIds(prev => prev.filter(tid => tid !== id));
+                setCompletingTaskIds((prev) => prev.filter((tid) => tid !== id));
             } else {
                 fetchTaskData();
                 setModalError(null);
@@ -428,7 +442,7 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
             const res = await fetch("/api/user/tasks/tasks/reorder", {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ task_id: id, direction })
+                body: JSON.stringify({ task_id: id, direction }),
             });
 
             if (!res.ok) {
@@ -453,7 +467,7 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
             const res = await fetch("/api/user/tasks/categories/reorder", {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ category_id: id, direction })
+                body: JSON.stringify({ category_id: id, direction }),
             });
 
             if (!res.ok) {
@@ -479,10 +493,10 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
                         <button
                             type="button"
                             onClick={() => setCreateOpen((v) => !v)}
-                            className={`transition duration-320 inline-flex items-center gap-2 rounded-lg text-white dark:text-zinc-900 px-4 py-[.46rem] font-medium text-md shadow-sm active:opacity-40 hover:cursor-pointer ${createOpen ? 'bg-[#4bd1ff]' : 'bg-zinc-900 dark:bg-zinc-100 hover:bg-[#4bd1ff] dark:hover:bg-[#4bd1ff]'}`}
+                            className={`transition duration-320 inline-flex items-center gap-2 rounded-lg text-white dark:text-zinc-900 px-4 py-[.46rem] font-medium text-md shadow-sm active:opacity-40 hover:cursor-pointer ${createOpen ? "bg-[#4bd1ff]" : "bg-zinc-900 dark:bg-zinc-100 hover:bg-[#4bd1ff] dark:hover:bg-[#4bd1ff]"}`}
                             aria-expanded={createOpen}
                         >
-                            <span className="text-lg leading-none font-bold">{'\uFF0B'}</span>
+                            <span className="text-lg leading-none font-bold">{"\uFF0B"}</span>
                             Create
                         </button>
 
@@ -549,7 +563,7 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
                     <div ref={sortRef} className="relative">
                         <button
                             type="button"
-                            onClick={() => setSortOpen(v => !v)}
+                            onClick={() => setSortOpen((v) => !v)}
                             className="transition hover:cursor-pointer inline-flex items-center gap-2 rounded-lg px-3 py-3 text-sm ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 hover:bg-zinc-200 dark:hover:bg-zinc-800 bg-white/70 dark:bg-black/20"
                         >
                             <LuArrowUpDown className="w-4 h-4" />
@@ -567,7 +581,7 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
                                     { key: "dueDesc", label: "Due Date (Des)" },
                                     { key: "priorityAsc", label: "Priority (Asc)" },
                                     { key: "priorityDesc", label: "Priority (Des)" },
-                                ].map(opt => (
+                                ].map((opt) => (
                                     <button
                                         key={opt.key}
                                         role="menuitem"
@@ -590,7 +604,7 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
                     <div ref={filterRef} className="relative">
                         <button
                             type="button"
-                            onClick={() => setFilterOpen(v => !v)}
+                            onClick={() => setFilterOpen((v) => !v)}
                             className="transition inline-flex items-center gap-2 rounded-lg px-3 py-3 text-sm ring-1 ring-inset ring-zinc-300/70 dark:ring-zinc-700/70 bg-white/70 dark:bg-black/20 hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:cursor-pointer"
                         >
                             <BiFilterAlt className="w-4 h-4" />
@@ -601,32 +615,42 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
                                 role="menu"
                                 className="absolute z-50 mt-2 w-60 rounded-lg border border-zinc-300/70 dark:border-zinc-700/70 bg-white dark:bg-zinc-900 shadow-lg p-2 flex flex-col gap-1"
                             >
-                                <span className="px-2 mt-2 text-xs text-zinc-500 font-bold">Due Date</span>
-                                {["all", "tomorrow", "week", "none"].map(opt => (
+                                <span className="px-2 mt-2 text-xs text-zinc-500 font-bold">
+                                    Due Date
+                                </span>
+                                {["all", "tomorrow", "week", "none"].map((opt) => (
                                     <button
                                         key={opt}
                                         className={`px-2 py-1 text-sm text-left 
                                             ${dueFilter === opt ? "bg-zinc-200 dark:bg-zinc-700" : "hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:cursor-pointer"}`}
                                         onClick={() => setDueFilter(opt as typeof dueFilter)}
                                     >
-                                        {opt === "all" ? "All" :
-                                        opt === "tomorrow" ? "Tomorrow" :
-                                        opt === "week" ? "This Week" :
-                                        "No Due Date"}
+                                        {opt === "all"
+                                            ? "All"
+                                            : opt === "tomorrow"
+                                              ? "Tomorrow"
+                                              : opt === "week"
+                                                ? "This Week"
+                                                : "No Due Date"}
                                     </button>
                                 ))}
 
-                                <span className="px-2 mt-2 text-xs text-zinc-500 font-bold">Priority</span>
-                                {allPriorities.map(p => (
-                                    <label key={p} className="flex items-center gap-2 px-2 py-1 text-sm">
+                                <span className="px-2 mt-2 text-xs text-zinc-500 font-bold">
+                                    Priority
+                                </span>
+                                {allPriorities.map((p) => (
+                                    <label
+                                        key={p}
+                                        className="flex items-center gap-2 px-2 py-1 text-sm"
+                                    >
                                         <input
                                             type="checkbox"
                                             checked={visiblePriorities.includes(p)}
                                             onChange={() => {
-                                                setVisiblePriorities(prev =>
+                                                setVisiblePriorities((prev) =>
                                                     prev.includes(p)
-                                                        ? prev.filter(x => x !== p)
-                                                        : [...prev, p]
+                                                        ? prev.filter((x) => x !== p)
+                                                        : [...prev, p],
                                                 );
                                             }}
                                         />
@@ -634,17 +658,22 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
                                     </label>
                                 ))}
 
-                                <span className="px-2 text-xs text-zinc-500 font-bold">Categories</span>
-                                {categories.map((cat: task_category) => (
-                                    <label key={cat.id} className="flex items-center gap-2 px-2 py-1 text-sm">
+                                <span className="px-2 text-xs text-zinc-500 font-bold">
+                                    Categories
+                                </span>
+                                {categories.map((cat: TaskCategory) => (
+                                    <label
+                                        key={cat.id}
+                                        className="flex items-center gap-2 px-2 py-1 text-sm"
+                                    >
                                         <input
                                             type="checkbox"
                                             checked={visibleCategories.includes(cat.id)}
                                             onChange={() => {
-                                                setVisibleCategories(prev =>
+                                                setVisibleCategories((prev) =>
                                                     prev.includes(cat.id)
-                                                        ? prev.filter(id => id !== cat.id)
-                                                        : [...prev, cat.id]
+                                                        ? prev.filter((id) => id !== cat.id)
+                                                        : [...prev, cat.id],
                                                 );
                                             }}
                                         />
@@ -674,217 +703,272 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
             {/* Tasks */}
             <div className="p-1.5">
                 {categories
-                    .filter((cat: task_category) => {
+                    .filter((cat: TaskCategory) => {
                         if (visibleCategories.length === 0) return false;
                         return visibleCategories.includes(cat.id);
                     })
-                    .map((cat: task_category) =>
-                {
-                    // Get all categories
-                    let catTasks = tasks
-                        .filter((t: any) => t.category_id === cat.id)
-                        .filter((t: any) => {
-                            if (visiblePriorities.length === 0) return false;
-                            if (!visiblePriorities.includes(t.priority)) return false;
+                    .map((cat: TaskCategory) => {
+                        // Get all categories
+                        let catTasks = tasks
+                            .filter((t: any) => t.category_id === cat.id)
+                            .filter((t: any) => {
+                                if (visiblePriorities.length === 0) return false;
+                                if (!visiblePriorities.includes(t.priority)) return false;
 
-                            const days = t.due_date ? daysUntil(t.due_date) : null;
+                                const days = t.due_date ? daysUntil(t.due_date) : null;
 
-                            if (dueFilter === "tomorrow") {
-                                if (days === null) return true;
-                                if (days > 1) return false;
-                            } else if (dueFilter === "week") {
-                                if (days === null) return true;
-                                if (days > 7) return false;
-                            } else if (dueFilter === "none") {
-                                if (days !== null) return false;
+                                if (dueFilter === "tomorrow") {
+                                    if (days === null) return true;
+                                    if (days > 1) return false;
+                                } else if (dueFilter === "week") {
+                                    if (days === null) return true;
+                                    if (days > 7) return false;
+                                } else if (dueFilter === "none") {
+                                    if (days !== null) return false;
+                                }
+
+                                if (searchQuery.trim() !== "") {
+                                    const q = searchQuery.toLowerCase();
+                                    const title = t.title?.toLowerCase() ?? "";
+                                    const desc = t.description?.toLowerCase() ?? "";
+                                    if (!title.includes(q) && !desc.includes(q)) return false;
+                                }
+
+                                return true;
+                            });
+
+                        catTasks = [...catTasks].sort((a, b) => {
+                            if (sortMode === "dueAsc") {
+                                if (!a.due_date && !b.due_date) return 0;
+                                if (!a.due_date) return 1;
+                                if (!b.due_date) return -1;
+                                return (
+                                    new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
+                                );
                             }
-
-                            if (searchQuery.trim() !== "") {
-                                const q = searchQuery.toLowerCase();
-                                const title = t.title?.toLowerCase() ?? "";
-                                const desc = t.description?.toLowerCase() ?? "";
-                                if (!title.includes(q) && !desc.includes(q)) return false;
-                            }
-
-                            return true;
+                            if (sortMode === "dueDesc") {
+                                if (!a.due_date && !b.due_date) return 0;
+                                if (!a.due_date) return -1;
+                                if (!b.due_date) return 1;
+                                return (
+                                    new Date(b.due_date).getTime() - new Date(a.due_date).getTime()
+                                );
+                            } else if (sortMode === "priorityAsc")
+                                return (
+                                    (priorityRank[a.priority] ?? 0) -
+                                    (priorityRank[b.priority] ?? 0)
+                                );
+                            else if (sortMode === "priorityDesc")
+                                return (
+                                    (priorityRank[b.priority] ?? 0) -
+                                    (priorityRank[a.priority] ?? 0)
+                                );
+                            else if (sortMode === "orderDesc")
+                                return (b.sort_order ?? 0) - (a.sort_order ?? 0);
+                            else return 0;
                         });
 
-                    catTasks = [...catTasks].sort((a, b) => {
-                        if (sortMode === "dueAsc") {
-                            if (!a.due_date && !b.due_date) return 0;
-                            if (!a.due_date) return 1;
-                            if (!b.due_date) return -1;
-                            return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
-                        }
-                        if (sortMode === "dueDesc") {
-                            if (!a.due_date && !b.due_date) return 0;
-                            if (!a.due_date) return -1;
-                            if (!b.due_date) return 1;
-                            return new Date(b.due_date).getTime() - new Date(a.due_date).getTime();
-                        }
-                        else if (sortMode === "priorityAsc")
-                            return (priorityRank[a.priority] ?? 0) - (priorityRank[b.priority] ?? 0);
-                        else if (sortMode === "priorityDesc")
-                            return (priorityRank[b.priority] ?? 0) - (priorityRank[a.priority] ?? 0);
-                        else if (sortMode === "orderDesc")
-                            return (b.sort_order ?? 0) - (a.sort_order ?? 0);
-                        else return 0;
-                    });
-
-                    return (
-                        <section
-                            key={cat.id}
-                            className={`mb-3 inline-block min-w-[300px] w-fit rounded-xl border-[.1rem] mr-1.5 p-4 ${highlightedBox === cat.id ? "bg-zinc-100 dark:bg-zinc-900" : ""}`}
-                            style={{ borderColor: cat.color ? `#${cat.color}` : undefined }}
-                        >
-                            <h2
-                                className="text-xl font-bold mb-3 flex items-center gap-2"
-                                style={{ color: cat.color ? `#${cat.color}` : undefined }}
-                                onMouseEnter={() => setHoveredCat(cat.id)}
-                                onMouseLeave={() => setHoveredCat(null)}
+                        return (
+                            <section
+                                key={cat.id}
+                                className={`mb-3 inline-block min-w-[300px] w-fit rounded-xl border-[.1rem] mr-1.5 p-4 ${highlightedBox === cat.id ? "bg-zinc-100 dark:bg-zinc-900" : ""}`}
+                                style={{ borderColor: cat.color ? `#${cat.color}` : undefined }}
                             >
-                                <div className="flex items-center w-fit text-black dark:text-white">
-                                    <div className="flex flex-col items-center mr-2 leading-none">
-                                        <HiChevronUp
-                                            className="text-zinc-400 hover:text-black dark:text-zinc-600 dark:hover:text-white hover:cursor-pointer -mb-[.1rem]"
-                                            onClick={() => !isReorderingCategory && handleReorderCategory(cat.id, "up")}
-                                        />
-                                        <HiChevronDown
-                                            className="text-zinc-400 hover:text-black dark:text-zinc-600 dark:hover:text-white hover:cursor-pointer -mt-[.1rem]"
-                                            onClick={() => !isReorderingCategory && handleReorderCategory(cat.id, "down")}
-                                        />
+                                <h2
+                                    className="text-xl font-bold mb-3 flex items-center gap-2"
+                                    style={{ color: cat.color ? `#${cat.color}` : undefined }}
+                                    onMouseEnter={() => setHoveredCat(cat.id)}
+                                    onMouseLeave={() => setHoveredCat(null)}
+                                >
+                                    <div className="flex items-center w-fit text-black dark:text-white">
+                                        <div className="flex flex-col items-center mr-2 leading-none">
+                                            <HiChevronUp
+                                                className="text-zinc-400 hover:text-black dark:text-zinc-600 dark:hover:text-white hover:cursor-pointer -mb-[.1rem]"
+                                                onClick={() =>
+                                                    !isReorderingCategory &&
+                                                    handleReorderCategory(cat.id, "up")
+                                                }
+                                            />
+                                            <HiChevronDown
+                                                className="text-zinc-400 hover:text-black dark:text-zinc-600 dark:hover:text-white hover:cursor-pointer -mt-[.1rem]"
+                                                onClick={() =>
+                                                    !isReorderingCategory &&
+                                                    handleReorderCategory(cat.id, "down")
+                                                }
+                                            />
+                                        </div>
+
+                                        <span
+                                            className={`hover:cursor-pointer ${selectedCategoryRaw?.id === cat.id ? "bg-zinc-300 dark:bg-zinc-700" : ""}`}
+                                            style={{
+                                                color: cat.color ? `#${cat.color}` : undefined,
+                                            }}
+                                            onClick={() => {
+                                                setSelectedCategory(cat.id);
+                                                setSelectedCategoryRaw(cat);
+                                                setModalOpen("taskCategoryEdit");
+                                            }}
+                                        >
+                                            {cat.name}
+                                        </span>
                                     </div>
+                                    {hoveredCat === cat.id && (
+                                        <FiPlus
+                                            className="hover:cursor-pointer"
+                                            style={{
+                                                color: cat.color ? `#${cat.color}` : undefined,
+                                            }}
+                                            onClick={() => {
+                                                setSelectedCategory(cat.id);
+                                                setModalOpen("taskAdd");
+                                                setHighlightedBox(cat.id);
+                                            }}
+                                        />
+                                    )}
+                                </h2>
 
-                                    <span
-                                        className={`hover:cursor-pointer ${selectedCategoryRaw?.id === cat.id ? "bg-zinc-300 dark:bg-zinc-700" : ""}`}
-                                        style={{ color: cat.color ? `#${cat.color}` : undefined }}
-                                        onClick={() => {
-                                            setSelectedCategory(cat.id);
-                                            setSelectedCategoryRaw(cat);
-                                            setModalOpen("taskCategoryEdit");
-                                        }}
-                                    >
-                                        {cat.name}
-                                    </span>
-                                </div>
-                                {hoveredCat === cat.id && (
-                                    <FiPlus
-                                        className="hover:cursor-pointer"
-                                        style={{ color: cat.color ? `#${cat.color}` : undefined }}
-                                        onClick={() => {
-                                            setSelectedCategory(cat.id);
-                                            setModalOpen("taskAdd");
-                                            setHighlightedBox(cat.id);
-                                        }}
-                                    />
-                                )}
-                            </h2>
-
-                            {catTasks.length === 0 ? (
-                                <p className="whitespace-nowrap text-sm text-zinc-500">Add a task with the {"\uFF0B"} button!</p>
-                            ) : (
-                                // Get all tasks in this category
-                                <ul>
-                                    {catTasks.map((task: any) => {
-                                        const tag = tagById(task.tag_id);
-                                        return (
-                                            <li
-                                                key={task.id}
-                                                className={`flex items-center gap-1.5 transition-all duration-700
+                                {catTasks.length === 0 ? (
+                                    <p className="whitespace-nowrap text-sm text-zinc-500">
+                                        Add a task with the {"\uFF0B"} button!
+                                    </p>
+                                ) : (
+                                    // Get all tasks in this category
+                                    <ul>
+                                        {catTasks.map((task: any) => {
+                                            const tag = tagById(task.tag_id);
+                                            return (
+                                                <li
+                                                    key={task.id}
+                                                    className={`flex items-center gap-1.5 transition-all duration-700
                                                     ${completingTaskIds.includes(task.id) ? "opacity-0 translate-x-10" : "opacity-100 translate-x-0"}`}
-                                                style={{ borderColor: cat.color ? `#${cat.color}` : undefined }}
-                                            >
-                                                <button
-                                                    onClick={() => handleCompleteTask(task.id)}
-                                                    className={`h-5 w-5 rounded-full border-[.14rem] border-current flex-shrink-0 hover:cursor-pointer transition
+                                                    style={{
+                                                        borderColor: cat.color
+                                                            ? `#${cat.color}`
+                                                            : undefined,
+                                                    }}
+                                                >
+                                                    <button
+                                                        onClick={() => handleCompleteTask(task.id)}
+                                                        className={`h-5 w-5 rounded-full border-[.14rem] border-current flex-shrink-0 hover:cursor-pointer transition
                                                         ${getPriorityClasses(task.priority)}
                                                         ${completingTaskIds.includes(task.id) ? "animate-[popSpin_0.6s]" : ""}
                                                     `}
-                                                >
-                                                    {completingTaskIds.includes(task.id) && (
-                                                        <HiCheck className="w-3 h-3 text-emerald-300 dark:text-emerald-700" />
-                                                    )}
-                                                </button>
+                                                    >
+                                                        {completingTaskIds.includes(task.id) && (
+                                                            <HiCheck className="w-3 h-3 text-emerald-300 dark:text-emerald-700" />
+                                                        )}
+                                                    </button>
 
-                                                <div className="flex flex-col items-center w-8 text-xs">
-                                                    {task.due_date ? (
-                                                        <>
-                                                            <span className={`font-semibold leading-none ${dueColor(daysUntil(task.due_date))}`}>
-                                                                {daysUntil(task.due_date) ?? ""}
-                                                            </span>
-                                                            <span>
-                                                                {task.due_date ? formatPgDate(task.due_date) : ""}
-                                                            </span>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <span className="text-xs text-transparent leading-none select-none">--</span>
-                                                            <span className="text-xs text-transparent leading-none select-none">--</span>
-                                                        </>
-                                                    )}
-                                                </div>
+                                                    <div className="flex flex-col items-center w-8 text-xs">
+                                                        {task.due_date ? (
+                                                            <>
+                                                                <span
+                                                                    className={`font-semibold leading-none ${dueColor(daysUntil(task.due_date))}`}
+                                                                >
+                                                                    {daysUntil(task.due_date) ?? ""}
+                                                                </span>
+                                                                <span>
+                                                                    {task.due_date
+                                                                        ? formatPgDate(
+                                                                              task.due_date,
+                                                                          )
+                                                                        : ""}
+                                                                </span>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <span className="text-xs text-transparent leading-none select-none">
+                                                                    --
+                                                                </span>
+                                                                <span className="text-xs text-transparent leading-none select-none">
+                                                                    --
+                                                                </span>
+                                                            </>
+                                                        )}
+                                                    </div>
 
-                                                <div className="flex flex-col items-center mr-2">
-                                                    <HiChevronUp
-                                                        className={`text-zinc-400 dark:text-zinc-600 hover:cursor-pointer ${
-                                                            sortMode === "orderAsc" || sortMode === "orderDesc"
-                                                                ? "hover:text-black dark:hover:text-white"
-                                                                : "opacity-0 pointer-events-none"
-                                                        }`}
-                                                        onClick={() => {
-                                                            if (!isReorderingTask && (sortMode === "orderAsc" || sortMode === "orderDesc")) {
-                                                                const dir = sortMode === "orderDesc" ? "down" : "up";
-                                                                handleReorderTask(task.id, dir);
-                                                            }
-                                                        }}
-                                                    />
-                                                    <HiChevronDown
-                                                        className={`text-zinc-400 dark:text-zinc-600 hover:cursor-pointer ${
-                                                            sortMode === "orderAsc" || sortMode === "orderDesc"
-                                                                ? "hover:text-black dark:hover:text-white"
-                                                                : "opacity-0 pointer-events-none"
-                                                        }`}
-                                                        onClick={() => {
-                                                            if (!isReorderingTask && (sortMode === "orderAsc" || sortMode === "orderDesc")) {
-                                                                const dir = sortMode === "orderDesc" ? "up" : "down";
-                                                                handleReorderTask(task.id, dir);
-                                                            }
-                                                        }}
-                                                    />
-                                                </div>
+                                                    <div className="flex flex-col items-center mr-2">
+                                                        <HiChevronUp
+                                                            className={`text-zinc-400 dark:text-zinc-600 hover:cursor-pointer ${
+                                                                sortMode === "orderAsc" ||
+                                                                sortMode === "orderDesc"
+                                                                    ? "hover:text-black dark:hover:text-white"
+                                                                    : "opacity-0 pointer-events-none"
+                                                            }`}
+                                                            onClick={() => {
+                                                                if (
+                                                                    !isReorderingTask &&
+                                                                    (sortMode === "orderAsc" ||
+                                                                        sortMode === "orderDesc")
+                                                                ) {
+                                                                    const dir =
+                                                                        sortMode === "orderDesc"
+                                                                            ? "down"
+                                                                            : "up";
+                                                                    handleReorderTask(task.id, dir);
+                                                                }
+                                                            }}
+                                                        />
+                                                        <HiChevronDown
+                                                            className={`text-zinc-400 dark:text-zinc-600 hover:cursor-pointer ${
+                                                                sortMode === "orderAsc" ||
+                                                                sortMode === "orderDesc"
+                                                                    ? "hover:text-black dark:hover:text-white"
+                                                                    : "opacity-0 pointer-events-none"
+                                                            }`}
+                                                            onClick={() => {
+                                                                if (
+                                                                    !isReorderingTask &&
+                                                                    (sortMode === "orderAsc" ||
+                                                                        sortMode === "orderDesc")
+                                                                ) {
+                                                                    const dir =
+                                                                        sortMode === "orderDesc"
+                                                                            ? "up"
+                                                                            : "down";
+                                                                    handleReorderTask(task.id, dir);
+                                                                }
+                                                            }}
+                                                        />
+                                                    </div>
 
-                                                <h3 className={`whitespace-nowrap text-sm
+                                                    <h3
+                                                        className={`whitespace-nowrap text-sm
                                                     ${completingTaskIds.includes(task.id) ? "animate-[confettiBurst_0.7s]" : ""}`}
-                                                >
-                                                    <span
-                                                        className={`hover:cursor-pointer ${selectedTaskRaw?.id === task.id ? "bg-zinc-300 dark:bg-zinc-700" : ""}`}
-                                                        onClick={() => {
-                                                            setSelectedTaskRaw(task);
-                                                            setModalOpen("taskEdit");
-                                                        }}
                                                     >
                                                         <span
-                                                            className="font-bold"
-                                                            style={{ color: tag?.color ? `#${tag.color}` : undefined }}
+                                                            className={`hover:cursor-pointer ${selectedTaskRaw?.id === task.id ? "bg-zinc-300 dark:bg-zinc-700" : ""}`}
+                                                            onClick={() => {
+                                                                setSelectedTaskRaw(task);
+                                                                setModalOpen("taskEdit");
+                                                            }}
                                                         >
-                                                            {tag ? `[${tag.name}] ` : ""}
+                                                            <span
+                                                                className="font-bold"
+                                                                style={{
+                                                                    color: tag?.color
+                                                                        ? `#${tag.color}`
+                                                                        : undefined,
+                                                                }}
+                                                            >
+                                                                {tag ? `[${tag.name}] ` : ""}
+                                                            </span>
+                                                            {task.title}
                                                         </span>
-                                                        {task.title}
-                                                    </span>
-                                                    {task.description && (
-                                                        <span className="ml-2 text-xs text-zinc-400">
-                                                            {task.description}
-                                                        </span>
-                                                    )}
-                                                </h3>
-                                            </li>
-                                        );
-                                    })}
-                                </ul>
-                            )}
-                        </section>
-                    );
-                })}
+                                                        {task.description && (
+                                                            <span className="ml-2 text-xs text-zinc-400">
+                                                                {task.description}
+                                                            </span>
+                                                        )}
+                                                    </h3>
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                )}
+                            </section>
+                        );
+                    })}
             </div>
 
             {/* Modals */}
@@ -895,7 +979,7 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
                     modalError={modalError}
                 />
             )}
-            
+
             {modalOpen?.startsWith("tagAdd") && (
                 <TagAdd
                     categories={categories}
@@ -912,7 +996,7 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
                     }}
                 />
             )}
-            
+
             {modalOpen === "taskAdd" && (
                 <TaskAdd
                     categories={categories}
@@ -923,7 +1007,7 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
                     preSelectedCategory={selectedCategory}
                 />
             )}
-            
+
             {modalOpen === "taskEdit" && selectedTaskRaw && (
                 <TaskEdit
                     categories={categories}
@@ -935,9 +1019,9 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
                     preSelectedTask={selectedTaskRaw}
                 />
             )}
-            
+
             {modalOpen?.startsWith("taskCategoryEdit") && selectedCategoryRaw && (
-                <TaskCategoryEdit 
+                <TaskCategoryEdit
                     tags={tags}
                     modalError={modalError}
                     onClose={closeAll}
@@ -963,7 +1047,9 @@ export default function Tasks({ task_categories, tags, setTags, tasks, setTasks,
                     onDelete={handleTagDelete}
                     preSelectedTag={selectedTagRaw}
                     onCategoryReturn={() => {
-                        const category = categories.find((c: any) => c.id === selectedTagRaw.category_id);
+                        const category = categories.find(
+                            (c: any) => c.id === selectedTagRaw.category_id,
+                        );
                         if (category) setSelectedCategoryRaw(category);
                         setModalOpen("taskCategoryEdit noFade");
                     }}

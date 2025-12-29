@@ -39,18 +39,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     }
 
                     const isEmail = creds.handleOrEmail.includes("@");
-                    const queryParam = isEmail ? "email" : "handle";
+                    const query = isEmail
+                        ? `SELECT id, username, handle, email, password, provider
+                           FROM users WHERE email = $1`
+                        : `SELECT id, username, handle, email, password, provider
+                           FROM users WHERE handle = $1`;
 
-                    if (!["email", "handle"].includes(queryParam)) {
-                        throw new Error("Invalid input");
-                    }
-
-                    const data = await pool.query(
-                        `SELECT id, username, handle, email, password, provider
-                         FROM users
-                         WHERE ${queryParam} = $1`,
-                        [creds.handleOrEmail],
-                    );
+                    const data = await pool.query(query, [creds.handleOrEmail]);
                     const user = data.rows[0];
 
                     if (!user) {
@@ -63,14 +58,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                         throw new Error("Invalid password");
                     }
 
-                    return {
-                        email: user.email,
-                        handle: user.handle,
-                        id: String(user.id),
-                        username: user.username,
-                        provider:
-                            user.provider && user.provider.trim() !== "" ? user.provider : "local",
-                    };
+                    return { id: String(user.id) };
                 } catch (err) {
                     console.error("Authorization error:", err);
                     return null;
@@ -118,6 +106,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     const userId = await client.query(
                         `INSERT INTO users (username, handle, email, email_verified, provider, provider_id)
                          VALUES ($1, $2, $3, $4, $5, $6)
+                         ON CONFLICT (provider, provider_id) DO NOTHING
                          RETURNING id`,
                         [
                             username,
@@ -129,23 +118,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                         ],
                     );
 
-                    const sysTimezone =
-                        typeof Intl !== "undefined"
-                            ? Intl.DateTimeFormat().resolvedOptions().timeZone
-                            : "UTC";
-
                     await Promise.all([
+                        client.query(`INSERT INTO user_settings (user_id) VALUES ($1)`, [
+                            userId.rows[0].id,
+                        ]),
                         client.query(
-                            `INSERT INTO user_settings (user_id, theme, timezone) VALUES ($1, $2, $3)`,
-                            [userId.rows[0].id, "system", sysTimezone],
-                        ),
-                        client.query(
-                            `INSERT INTO task_categories (user_id, name, sort_order) VALUES ($1, 'My Tasks', 0)`,
+                            `INSERT INTO task_categories (user_id, sort_order) VALUES ($1, 0)`,
                             [userId.rows[0].id],
                         ),
                         client.query(
-                            `INSERT INTO event_categories (user_id, name, main) VALUES ($1, $2, $3)`,
-                            [userId.rows[0].id, "Events", true],
+                            `INSERT INTO event_categories (user_id, main) VALUES ($1, true)`,
+                            [userId.rows[0].id],
                         ),
                     ]);
                 }
@@ -181,19 +164,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 }
             }
 
-            const email = user?.email ?? token.email;
-            if (email) {
-                const r = await pool.query(`SELECT id FROM users WHERE email = $1`, [email]);
-                if (r.rows[0]?.id) {
-                    token.id = String(r.rows[0].id);
-                }
-            }
-
             return token;
         },
         async session({ session, token }) {
             if (token.id) {
-                session.user = session.user || {};
                 session.user.id = String(token.id);
             }
             return session;

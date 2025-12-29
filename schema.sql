@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS user_settings (
     user_id                 INT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     theme                   theme_type NOT NULL DEFAULT 'system',
     week_start              week_start_type NOT NULL DEFAULT 'sun',
-    timezone                TEXT NOT NULL DEFAULT 'UTC'
+    timezone                VARCHAR(255) NOT NULL DEFAULT 'system'
 );
 
 CREATE TABLE IF NOT EXISTS auth_tokens (
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS auth_tokens (
 CREATE TABLE IF NOT EXISTS task_categories (
     id                      SERIAL PRIMARY KEY,
     user_id                 INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    name                    TEXT NOT NULL,
+    name                    TEXT NOT NULL DEFAULT 'My Tasks',
     color                   VARCHAR(6),
     sort_order              INTEGER NOT NULL
 );
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS task_categories (
 CREATE TABLE IF NOT EXISTS event_categories (
     id                      SERIAL PRIMARY KEY,
     user_id                 INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    name                    TEXT NOT NULL,
+    name                    TEXT NOT NULL DEFAULT 'My Calendar',
     color                   VARCHAR(6),
     main                    BOOLEAN NOT NULL DEFAULT false
 );

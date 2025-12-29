@@ -32,11 +32,9 @@ export async function PUT(req: Request) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await req.json();
-
     await pool.query(
         `UPDATE user_settings SET theme=$1, week_start=$2, timezone=$3 WHERE user_id=$4`,
-        ["system", "sun", body.timezone, session.user.id],
+        ["system", "sun", "system", session.user.id],
     );
 
     return NextResponse.json({ ok: true });

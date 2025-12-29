@@ -867,7 +867,7 @@ export default function Tasks({
 
                                 {catTasks.length === 0 ? (
                                     <p className="whitespace-nowrap text-sm text-zinc-500">
-                                        Add a task with the {"\uFF0B"} button!
+                                        Nice! You're all done with these tasks!
                                     </p>
                                 ) : (
                                     // Get all tasks in this category

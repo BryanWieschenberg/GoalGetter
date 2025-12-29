@@ -138,24 +138,16 @@ export default function SettingsForm({
         try {
             setSaving(true);
 
-            const sysTimezone =
-                typeof Intl !== "undefined"
-                    ? Intl.DateTimeFormat().resolvedOptions().timeZone
-                    : "UTC";
-
             const res = await fetch("/api/auth/settings", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    timezone: sysTimezone,
-                }),
             });
 
             if (!res.ok) {
                 throw new Error("Failed to reset settings");
             }
 
-            const reset = { theme: "system", week_start: "sun", timezone: sysTimezone };
+            const reset = { theme: "system", week_start: "sun", timezone: "system" };
 
             setSettings(reset);
             router.refresh();
@@ -504,6 +496,7 @@ export default function SettingsForm({
                                         : ""
                                 }`}
                         >
+                            <option value="system">System</option>
                             {Intl.supportedValuesOf("timeZone").map((tz) => (
                                 <option key={tz} value={tz}>
                                     {tz}

@@ -1,30 +1,43 @@
 export function formatPgDate(dateStr: string) {
-    const [_, m, d] = dateStr.split("-").map(Number);
+    const [, m, d] = dateStr.split("-").map(Number);
     return `${m}/${d}`;
 }
 
 export function daysUntil(dateStr?: string | null) {
-    if (!dateStr) return null;
+    if (!dateStr) {
+        return null;
+    }
 
-    const due = new Date(dateStr);
-    if (isNaN(due.getTime())) return null;
+    const due = new Date(dateStr + "T00:00:00Z");
+    if (isNaN(due.getTime())) {
+        return null;
+    }
 
-    const dueMidnight = new Date(due.getFullYear(), due.getMonth(), due.getDate());
-    const today = new Date();
-    const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const now = new Date();
+    const todayUTC = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+    const dueUTC = Date.UTC(due.getUTCFullYear(), due.getUTCMonth(), due.getUTCDate());
 
-    const diff = dueMidnight.getTime() - todayMidnight.getTime();
-    return Math.floor(diff / (1000 * 60 * 60 * 24)) + 1;
+    const diff = dueUTC - todayUTC;
+    const MS_PER_DAY = 1000 * 60 * 60 * 24;
+    return Math.floor(diff / MS_PER_DAY) + 1;
 }
 
 export function dueColor(days: number | null): string {
-    if (days === null) return "text-zinc-400";
-    else if (days <= 1) return "text-red-600";
-    else if (days >= 2 && days <= 4) return "text-orange-500";
-    else if (days >= 5 && days <= 7) return "text-yellow-500";
-    else if (days >= 8 && days <= 14) return "text-green-500";
-    else if (days >= 15 && days <= 30) return "text-sky-400"
-    else return "text-white";
+    if (days === null) {
+        return "text-zinc-400";
+    } else if (days <= 1) {
+        return "text-red-600";
+    } else if (days >= 2 && days <= 4) {
+        return "text-orange-500";
+    } else if (days >= 5 && days <= 7) {
+        return "text-yellow-500";
+    } else if (days >= 8 && days <= 14) {
+        return "text-green-500";
+    } else if (days >= 15 && days <= 30) {
+        return "text-sky-400";
+    } else {
+        return "text-white";
+    }
 }
 
 export function getPriorityClasses(priority: string | null) {

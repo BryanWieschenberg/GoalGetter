@@ -1,3 +1,5 @@
+import { Event } from "@/types/core-types";
+
 export function startOfWeek(d: Date, weekStart: number = 0) {
     const date = new Date(d);
     date.setHours(0, 0, 0, 0);
@@ -18,24 +20,47 @@ export function addDays(d: Date, n: number) {
 }
 
 export function formatWeekRange(start: Date, end: Date): string {
-    const sameMonth = start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
+    const sameMonth =
+        start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
     const sameYear = start.getFullYear() === end.getFullYear();
 
     if (sameMonth) {
-        return new Intl.DateTimeFormat(undefined, { month: 'long', year: 'numeric' }).format(start);
+        return new Intl.DateTimeFormat(undefined, {
+            month: "long",
+            year: "numeric",
+        }).format(start);
     } else if (sameYear) {
-        const firstLabel = new Intl.DateTimeFormat(undefined, { month: 'short' }).format(start);
-        const lastLabel  = new Intl.DateTimeFormat(undefined, { month: 'short', year: 'numeric' }).format(end);
+        const firstLabel = new Intl.DateTimeFormat(undefined, {
+            month: "short",
+        }).format(start);
+        const lastLabel = new Intl.DateTimeFormat(undefined, {
+            month: "short",
+            year: "numeric",
+        }).format(end);
         return `${firstLabel} – ${lastLabel}`;
     } else {
-        const firstLabel = new Intl.DateTimeFormat(undefined, { month: 'short', year: 'numeric' }).format(start);
-        const lastLabel  = new Intl.DateTimeFormat(undefined, { month: 'short', year: 'numeric' }).format(end);
+        const firstLabel = new Intl.DateTimeFormat(undefined, {
+            month: "short",
+            year: "numeric",
+        }).format(start);
+        const lastLabel = new Intl.DateTimeFormat(undefined, {
+            month: "short",
+            year: "numeric",
+        }).format(end);
         return `${firstLabel} – ${lastLabel}`;
     }
 }
 
 const PX_PER_MIN = 48 / 60;
-const dowCodeToJs: Record<string, number> = { MO:1, TU:2, WE:3, TH:4, FR:5, SA:6, SU:0 };
+const dowCodeToJs: Record<string, number> = {
+    MO: 1,
+    TU: 2,
+    WE: 3,
+    TH: 4,
+    FR: 5,
+    SA: 6,
+    SU: 0,
+};
 
 type EventOccurrence = {
     id: number;
@@ -90,7 +115,11 @@ export function clampToWeek(date: Date, weekStart: Date, weekEnd: Date): boolean
 
 export function dayIndexFrom(date: Date, weekStart: Date): number {
     const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const normalizedWeekStart = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate());
+    const normalizedWeekStart = new Date(
+        weekStart.getFullYear(),
+        weekStart.getMonth(),
+        weekStart.getDate(),
+    );
     const ms = normalizedDate.getTime() - normalizedWeekStart.getTime();
     return Math.round(ms / (24 * 60 * 60 * 1000));
 }
@@ -105,19 +134,24 @@ export function getContrastTextColor(hex: string): string {
     return brightness > 128 ? "black" : "white";
 }
 
-function occurrenceIndex(start: Date, candidate: Date, frequency: string, interval: number): number | null {
+function occurrenceIndex(
+    start: Date,
+    candidate: Date,
+    frequency: string,
+    interval: number,
+): number | null {
     const s = new Date(start.getFullYear(), start.getMonth(), start.getDate());
     const c = new Date(candidate.getFullYear(), candidate.getMonth(), candidate.getDate());
     if (c < s) return null;
 
     if (frequency === "daily") {
-        const days = Math.floor((c.getTime() - s.getTime()) / (24*3600*1000));
+        const days = Math.floor((c.getTime() - s.getTime()) / (24 * 3600 * 1000));
         if (days % interval !== 0) return null;
         return Math.floor(days / interval) + 1;
     }
 
     if (frequency === "weekly") {
-        const weeks = Math.floor((c.getTime() - s.getTime()) / (7*24*3600*1000));
+        const weeks = Math.floor((c.getTime() - s.getTime()) / (7 * 24 * 3600 * 1000));
         if (weeks % interval !== 0) return null;
         return Math.floor(weeks / interval) + 1;
     }
@@ -130,14 +164,15 @@ function occurrenceIndex(start: Date, candidate: Date, frequency: string, interv
 
     if (frequency === "yearly") {
         const years = c.getFullYear() - s.getFullYear();
-        if (years % interval !== 0 || c.getMonth() !== s.getMonth() || c.getDate() !== s.getDate()) return null;
+        if (years % interval !== 0 || c.getMonth() !== s.getMonth() || c.getDate() !== s.getDate())
+            return null;
         return Math.floor(years / interval) + 1;
     }
 
     return null;
 }
 
-export function expandEventForWeek(ev: event, weekStart: Date, weekEnd: Date): EventOccurrence[] {
+export function expandEventForWeek(ev: Event, weekStart: Date, weekEnd: Date): EventOccurrence[] {
     const startBase = toDate(ev.start_time);
     const endBase = toDate(ev.end_time);
     const rec = (ev as any).recurrence as any | null;
@@ -151,11 +186,20 @@ export function expandEventForWeek(ev: event, weekStart: Date, weekEnd: Date): E
         if (e <= s) e.setDate(e.getDate() + 1);
 
         const top = minutesSinceMidnight(s) * PX_PER_MIN;
-        const height = Math.max(22, (e.getTime() - s.getTime()) / (60 * 1000) * PX_PER_MIN);
+        const height = Math.max(22, ((e.getTime() - s.getTime()) / (60 * 1000)) * PX_PER_MIN);
         const dayIndex = dayIndexFrom(s, weekStart);
 
         return {
-            id: ev.id, title: ev.title, color: ev.color, start: s, end: e, dayIndex, top, height, startLabel: formatHM(s), endLabel: formatHM(e)
+            id: ev.id,
+            title: ev.title,
+            color: ev.color,
+            start: s,
+            end: e,
+            dayIndex,
+            top,
+            height,
+            startLabel: formatHM(s),
+            endLabel: formatHM(e),
         } as EventOccurrence & { startLabel: string; endLabel: string };
     };
 
@@ -165,19 +209,20 @@ export function expandEventForWeek(ev: event, weekStart: Date, weekEnd: Date): E
         const weekStartFull = new Date(weekStart);
         weekStartFull.setHours(0, 0, 0, 0);
         const overlaps = startBase <= weekEndFull && endBase >= weekStartFull;
-        if (!overlaps) { return []; }
-        
+        if (!overlaps) {
+            return [];
+        }
+
         const occ = makeOcc(startBase);
-        const eventDate = new Date(startBase.getFullYear(), startBase.getMonth(), startBase.getDate());
+        const eventDate = new Date(
+            startBase.getFullYear(),
+            startBase.getMonth(),
+            startBase.getDate(),
+        );
         const w0 = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate());
         const w1 = new Date(weekEnd.getFullYear(), weekEnd.getMonth(), weekEnd.getDate());
-                        
-        if (
-            eventDate >= w0 &&
-            eventDate <= w1 &&
-            occ.dayIndex >= 0 &&
-            occ.dayIndex <= 6
-        ) {
+
+        if (eventDate >= w0 && eventDate <= w1 && occ.dayIndex >= 0 && occ.dayIndex <= 6) {
             return [occ];
         }
 
@@ -185,7 +230,7 @@ export function expandEventForWeek(ev: event, weekStart: Date, weekEnd: Date): E
     }
 
     const until: Date | null = rec.until ? toDate(rec.until) : null;
-    const countLimit: number | null = typeof rec.count === 'number' ? rec.count : null;
+    const countLimit: number | null = typeof rec.count === "number" ? rec.count : null;
     const occurrences: EventOccurrence[] = [];
     const exceptions: Date[] = Array.isArray(rec.exceptions)
         ? rec.exceptions.map((x: string) => toDate(x))
@@ -193,20 +238,26 @@ export function expandEventForWeek(ev: event, weekStart: Date, weekEnd: Date): E
 
     const pushIfValid = (d: Date) => {
         if (until && d > until) return;
-        if (exceptions.some(ex => sameYMD(ex, d))) return;
-        
+        if (exceptions.some((ex) => sameYMD(ex, d))) return;
+
         const occ = makeOcc(d);
         const withinWeek = clampToWeek(d, weekStart, weekEnd);
         const validDayIndex = occ.dayIndex >= 0 && occ.dayIndex <= 6;
-        
+
         if (withinWeek && validDayIndex) occurrences.push(occ);
     };
 
-    if (rec.frequency === 'daily') {
+    if (rec.frequency === "daily") {
         const step = Math.max(1, rec.interval || 1);
-        const d = new Date(Math.max(startBase.getTime(), weekStart.getTime() - 24*60*60*1000));
+        const d = new Date(
+            Math.max(startBase.getTime(), weekStart.getTime() - 24 * 60 * 60 * 1000),
+        );
 
-        const start0 = new Date(startBase.getFullYear(), startBase.getMonth(), startBase.getDate()).getTime();
+        const start0 = new Date(
+            startBase.getFullYear(),
+            startBase.getMonth(),
+            startBase.getDate(),
+        ).getTime();
         const diffDays = Math.floor((d.getTime() - start0) / (24 * 3600 * 1000));
         const offset = (step - (diffDays % step)) % step;
         d.setDate(d.getDate() + offset);
@@ -224,7 +275,7 @@ export function expandEventForWeek(ev: event, weekStart: Date, weekEnd: Date): E
         return occurrences;
     }
 
-    if (rec.frequency === 'weekly') {
+    if (rec.frequency === "weekly") {
         const stepWeeks = Math.max(1, rec.interval || 1);
         const allowedDows: number[] = Array.isArray(rec.weekly)
             ? rec.weekly.map((x: string) => dowCodeToJs[x])
@@ -232,7 +283,7 @@ export function expandEventForWeek(ev: event, weekStart: Date, weekEnd: Date): E
 
         const weekStartOf = (d: Date) => {
             const w = new Date(d);
-            w.setHours(0,0,0,0);
+            w.setHours(0, 0, 0, 0);
             const diff = (w.getDay() - weekStart.getDay() + 7) % 7;
             w.setDate(w.getDate() - diff);
             return w;
@@ -244,10 +295,16 @@ export function expandEventForWeek(ev: event, weekStart: Date, weekEnd: Date): E
             d.setDate(weekStart.getDate() + i);
             if (!allowedDows.includes(d.getDay())) continue;
 
-            const weeksSince = Math.floor((weekStartOf(d).getTime() - startWeek0) / (7 * 24 * 3600 * 1000));
-            if (weeksSince < 0 || (weeksSince % stepWeeks) !== 0) continue;
+            const weeksSince = Math.floor(
+                (weekStartOf(d).getTime() - startWeek0) / (7 * 24 * 3600 * 1000),
+            );
+            if (weeksSince < 0 || weeksSince % stepWeeks !== 0) continue;
 
-            const startDateOnly = new Date(startBase.getFullYear(), startBase.getMonth(), startBase.getDate());
+            const startDateOnly = new Date(
+                startBase.getFullYear(),
+                startBase.getMonth(),
+                startBase.getDate(),
+            );
             if (d < startDateOnly) continue;
 
             const idx = occurrenceIndex(startBase, d, rec.frequency, rec.interval || 1);
@@ -258,7 +315,7 @@ export function expandEventForWeek(ev: event, weekStart: Date, weekEnd: Date): E
         return occurrences;
     }
 
-    if (rec.frequency === 'monthly') {
+    if (rec.frequency === "monthly") {
         const step = Math.max(1, rec.interval || 1);
         const startDateOnly = toDateOnly(startBase);
 
@@ -278,7 +335,7 @@ export function expandEventForWeek(ev: event, weekStart: Date, weekEnd: Date): E
         return occurrences;
     }
 
-    if (rec.frequency === 'yearly') {
+    if (rec.frequency === "yearly") {
         const stepYears = Math.max(1, rec.interval || 1);
 
         for (let i = -1; i <= 7; i++) {
@@ -291,10 +348,8 @@ export function expandEventForWeek(ev: event, weekStart: Date, weekEnd: Date): E
             const startDateOnly = toDateOnly(startBase);
             if (toDateOnly(d) < startDateOnly) continue;
 
-            if (
-                d.getMonth() !== startBase.getMonth() ||
-                d.getDate() !== startBase.getDate()
-            ) continue;
+            if (d.getMonth() !== startBase.getMonth() || d.getDate() !== startBase.getDate())
+                continue;
 
             const idx = occurrenceIndex(startBase, d, rec.frequency, rec.interval || 1);
             if (idx && (!countLimit || idx <= countLimit)) {
@@ -307,14 +362,22 @@ export function expandEventForWeek(ev: event, weekStart: Date, weekEnd: Date): E
     return [];
 }
 
-export function buildWeekOccurrences(events: event[], weekStart: Date): EventOccurrence[] {
+export function buildWeekOccurrences(events: Event[], weekStart: Date): EventOccurrence[] {
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekStart.getDate() + 6);
-    const occs = events.flatMap(ev => expandEventForWeek(ev, weekStart, weekEnd));
+    const occs = events.flatMap((ev) => expandEventForWeek(ev, weekStart, weekEnd));
 
-    const byDay: Record<number, EventOccurrence[]> = {0:[],1:[],2:[],3:[],4:[],5:[],6:[]};
-    occs.forEach(o => byDay[o.dayIndex]?.push(o));
-    
+    const byDay: Record<number, EventOccurrence[]> = {
+        0: [],
+        1: [],
+        2: [],
+        3: [],
+        4: [],
+        5: [],
+        6: [],
+    };
+    occs.forEach((o) => byDay[o.dayIndex]?.push(o));
+
     for (const k of Object.keys(byDay)) {
         const arr = byDay[Number(k)];
         arr.sort((a, b) => a.top - b.top);
@@ -324,7 +387,9 @@ export function buildWeekOccurrences(events: event[], weekStart: Date): EventOcc
             let placedGroup: EventOccurrence[] | null = null;
 
             for (const g of groups) {
-                const overlaps = g.some((e2) => ev.top < e2.top + e2.height && ev.top + ev.height > e2.top);
+                const overlaps = g.some(
+                    (e2) => ev.top < e2.top + e2.height && ev.top + ev.height > e2.top,
+                );
                 if (overlaps) {
                     placedGroup = g;
                     break;
@@ -349,7 +414,9 @@ export function buildWeekOccurrences(events: event[], weekStart: Date): EventOcc
             group.forEach((ev) => {
                 let placed = false;
                 for (const col of cols) {
-                    const overlaps = col.some((e2) => ev.top < e2.top + e2.height && ev.top + ev.height > e2.top);
+                    const overlaps = col.some(
+                        (e2) => ev.top < e2.top + e2.height && ev.top + ev.height > e2.top,
+                    );
                     if (!overlaps) {
                         col.push(ev);
                         placed = true;

@@ -12,10 +12,7 @@ export async function generateHandle(baseName: string, client: PoolClient) {
         const randomSuffix = crypto.randomBytes(3).toString("hex");
         handle = `${base}-${randomSuffix}`;
 
-        const result = await client.query(
-            `SELECT 1 FROM users WHERE handle = $1`,
-            [handle]
-        );
+        const result = await client.query(`SELECT 1 FROM users WHERE handle = $1`, [handle]);
 
         if (result.rowCount === 0) {
             return handle;

@@ -1,4 +1,4 @@
-import { Pool } from 'pg';
+import { Pool } from "pg";
 
 const pool = new Pool({
     user: process.env.PGUSER,
@@ -6,7 +6,9 @@ const pool = new Pool({
     database: process.env.PGNAME,
     password: process.env.PGPASSWORD,
     port: Number(process.env.PGPORT),
-    ssl: {rejectUnauthorized: false}
+    ssl: {
+        rejectUnauthorized: process.env.NODE_ENV === "production",
+    },
 });
 
 export default pool;

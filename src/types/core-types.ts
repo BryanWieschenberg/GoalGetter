@@ -1,12 +1,12 @@
-type task_category = {
+export type TaskCategory = {
     id: number;
     user_id: number;
     name: string;
     color: string | null;
     sort_order: number;
-}
+};
 
-type task = {
+export type Task = {
     id: number;
     title: string;
     description: string | null;
@@ -15,24 +15,24 @@ type task = {
     due_date: string | null;
     priority: string;
     sort_order: number;
-}
+};
 
-type tag = {
+export type Tag = {
     id: number;
     category_id: string;
     name: string;
     color: string | null;
-}
+};
 
-type event_category = {
+export type EventCategory = {
     id: number;
     user_id: number;
     name: string;
     color: string | null;
     main: boolean;
-}
+};
 
-type event = {
+export type Event = {
     id: number;
     category_id: number;
     title: string;
@@ -48,4 +48,4 @@ type event = {
         exceptions: string[] | null;
         until: string | null;
     } | null;
-}
+};

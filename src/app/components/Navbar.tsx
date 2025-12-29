@@ -28,22 +28,10 @@ export default function Navbar({ hasSession }: { hasSession: boolean }) {
                     Insights
                 </Link>
                 <Link
-                    href="/feed"
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition"
-                >
-                    Feed
-                </Link>
-                <Link
                     href="/notifications"
                     className="hover:text-blue-600 dark:hover:text-blue-400 transition"
                 >
                     Notications
-                </Link>
-                <Link
-                    href="/messages"
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition"
-                >
-                    Messages
                 </Link>
                 <Link
                     href="/profile"

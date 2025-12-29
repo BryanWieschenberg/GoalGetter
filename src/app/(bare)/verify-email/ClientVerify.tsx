@@ -8,12 +8,7 @@ export default function ClientVerify({ token }: { token?: string }) {
     const [message, setMessage] = useState("");
 
     if (!token) {
-        return (
-            <UI
-                message="No verification token was provided."
-                success={false}
-            />
-        );
+        return <UI message="No verification token was provided." success={false} />;
     }
 
     const handleVerify = async () => {
@@ -34,7 +29,7 @@ export default function ClientVerify({ token }: { token?: string }) {
                 setMessage(
                     data?.error === "invalid_or_expired"
                         ? "This verification link is invalid or has expired."
-                        : "Something went wrong. Please try again."
+                        : "Something went wrong. Please try again.",
                 );
             }
         } catch {
@@ -62,9 +57,7 @@ export default function ClientVerify({ token }: { token?: string }) {
             {status === "loading" && <p className="mt-4">Verifying...</p>}
 
             {status === "success" && (
-                <p className="mt-4 text-green-600 dark:text-green-400">
-                    {message}
-                </p>
+                <p className="mt-4 text-green-600 dark:text-green-400">{message}</p>
             )}
 
             {status === "error" && (

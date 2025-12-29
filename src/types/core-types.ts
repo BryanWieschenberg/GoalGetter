@@ -10,7 +10,7 @@ export type Task = {
     id: number;
     title: string;
     description: string | null;
-    category_id: string;
+    category_id: number;
     tag_id: number | null;
     due_date: string | null;
     priority: string;
@@ -19,7 +19,7 @@ export type Task = {
 
 export type Tag = {
     id: number;
-    category_id: string;
+    category_id: number;
     name: string;
     color: string | null;
 };

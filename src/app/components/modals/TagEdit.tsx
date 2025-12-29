@@ -1,22 +1,33 @@
 "use client";
 
 import { useState } from "react";
+import { TaskCategory, Tag } from "@/types/core-types";
 
 type TagEditProps = {
-    categories: any[];
+    categories: TaskCategory[];
     modalError?: string | null;
     onClose: () => void;
     onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
     onDelete: (id: number) => void;
-    preSelectedTag: tag;
+    preSelectedTag: Tag;
     onCategoryReturn?: () => void;
 };
 
-export default function TagEdit({ categories, modalError, onClose, onSubmit, onDelete, preSelectedTag, onCategoryReturn }: TagEditProps) {
+export default function TagEdit({
+    categories,
+    modalError,
+    onClose,
+    onSubmit,
+    onDelete,
+    preSelectedTag,
+    onCategoryReturn,
+}: TagEditProps) {
     const [title, setTitle] = useState<string>(preSelectedTag.name);
-    const [color, setColor] = useState<string>(preSelectedTag.color ? `#${preSelectedTag.color}` : "#ffffff");
+    const [color, setColor] = useState<string>(
+        preSelectedTag.color ? `#${preSelectedTag.color}` : "#ffffff",
+    );
     const [useCustomColor, setUseCustomColor] = useState<boolean>(!!preSelectedTag.color);
-    const [selectedCategory, setSelectedCategory] = useState<string>(preSelectedTag.category_id);
+    const [selectedCategory, setSelectedCategory] = useState<number>(preSelectedTag.category_id);
 
     return (
         <div
@@ -25,10 +36,7 @@ export default function TagEdit({ categories, modalError, onClose, onSubmit, onD
             role="dialog"
             aria-labelledby="edit-tag-title"
         >
-            <div
-                className="absolute inset-0 bg-black/50"
-                onClick={onClose}
-            />
+            <div className="absolute inset-0 bg-black/50" onClick={onClose} />
 
             <div className="relative z-[61] w-[90vw] max-w-xl rounded-2xl border-[.2rem] border-zinc-500/70 bg-zinc-100 dark:bg-zinc-900 shadow-2xl">
                 <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-200 dark:border-zinc-800">
@@ -56,7 +64,8 @@ export default function TagEdit({ categories, modalError, onClose, onSubmit, onD
 
                 {modalError && (
                     <div className="px-5 py-3 bg-red-300 text-black dark:bg-red-800 dark:text-white">
-                        <strong>Error: </strong>{modalError}
+                        <strong>Error: </strong>
+                        {modalError}
                     </div>
                 )}
 
@@ -106,7 +115,7 @@ export default function TagEdit({ categories, modalError, onClose, onSubmit, onD
                             name="category_id"
                             required
                             value={selectedCategory}
-                            onChange={(e) => setSelectedCategory(e.target.value)}
+                            onChange={(e) => setSelectedCategory(Number(e.target.value))}
                             className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-3 py-2 outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600"
                         >
                             {categories.map((c) => (

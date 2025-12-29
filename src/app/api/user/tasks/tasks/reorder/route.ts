@@ -18,7 +18,7 @@ export async function PATCH(req: Request) {
             FROM tasks t
             JOIN task_categories tc ON t.category_id = tc.id
             WHERE t.id = $1 AND tc.user_id = $2`,
-            [task_id, session?.user.id]
+            [task_id, session?.user.id],
         );
         if (ownerCheck.rowCount === 0) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -28,7 +28,7 @@ export async function PATCH(req: Request) {
             `SELECT id, category_id, sort_order
             FROM tasks
             WHERE id = $1`,
-            [task_id]
+            [task_id],
         );
         if (rows.length === 0) {
             return NextResponse.json({ error: "Task not found" }, { status: 404 });
@@ -46,7 +46,7 @@ export async function PATCH(req: Request) {
             AND sort_order ${directionOp} $2
             ORDER BY sort_order ${orderDir}
             LIMIT 1`,
-            [task.category_id, task.sort_order]
+            [task.category_id, task.sort_order],
         );
 
         if (neighbor.rows.length === 0) {
@@ -58,20 +58,22 @@ export async function PATCH(req: Request) {
         await client.query("BEGIN");
         began = true;
 
-        await client.query(
-            `UPDATE tasks SET sort_order = $1 WHERE id = $2`,
-            [swap.sort_order, task.id]
-        );
-        await client.query(
-            `UPDATE tasks SET sort_order = $1 WHERE id = $2`,
-            [task.sort_order, swap.id]
-        );
+        await client.query(`UPDATE tasks SET sort_order = $1 WHERE id = $2`, [
+            swap.sort_order,
+            task.id,
+        ]);
+        await client.query(`UPDATE tasks SET sort_order = $1 WHERE id = $2`, [
+            task.sort_order,
+            swap.id,
+        ]);
         await client.query("COMMIT");
         began = false;
 
         return NextResponse.json({ ok: true });
     } catch (err) {
-        if (began) { await client.query("ROLLBACK"); }
+        if (began) {
+            await client.query("ROLLBACK");
+        }
         console.error("PATCH /api/user/tasks/tasks/reorder", err);
         return NextResponse.json({ error: "Failed to reorder tasks." }, { status: 500 });
     } finally {

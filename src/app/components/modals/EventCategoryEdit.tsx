@@ -1,16 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import { EventCategory } from "@/types/core-types";
 
 type EventCategoryEditProps = {
     modalError?: string | null;
     onClose: () => void;
     onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
     onDelete: (id: number) => void;
-    preSelectedCategory: event_category;
+    preSelectedCategory: EventCategory;
 };
 
-export default function EventCategoryEdit({ modalError, onClose, onSubmit, onDelete, preSelectedCategory }: EventCategoryEditProps) {
+export default function EventCategoryEdit({
+    modalError,
+    onClose,
+    onSubmit,
+    onDelete,
+    preSelectedCategory,
+}: EventCategoryEditProps) {
     const [useCustomColor, setUseCustomColor] = useState(!!preSelectedCategory.color);
 
     return (
@@ -20,10 +27,7 @@ export default function EventCategoryEdit({ modalError, onClose, onSubmit, onDel
             role="dialog"
             aria-labelledby="edit-event-category-title"
         >
-            <div
-                className="absolute inset-0 bg-black/50 animate-fadeIn"
-                onClick={onClose}
-            />
+            <div className="absolute inset-0 bg-black/50 animate-fadeIn" onClick={onClose} />
 
             <div className="relative z-[61] w-[90vw] max-w-xl rounded-2xl border-[.2rem] border-zinc-500/70 bg-zinc-100 dark:bg-zinc-900 shadow-2xl animate-slideUp">
                 <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-200 dark:border-zinc-800">
@@ -48,7 +52,8 @@ export default function EventCategoryEdit({ modalError, onClose, onSubmit, onDel
 
                 {modalError && (
                     <div className="px-5 py-3 bg-red-300 text-black dark:bg-red-800 dark:text-white">
-                        <strong>Error: </strong>{modalError}
+                        <strong>Error: </strong>
+                        {modalError}
                     </div>
                 )}
 
@@ -82,7 +87,11 @@ export default function EventCategoryEdit({ modalError, onClose, onSubmit, onDel
                                 type="color"
                                 id="categoryColor"
                                 name="color"
-                                defaultValue={preSelectedCategory.color ? `#${preSelectedCategory.color}` : "#ffffff"}
+                                defaultValue={
+                                    preSelectedCategory.color
+                                        ? `#${preSelectedCategory.color}`
+                                        : "#ffffff"
+                                }
                                 className={`h-10 w-14 rounded-md border-2 border-zinc-300 dark:border-zinc-700 bg-white dark:bg-black p-1
                                     ${useCustomColor ? "cursor-pointer opacity-100" : "cursor-not-allowed opacity-0"}`}
                                 disabled={!useCustomColor}
@@ -96,9 +105,10 @@ export default function EventCategoryEdit({ modalError, onClose, onSubmit, onDel
                             onClick={() => onDelete(preSelectedCategory.id)}
                             disabled={preSelectedCategory.main}
                             className={`rounded-lg px-4 py-2 text-sm font-medium 
-                                ${preSelectedCategory.main
-                                    ? "bg-zinc-400 dark:bg-zinc-600 text-zinc-900 cursor-not-allowed opacity-60"
-                                    : "bg-red-600 text-white hover:bg-red-700 active:bg-red-800 hover:cursor-pointer"
+                                ${
+                                    preSelectedCategory.main
+                                        ? "bg-zinc-400 dark:bg-zinc-600 text-zinc-900 cursor-not-allowed opacity-60"
+                                        : "bg-red-600 text-white hover:bg-red-700 active:bg-red-800 hover:cursor-pointer"
                                 }`}
                         >
                             Delete

@@ -7,7 +7,7 @@ export async function GET() {
     if (!session?.user?.id) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    
+
     try {
         const events = await pool.query(
             `SELECT
@@ -17,7 +17,7 @@ export async function GET() {
             LEFT JOIN event_recurrence r ON e.id = r.event_id
             WHERE e.category_id IN (SELECT id FROM event_categories WHERE user_id = $1)
             ORDER BY e.start_time ASC`,
-            [session.user.id]
+            [session.user.id],
         );
 
         return NextResponse.json({ events: events.rows }, { status: 200 });
@@ -39,13 +39,23 @@ export async function POST(req: Request) {
         const body = await req.json();
         const payload = body.payload;
         const {
-            title, description, category_id, color, start_time, end_time,
-            frequency, interval, count, until, weekly, exceptions
-         } = payload;
+            title,
+            description,
+            category_id,
+            color,
+            start_time,
+            end_time,
+            frequency,
+            interval,
+            count,
+            until,
+            weekly,
+            exceptions,
+        } = payload;
 
         const catCheck = await client.query(
             "SELECT 1 FROM event_categories WHERE id = $1 AND user_id = $2",
-            [category_id, session?.user.id]
+            [category_id, session?.user.id],
         );
         if (catCheck.rowCount === 0) {
             return NextResponse.json({ error: "Invalid category" }, { status: 403 });
@@ -58,7 +68,7 @@ export async function POST(req: Request) {
             `INSERT INTO events (title, description, category_id, color, start_time, end_time)
             VALUES ($1, $2, $3, $4, $5, $6)
             RETURNING id`,
-            [title, description || null, category_id, color || null, start_time, end_time]
+            [title, description || null, category_id, color || null, start_time, end_time],
         );
 
         const eventId = eventRes.rows[0].id;
@@ -74,8 +84,8 @@ export async function POST(req: Request) {
                     weekly && weekly.length > 0 ? weekly : null,
                     count ? Number(count) : null,
                     exceptions ? exceptions.split(",").map((x: string) => x.trim()) : null,
-                    until || null
-                ]
+                    until || null,
+                ],
             );
         }
         await client.query("COMMIT");
@@ -83,7 +93,9 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ ok: true }, { status: 201 });
     } catch (e) {
-        if (began) { await client.query("ROLLBACK"); }
+        if (began) {
+            await client.query("ROLLBACK");
+        }
         console.error("POST /api/user/calendar/events error:", e);
         return NextResponse.json({ error: "Failed to add event." }, { status: 500 });
     } finally {
@@ -103,13 +115,24 @@ export async function PUT(req: Request) {
         const body = await req.json();
         const payload = body.payload;
         const {
-            id, title, description, category_id, color, start_time, end_time,
-            frequency, interval, count, until, weekly, exceptions
+            id,
+            title,
+            description,
+            category_id,
+            color,
+            start_time,
+            end_time,
+            frequency,
+            interval,
+            count,
+            until,
+            weekly,
+            exceptions,
         } = payload;
 
         const catCheck = await client.query(
             "SELECT 1 FROM event_categories WHERE id = $1 AND user_id = $2",
-            [category_id, session.user.id]
+            [category_id, session.user.id],
         );
         if (catCheck.rowCount === 0) {
             return NextResponse.json({ error: "Invalid category" }, { status: 403 });
@@ -122,7 +145,7 @@ export async function PUT(req: Request) {
             `UPDATE events
             SET title=$1, description=$2, category_id=$3, color=$4, start_time=$5, end_time=$6
             WHERE id=$7`,
-            [title, description || null, category_id, color || null, start_time, end_time, id]
+            [title, description || null, category_id, color || null, start_time, end_time, id],
         );
 
         await client.query(`DELETE FROM event_recurrence WHERE event_id=$1`, [id]);
@@ -138,8 +161,8 @@ export async function PUT(req: Request) {
                     weekly && weekly.length > 0 ? weekly : null,
                     count ? Number(count) : null,
                     exceptions ? exceptions.split(",").map((x: string) => x.trim()) : null,
-                    until || null
-                ]
+                    until || null,
+                ],
             );
         }
 
@@ -148,7 +171,9 @@ export async function PUT(req: Request) {
 
         return NextResponse.json({ ok: true }, { status: 200 });
     } catch (e) {
-        if (began) { await client.query("ROLLBACK"); }
+        if (began) {
+            await client.query("ROLLBACK");
+        }
         console.error("PUT /api/user/calendar/events error:", e);
         return NextResponse.json({ error: "Failed to update event." }, { status: 500 });
     } finally {
@@ -173,7 +198,7 @@ export async function DELETE(req: Request) {
             FROM events e
             JOIN event_categories ec ON e.category_id = ec.id
             WHERE e.id=$1 AND ec.user_id=$2`,
-            [id, session.user.id]
+            [id, session.user.id],
         );
         if (evCheck.rowCount === 0) {
             return NextResponse.json({ error: "Not found or not authorized" }, { status: 404 });
@@ -190,7 +215,9 @@ export async function DELETE(req: Request) {
 
         return NextResponse.json({ ok: true }, { status: 200 });
     } catch (e) {
-        if (began) { await client.query("ROLLBACK"); }
+        if (began) {
+            await client.query("ROLLBACK");
+        }
         console.error("DELETE /api/user/calendar/events error:", e);
         return NextResponse.json({ error: "Failed to delete event." }, { status: 500 });
     } finally {

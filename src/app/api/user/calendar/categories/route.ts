@@ -14,13 +14,16 @@ export async function GET() {
             FROM event_categories
             WHERE user_id = $1
             ORDER BY id ASC`,
-            [session?.user.id]
+            [session?.user.id],
         );
 
         return NextResponse.json({ categories: categories.rows }, { status: 200 });
     } catch (e) {
         console.error("GET /api/user/calendar/categories:", e);
-        return NextResponse.json({ error: "Failed to fetch calendar categories." }, { status: 500 });
+        return NextResponse.json(
+            { error: "Failed to fetch calendar categories." },
+            { status: 500 },
+        );
     }
 }
 
@@ -39,7 +42,7 @@ export async function POST(req: Request) {
             `INSERT INTO event_categories (user_id, name, color)
             VALUES ($1, $2, $3)
             RETURNING id, name, color`,
-            [session.user.id, name, color || null]
+            [session.user.id, name, color || null],
         );
 
         return NextResponse.json({ ok: true }, { status: 201 });
@@ -65,7 +68,7 @@ export async function PUT(req: Request) {
             SET name = $1, color = $2
             WHERE id = $3 AND user_id = $4
             RETURNING id, name, color`,
-            [title, color || null, id, session.user.id]
+            [title, color || null, id, session.user.id],
         );
 
         if (result.rowCount === 0) {
@@ -93,7 +96,7 @@ export async function DELETE(req: Request) {
             `DELETE FROM event_categories
             WHERE id = $1 AND user_id = $2
             RETURNING id`,
-            [id, session.user.id]
+            [id, session.user.id],
         );
 
         if (result.rowCount === 0) {

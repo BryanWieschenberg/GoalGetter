@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { FaRegCalendarAlt } from "react-icons/fa";
 import { EventCategory } from "@/types/core-types";
 
 type EventAddProps = {
-    categories: any[];
+    categories: EventCategory[];
     modalError?: string | null;
     onClose: () => void;
     onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
@@ -25,23 +25,10 @@ const DOW_LABELS: { code: string; label: string }[] = [
     { code: "SA", label: "Sat" },
 ];
 
-const MONTH_OPTIONS = [
-    { v: 1, n: "Jan" },
-    { v: 2, n: "Feb" },
-    { v: 3, n: "Mar" },
-    { v: 4, n: "Apr" },
-    { v: 5, n: "May" },
-    { v: 6, n: "Jun" },
-    { v: 7, n: "Jul" },
-    { v: 8, n: "Aug" },
-    { v: 9, n: "Sep" },
-    { v: 10, n: "Oct" },
-    { v: 11, n: "Nov" },
-    { v: 12, n: "Dec" },
-];
-
 function toLocalInput(dt: Date | null): string {
-    if (!dt) return "";
+    if (!dt) {
+        return "";
+    }
     const pad = (n: number) => String(n).padStart(2, "0");
     const yyyy = dt.getFullYear();
     const mm = pad(dt.getMonth() + 1);
@@ -72,37 +59,18 @@ export default function EventAdd({
     const [color, setColor] = useState<string>(
         preSelectedCategory?.color ? `#${preSelectedCategory.color.replace(/^#/, "")}` : "#ffffff",
     );
-    const startRef = useRef<HTMLInputElement>(null);
-    const endRef = useRef<HTMLInputElement>(null);
+    const startRef = useRef<HTMLInputElement | null>(null);
+    const endRef = useRef<HTMLInputElement | null>(null);
 
     const startDefault = toLocalInput(timeslot?.start ?? null);
     const endDefault = toLocalInput(timeslot?.end ?? null);
 
     const [startTime, setStartTime] = useState<string>(startDefault || "");
 
-    useEffect(() => {
-        if (!startTime) return;
-
-        if (frequency === "weekly") {
-            const d = new Date(startTime);
-            const code = DOW_LABELS[d.getDay()].code;
-            setWeekly([code]);
-        }
-    }, [frequency, startTime]);
-
-    useEffect(() => {
-        setSelectedCategory(preSelectedCategory ? String(preSelectedCategory.id) : "");
-        if (preSelectedCategory?.color) {
-            setUseCustomColor(true);
-            setColor(`#${preSelectedCategory.color.replace(/^#/, "")}`);
-        } else {
-            setUseCustomColor(false);
-            setColor("#ffffff");
-        }
-    }, [preSelectedCategory]);
-
     const renderRecurrenceFields = () => {
-        if (!frequency) return null;
+        if (!frequency) {
+            return null;
+        }
 
         return (
             <div className="space-y-3 rounded-lg border border-zinc-300 dark:border-zinc-700 p-3">
@@ -155,8 +123,11 @@ export default function EventAdd({
                                             'input[name="until"]',
                                         );
                                     if (input) {
-                                        if (typeof (input as any).showPicker === "function") {
-                                            (input as any).showPicker();
+                                        if (
+                                            "showPicker" in input &&
+                                            typeof input.showPicker === "function"
+                                        ) {
+                                            input.showPicker();
                                         } else {
                                             input.focus();
                                         }
@@ -374,10 +345,10 @@ export default function EventAdd({
                                     onClick={() => {
                                         if (startRef.current) {
                                             if (
-                                                typeof (startRef.current as any).showPicker ===
-                                                "function"
+                                                "showpicker" in startRef.current &&
+                                                typeof startRef.current.showPicker === "function"
                                             ) {
-                                                (startRef.current as any).showPicker();
+                                                startRef.current.showPicker();
                                             } else {
                                                 startRef.current.focus();
                                             }
@@ -423,10 +394,10 @@ export default function EventAdd({
                                     onClick={() => {
                                         if (endRef.current) {
                                             if (
-                                                typeof (endRef.current as any).showPicker ===
-                                                "function"
+                                                "showpicker" in endRef.current &&
+                                                typeof endRef.current.showPicker === "function"
                                             ) {
-                                                (endRef.current as any).showPicker();
+                                                endRef.current.showPicker();
                                             } else {
                                                 endRef.current.focus();
                                             }
@@ -461,7 +432,15 @@ export default function EventAdd({
                         <label className="text-sm font-medium">Repeating</label>
                         <select
                             value={frequency}
-                            onChange={(e) => setFrequency(e.target.value as Frequency)}
+                            onChange={(e) => {
+                                const next = e.target.value as Frequency;
+                                setFrequency(next);
+
+                                if (next === "weekly" && startTime) {
+                                    const d = new Date(startTime);
+                                    setWeekly([DOW_LABELS[d.getDay()].code]);
+                                }
+                            }}
                             className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2 outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600"
                         >
                             <option value="">Does not repeat</option>

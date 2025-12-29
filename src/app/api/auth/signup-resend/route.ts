@@ -13,7 +13,10 @@ export async function POST() {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const userRes = await pool.query("SELECT username, email, email_verified FROM users WHERE id=$1", [userId]);
+        const userRes = await pool.query(
+            "SELECT username, email, email_verified FROM users WHERE id=$1",
+            [userId],
+        );
         const user = userRes.rows[0];
         if (!user) {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -26,7 +29,7 @@ export async function POST() {
             `SELECT token, created_at FROM auth_tokens
             WHERE user_id=$1 AND purpose='signup'
             ORDER BY created_at DESC LIMIT 1`,
-            [userId]
+            [userId],
         );
 
         // Enforce 60s cooldown
@@ -36,8 +39,11 @@ export async function POST() {
             const cooldownMs = 60_000;
             if (elapsedMs < cooldownMs) {
                 const remainingSec = Math.ceil((cooldownMs - elapsedMs) / 1000);
-                return NextResponse.json({ error: "cooldown", remaining: remainingSec }, { status: 429 }
-);            }
+                return NextResponse.json(
+                    { error: "cooldown", remaining: remainingSec },
+                    { status: 429 },
+                );
+            }
         }
 
         const raw = crypto.randomBytes(32).toString("hex");
@@ -48,13 +54,13 @@ export async function POST() {
                 `UPDATE auth_tokens
                 SET token=$1, created_at=NOW(), expires_at=NOW() + interval '1 hour'
                 WHERE user_id=$2 AND purpose='signup'`,
-                [tokenHash, userId]
+                [tokenHash, userId],
             );
         } else {
             await pool.query(
                 `INSERT INTO auth_tokens (user_id, token, purpose)
                 VALUES ($1, $2, 'signup')`,
-                [userId, tokenHash]
+                [userId, tokenHash],
             );
         }
 
@@ -71,7 +77,10 @@ export async function POST() {
         });
 
         if (result.error) {
-            return NextResponse.json({ error: result.error.message ?? "Send failed" }, { status: 502 });
+            return NextResponse.json(
+                { error: result.error.message ?? "Send failed" },
+                { status: 502 },
+            );
         }
 
         return NextResponse.json({ ok: true });

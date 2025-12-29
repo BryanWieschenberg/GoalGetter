@@ -7,10 +7,7 @@ export async function PATCH(req: Request) {
 
     const hashed = await bcrypt.hash(password, 12);
 
-    await pool.query(
-        "UPDATE users SET password=$1 WHERE id=$2",
-        [hashed, accountId]
-    );
+    await pool.query("UPDATE users SET password=$1 WHERE id=$2", [hashed, accountId]);
 
     return NextResponse.json({ ok: true });
 }

@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { TaskCategory } from "@/types/core-types";
 
 type TagAddProps = {
-    categories: any[];
+    categories: TaskCategory[];
     modalError?: string | null;
     onClose: () => void;
     onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
@@ -11,9 +12,18 @@ type TagAddProps = {
     onCategoryReturn?: () => void;
 };
 
-export default function TagAdd({ categories, modalError, onClose, onSubmit, preSelectedCategory, onCategoryReturn }: TagAddProps) {
+export default function TagAdd({
+    categories,
+    modalError,
+    onClose,
+    onSubmit,
+    preSelectedCategory,
+    onCategoryReturn,
+}: TagAddProps) {
     const [useCustomColor, setUseCustomColor] = useState(false);
-    const [selectedCategory, setSelectedCategory] = useState<string>(preSelectedCategory ? String(preSelectedCategory) : "");
+    const [selectedCategory, setSelectedCategory] = useState<string>(
+        preSelectedCategory ? String(preSelectedCategory) : "",
+    );
 
     return (
         <div
@@ -27,7 +37,9 @@ export default function TagAdd({ categories, modalError, onClose, onSubmit, preS
                 onClick={onClose}
             />
 
-            <div className={`relative z-[61] w-[90vw] max-w-xl rounded-2xl border-[.2rem] border-zinc-500/70 bg-zinc-100 dark:bg-zinc-900 shadow-2xl ${preSelectedCategory ? "" : "animate-slideUp"}`}>
+            <div
+                className={`relative z-[61] w-[90vw] max-w-xl rounded-2xl border-[.2rem] border-zinc-500/70 bg-zinc-100 dark:bg-zinc-900 shadow-2xl ${preSelectedCategory ? "" : "animate-slideUp"}`}
+            >
                 <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-200 dark:border-zinc-800">
                     {preSelectedCategory ? (
                         <div className="flex items-center gap-3">
@@ -59,7 +71,8 @@ export default function TagAdd({ categories, modalError, onClose, onSubmit, preS
 
                 {modalError && (
                     <div className="px-5 py-3 bg-red-300 text-black dark:bg-red-800 dark:text-white">
-                        <strong>Error: </strong>{modalError}
+                        <strong>Error: </strong>
+                        {modalError}
                     </div>
                 )}
 

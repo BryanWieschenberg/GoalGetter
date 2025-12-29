@@ -22,7 +22,7 @@ export async function POST(req: Request) {
              FROM auth_tokens
              WHERE token=$1 AND purpose='signup' AND expires_at > NOW()
              LIMIT 1`,
-            [hashed]
+            [hashed],
         );
 
         if (!res.rowCount) {
@@ -40,7 +40,9 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ ok: true });
     } catch (e) {
-        if (began) { await client.query("ROLLBACK"); }
+        if (began) {
+            await client.query("ROLLBACK");
+        }
         console.error("Error verifying email:", e);
         return NextResponse.json({ error: "server_error" }, { status: 500 });
     } finally {

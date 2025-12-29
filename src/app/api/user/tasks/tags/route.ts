@@ -15,7 +15,7 @@ export async function GET() {
             JOIN task_categories tc ON tg.category_id = tc.id
             WHERE tc.user_id = $1
             ORDER BY tg.category_id, tg.id`,
-            [session?.user.id]
+            [session?.user.id],
         );
 
         return NextResponse.json({ tags: tags.rows }, { status: 200 });
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
 
         const catCheck = await pool.query(
             "SELECT 1 FROM task_categories WHERE id = $1 AND user_id = $2",
-            [category_id, session.user.id]
+            [category_id, session.user.id],
         );
         if (catCheck.rowCount === 0) {
             return NextResponse.json({ error: "Invalid category" }, { status: 403 });
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
             `INSERT INTO task_tags (name, category_id, color)
             VALUES ($1, $2, $3)
             RETURNING *`,
-            [title, category_id, color || null]
+            [title, category_id, color || null],
         );
 
         return NextResponse.json({ ok: true }, { status: 201 });
@@ -74,7 +74,7 @@ export async function PUT(req: Request) {
              FROM task_tags tg
              JOIN task_categories tc ON tg.category_id = tc.id
              WHERE tg.id = $1 AND tc.user_id = $2`,
-            [id, session.user.id]
+            [id, session.user.id],
         );
         if (tagCheck.rowCount === 0) {
             return NextResponse.json({ error: "Invalid tag" }, { status: 403 });
@@ -84,7 +84,7 @@ export async function PUT(req: Request) {
             `UPDATE task_tags
             SET name = $1, category_id = $2, color = $3
             WHERE id = $4`,
-            [title, category_id, color || null, id]
+            [title, category_id, color || null, id],
         );
 
         return NextResponse.json({ ok: true }, { status: 200 });
@@ -111,7 +111,7 @@ export async function DELETE(req: Request) {
              FROM task_tags tg
              JOIN task_categories tc ON tg.category_id = tc.id
              WHERE tg.id = $1 AND tc.user_id = $2`,
-            [id, session.user.id]
+            [id, session.user.id],
         );
         if (tagCheck.rowCount === 0) {
             return NextResponse.json({ error: "Invalid tag" }, { status: 403 });
@@ -119,7 +119,7 @@ export async function DELETE(req: Request) {
 
         await client.query("BEGIN");
         began = true;
-        
+
         await client.query("UPDATE tasks SET tag_id = NULL WHERE tag_id = $1", [id]);
         await client.query("DELETE FROM task_tags WHERE id = $1", [id]);
 
@@ -128,7 +128,9 @@ export async function DELETE(req: Request) {
 
         return NextResponse.json({ ok: true }, { status: 200 });
     } catch (err) {
-        if (began) { await client.query("ROLLBACK"); }
+        if (began) {
+            await client.query("ROLLBACK");
+        }
         console.error("DELETE /api/user/tasks/tags error:", err);
         return NextResponse.json({ error: "Failed to delete tag." }, { status: 500 });
     } finally {

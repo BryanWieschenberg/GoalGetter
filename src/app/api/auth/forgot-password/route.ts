@@ -20,7 +20,7 @@ export async function POST(req: Request) {
         const tokenRes = await pool.query(
             `SELECT token, created_at FROM auth_tokens
             WHERE user_id=$1 AND purpose='password_reset'`,
-            [userId.rows[0].id]
+            [userId.rows[0].id],
         );
 
         const raw = crypto.randomBytes(32).toString("hex");
@@ -32,20 +32,20 @@ export async function POST(req: Request) {
                 `UPDATE auth_tokens
                 SET token=$1, created_at=NOW(), expires_at=NOW() + interval '1 hour'
                 WHERE user_id=$2 AND purpose='password_reset'`,
-                [tokenHash, userId.rows[0].id]
+                [tokenHash, userId.rows[0].id],
             );
         } else {
             await pool.query(
                 `INSERT INTO auth_tokens (user_id, token, purpose)
                 VALUES ($1, $2, 'password_reset')`,
-                [userId.rows[0].id, tokenHash]
+                [userId.rows[0].id, tokenHash],
             );
         }
 
         const from = process.env.EMAIL_FROM ?? "onboarding@resend.dev";
         const resend = new Resend(process.env.RESEND_API_KEY);
         const link = `${process.env.NEXT_PUBLIC_APP_URL}/password-reset?token=${raw}`;
-        
+
         await resend.emails.send({
             from: from,
             to: email,

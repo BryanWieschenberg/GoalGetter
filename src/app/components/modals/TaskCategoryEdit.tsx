@@ -1,22 +1,35 @@
 "use client";
 
 import { useState } from "react";
+import { TaskCategory, Tag } from "@/types/core-types";
 
 type TaskCategoryEditProps = {
-    tags: any[];
+    tags: Tag[];
     modalError?: string | null;
     onClose: () => void;
     onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
     onDelete: (id: number) => void;
-    preSelectedCategory: task_category;
+    preSelectedCategory: TaskCategory;
     onTagAdd?: () => void;
     onTagEdit?: (tagId: number) => void;
-    noFade?: boolean
+    noFade?: boolean;
 };
 
-export default function TaskCategoryEdit({ tags, modalError, onClose, onSubmit, onDelete, preSelectedCategory, onTagAdd, onTagEdit, noFade }: TaskCategoryEditProps) {
+export default function TaskCategoryEdit({
+    tags,
+    modalError,
+    onClose,
+    onSubmit,
+    onDelete,
+    preSelectedCategory,
+    onTagAdd,
+    onTagEdit,
+    noFade,
+}: TaskCategoryEditProps) {
     const [title, setTitle] = useState<string>(preSelectedCategory.name);
-    const [color, setColor] = useState<string>(preSelectedCategory.color ? `#${preSelectedCategory.color}` : "#ffffff");
+    const [color, setColor] = useState<string>(
+        preSelectedCategory.color ? `#${preSelectedCategory.color}` : "#ffffff",
+    );
     const [useCustomColor, setUseCustomColor] = useState<boolean>(!!preSelectedCategory.color);
     const [selectedTag, setSelectedTag] = useState<number | null>(null);
 
@@ -34,7 +47,9 @@ export default function TaskCategoryEdit({ tags, modalError, onClose, onSubmit, 
                 onClick={onClose}
             />
 
-            <div className={`relative z-[61] w-[90vw] max-w-xl rounded-2xl border-[.2rem] border-zinc-500/70 bg-zinc-100 dark:bg-zinc-900 shadow-2xl ${noFade ? "" : "animate-slideUp"}`}>
+            <div
+                className={`relative z-[61] w-[90vw] max-w-xl rounded-2xl border-[.2rem] border-zinc-500/70 bg-zinc-100 dark:bg-zinc-900 shadow-2xl ${noFade ? "" : "animate-slideUp"}`}
+            >
                 <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-200 dark:border-zinc-800">
                     <h3 id="edit-category-title" className="text-lg font-semibold">
                         Edit Category
@@ -50,7 +65,8 @@ export default function TaskCategoryEdit({ tags, modalError, onClose, onSubmit, 
 
                 {modalError && (
                     <div className="px-5 py-3 bg-red-300 text-black dark:bg-red-800 dark:text-white">
-                        <strong>Error: </strong>{modalError}
+                        <strong>Error: </strong>
+                        {modalError}
                     </div>
                 )}
 
@@ -100,7 +116,9 @@ export default function TaskCategoryEdit({ tags, modalError, onClose, onSubmit, 
                             <select
                                 name="tag_id"
                                 value={selectedTag ?? ""}
-                                onChange={(e) => setSelectedTag(e.target.value ? Number(e.target.value) : null)}
+                                onChange={(e) =>
+                                    setSelectedTag(e.target.value ? Number(e.target.value) : null)
+                                }
                                 className="rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-3 py-2 outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600"
                             >
                                 <option value="">No tag selected</option>

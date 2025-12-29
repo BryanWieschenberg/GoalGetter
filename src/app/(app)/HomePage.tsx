@@ -3,13 +3,14 @@
 import { useRef, useState, useEffect } from "react";
 import Tasks from "../components/Tasks";
 import Calendar from "../components/Calendar";
+import { TaskCategory, Task, Tag, EventCategory, Event } from "@/types/core-types";
 
 interface Body {
-    task_categories: unknown[];
-    task_tags: unknown[];
-    tasks: unknown[];
-    event_categories: unknown[];
-    events: unknown[];
+    task_categories: TaskCategory[];
+    task_tags: Tag[];
+    tasks: Task[];
+    event_categories: EventCategory[];
+    events: Event[];
 }
 
 export default function HomePage({

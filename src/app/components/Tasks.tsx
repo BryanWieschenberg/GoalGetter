@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import TaskAdd from "./modals/TaskAdd";
 import TaskCategoryAdd from "./modals/TaskCategoryAdd";
 import TagAdd from "./modals/TagAdd";
@@ -50,7 +50,7 @@ export default function Tasks({
     const [sortOpen, setSortOpen] = useState(false);
     const [filterOpen, setFilterOpen] = useState(false);
     const [visibleCategories, setVisibleCategories] = useState<number[]>(
-        task_categories?.map((c: any) => c.id) ?? [],
+        task_categories?.map((c: TaskCategory) => c.id) ?? [],
     );
     const allPriorities = ["low", "normal", "high", "urgent"];
     const [visiblePriorities, setVisiblePriorities] = useState<string[]>(allPriorities);
@@ -62,11 +62,11 @@ export default function Tasks({
     const filterRef = useRef<HTMLDivElement | null>(null);
     const searchInputRef = useRef<HTMLInputElement | null>(null);
 
-    const tagById = (id?: number) => tags.find((t: any) => t.id === id);
+    const tagById = (id?: number | null) => tags.find((t: Tag) => t.id === id);
 
     const priorityRank: Record<string, number> = { urgent: 3, high: 2, normal: 1, low: 0 };
 
-    const closeAll = () => {
+    const closeAll = useCallback(() => {
         setModalOpen(null);
         setSelectedCategory(null);
         setSelectedCategoryRaw(null);
@@ -74,7 +74,7 @@ export default function Tasks({
         setSelectedTaskRaw(null);
         setModalError(null);
         setHighlightedBox(null);
-    };
+    }, [setModalOpen]);
 
     useEffect(() => {
         const onDocClick = (e: MouseEvent) => {
@@ -106,7 +106,9 @@ export default function Tasks({
                 return;
             }
 
-            if (isTyping) return;
+            if (isTyping) {
+                return;
+            }
 
             if (e.key === "Escape") {
                 setCreateOpen(false);
@@ -152,13 +154,13 @@ export default function Tasks({
             document.removeEventListener("mousedown", onDocClick);
             document.removeEventListener("keydown", onKeydown);
         };
-    }, []);
+    }, [closeAll, setModalOpen]);
 
     const fetchCategoryData = async () => {
         const res = await fetch("/api/user/tasks/categories");
         const data = await res.json();
         setCategories(data.categories);
-        setVisibleCategories(data.categories.map((c: any) => c.id));
+        setVisibleCategories(data.categories.map((c: TaskCategory) => c.id));
     };
 
     const fetchTagData = () => {
@@ -267,7 +269,9 @@ export default function Tasks({
     async function handleCategoryEdit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
-        if (!selectedCategoryRaw) return;
+        if (!selectedCategoryRaw) {
+            return;
+        }
 
         const form = new FormData(e.currentTarget);
 
@@ -300,7 +304,9 @@ export default function Tasks({
     async function handleTagEdit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
-        if (!selectedTagRaw) return;
+        if (!selectedTagRaw) {
+            return;
+        }
 
         const form = new FormData(e.currentTarget);
 
@@ -334,7 +340,9 @@ export default function Tasks({
     async function handleTaskEdit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
-        if (!selectedTaskRaw) return;
+        if (!selectedTaskRaw) {
+            return;
+        }
 
         const form = new FormData(e.currentTarget);
         const category_id_str = form.get("category_id");
@@ -435,7 +443,9 @@ export default function Tasks({
     }
 
     async function handleReorderTask(id: number, direction: "up" | "down") {
-        if (isReorderingTask) return;
+        if (isReorderingTask) {
+            return;
+        }
         setIsReorderingTask(true);
 
         try {
@@ -452,7 +462,7 @@ export default function Tasks({
             }
 
             fetchTaskData();
-        } catch (err) {
+        } catch {
             setModalError("Network error while reordering.");
         } finally {
             setIsReorderingTask(false);
@@ -460,7 +470,9 @@ export default function Tasks({
     }
 
     async function handleReorderCategory(id: number, direction: "up" | "down") {
-        if (isReorderingCategory) return;
+        if (isReorderingCategory) {
+            return;
+        }
         setIsReorderingCategory(true);
 
         try {
@@ -477,7 +489,7 @@ export default function Tasks({
             }
 
             fetchCategoryData();
-        } catch (err) {
+        } catch {
             setModalError("Network error while reordering category.");
         } finally {
             setIsReorderingCategory(false);
@@ -704,34 +716,50 @@ export default function Tasks({
             <div className="p-1.5">
                 {categories
                     .filter((cat: TaskCategory) => {
-                        if (visibleCategories.length === 0) return false;
+                        if (visibleCategories.length === 0) {
+                            return false;
+                        }
                         return visibleCategories.includes(cat.id);
                     })
                     .map((cat: TaskCategory) => {
                         // Get all categories
                         let catTasks = tasks
-                            .filter((t: any) => t.category_id === cat.id)
-                            .filter((t: any) => {
-                                if (visiblePriorities.length === 0) return false;
-                                if (!visiblePriorities.includes(t.priority)) return false;
+                            .filter((t: Task) => t.category_id === cat.id)
+                            .filter((t: Task) => {
+                                if (
+                                    visiblePriorities.length === 0 ||
+                                    !visiblePriorities.includes(t.priority)
+                                ) {
+                                    return false;
+                                }
 
                                 const days = t.due_date ? daysUntil(t.due_date) : null;
 
                                 if (dueFilter === "tomorrow") {
-                                    if (days === null) return true;
-                                    if (days > 1) return false;
+                                    if (days === null) {
+                                        return true;
+                                    } else if (days > 1) {
+                                        return false;
+                                    }
                                 } else if (dueFilter === "week") {
-                                    if (days === null) return true;
-                                    if (days > 7) return false;
+                                    if (days === null) {
+                                        return true;
+                                    } else if (days > 7) {
+                                        return false;
+                                    }
                                 } else if (dueFilter === "none") {
-                                    if (days !== null) return false;
+                                    if (days !== null) {
+                                        return false;
+                                    }
                                 }
 
                                 if (searchQuery.trim() !== "") {
                                     const q = searchQuery.toLowerCase();
                                     const title = t.title?.toLowerCase() ?? "";
                                     const desc = t.description?.toLowerCase() ?? "";
-                                    if (!title.includes(q) && !desc.includes(q)) return false;
+                                    if (!title.includes(q) && !desc.includes(q)) {
+                                        return false;
+                                    }
                                 }
 
                                 return true;
@@ -739,33 +767,43 @@ export default function Tasks({
 
                         catTasks = [...catTasks].sort((a, b) => {
                             if (sortMode === "dueAsc") {
-                                if (!a.due_date && !b.due_date) return 0;
-                                if (!a.due_date) return 1;
-                                if (!b.due_date) return -1;
+                                if (!a.due_date && !b.due_date) {
+                                    return 0;
+                                } else if (!a.due_date) {
+                                    return 1;
+                                } else if (!b.due_date) {
+                                    return -1;
+                                }
                                 return (
                                     new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
                                 );
                             }
                             if (sortMode === "dueDesc") {
-                                if (!a.due_date && !b.due_date) return 0;
-                                if (!a.due_date) return -1;
-                                if (!b.due_date) return 1;
+                                if (!a.due_date && !b.due_date) {
+                                    return 0;
+                                } else if (!a.due_date) {
+                                    return -1;
+                                } else if (!b.due_date) {
+                                    return 1;
+                                }
                                 return (
                                     new Date(b.due_date).getTime() - new Date(a.due_date).getTime()
                                 );
-                            } else if (sortMode === "priorityAsc")
+                            } else if (sortMode === "priorityAsc") {
                                 return (
                                     (priorityRank[a.priority] ?? 0) -
                                     (priorityRank[b.priority] ?? 0)
                                 );
-                            else if (sortMode === "priorityDesc")
+                            } else if (sortMode === "priorityDesc") {
                                 return (
                                     (priorityRank[b.priority] ?? 0) -
                                     (priorityRank[a.priority] ?? 0)
                                 );
-                            else if (sortMode === "orderDesc")
+                            } else if (sortMode === "orderDesc") {
                                 return (b.sort_order ?? 0) - (a.sort_order ?? 0);
-                            else return 0;
+                            } else {
+                                return 0;
+                            }
                         });
 
                         return (
@@ -834,8 +872,9 @@ export default function Tasks({
                                 ) : (
                                     // Get all tasks in this category
                                     <ul>
-                                        {catTasks.map((task: any) => {
+                                        {catTasks.map((task: Task) => {
                                             const tag = tagById(task.tag_id);
+
                                             return (
                                                 <li
                                                     key={task.id}
@@ -989,8 +1028,12 @@ export default function Tasks({
                     preSelectedCategory={modalOpen.includes("noFade") ? selectedCategory : null}
                     onCategoryReturn={() => {
                         if (selectedCategory) {
-                            const category = categories.find((c: any) => c.id === selectedCategory);
-                            if (category) setSelectedCategoryRaw(category);
+                            const category = categories.find(
+                                (c: TaskCategory) => c.id === selectedCategory,
+                            );
+                            if (category) {
+                                setSelectedCategoryRaw(category);
+                            }
                             setModalOpen("taskCategoryEdit noFade");
                         }
                     }}
@@ -1030,8 +1073,10 @@ export default function Tasks({
                     preSelectedCategory={selectedCategoryRaw}
                     onTagAdd={() => setModalOpen("tagAdd noFade")}
                     onTagEdit={(tagId) => {
-                        const tag = tags.find((t: any) => t.id === tagId);
-                        if (tag) setSelectedTagRaw(tag);
+                        const tag = tags.find((t: Tag) => t.id === tagId);
+                        if (tag) {
+                            setSelectedTagRaw(tag);
+                        }
                         setModalOpen("tagEdit");
                     }}
                     noFade={modalOpen.includes("noFade")}
@@ -1048,9 +1093,11 @@ export default function Tasks({
                     preSelectedTag={selectedTagRaw}
                     onCategoryReturn={() => {
                         const category = categories.find(
-                            (c: any) => c.id === selectedTagRaw.category_id,
+                            (c: TaskCategory) => c.id === selectedTagRaw.category_id,
                         );
-                        if (category) setSelectedCategoryRaw(category);
+                        if (category) {
+                            setSelectedCategoryRaw(category);
+                        }
                         setModalOpen("taskCategoryEdit noFade");
                     }}
                 />

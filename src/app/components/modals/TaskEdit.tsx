@@ -2,23 +2,40 @@
 
 import { useRef, useState } from "react";
 import { FaRegCalendarAlt } from "react-icons/fa";
+import { TaskCategory, Task, Tag } from "@/types/core-types";
 
 type TaskEditProps = {
-    categories: any[];
-    tags: any[];
+    categories: TaskCategory[];
+    tags: Tag[];
     modalError?: string | null;
     onClose: () => void;
     onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
     onDelete: (id: number) => void;
-    preSelectedTask: task;
+    preSelectedTask: Task;
 };
 
-export default function TaskEdit({ categories, tags, modalError, onClose, onSubmit, onDelete, preSelectedTask }: TaskEditProps) {
+export default function TaskEdit({
+    categories,
+    tags,
+    modalError,
+    onClose,
+    onSubmit,
+    onDelete,
+    preSelectedTask,
+}: TaskEditProps) {
     const [title, setTitle] = useState<string>(preSelectedTask.title);
-    const [description, setDescription] = useState<string>(preSelectedTask.description ? preSelectedTask.description : "");
-    const [selectedCategory, setSelectedCategory] = useState<string>(preSelectedTask.category_id);
-    const [selectedTag, setSelectedTag] = useState<string>(preSelectedTask.tag_id ? String(preSelectedTask.tag_id) : "");
-    const [dueDate, setDueDate] = useState<string>(preSelectedTask.due_date ? new Date(preSelectedTask.due_date).toISOString().slice(0, 10) : "");
+    const [description, setDescription] = useState<string>(
+        preSelectedTask.description ? preSelectedTask.description : "",
+    );
+    const [selectedCategory, setSelectedCategory] = useState<number>(preSelectedTask.category_id);
+    const [selectedTag, setSelectedTag] = useState<string>(
+        preSelectedTask.tag_id ? String(preSelectedTask.tag_id) : "",
+    );
+    const [dueDate, setDueDate] = useState<string>(
+        preSelectedTask.due_date
+            ? new Date(preSelectedTask.due_date).toISOString().slice(0, 10)
+            : "",
+    );
     const [priority, setPriority] = useState<string>(preSelectedTask.priority ?? "normal");
 
     const inputRef = useRef<HTMLInputElement>(null);
@@ -31,10 +48,7 @@ export default function TaskEdit({ categories, tags, modalError, onClose, onSubm
             role="dialog"
             aria-labelledby="new-task-title"
         >
-            <div
-                className="absolute inset-0 bg-black/50 animate-fadeIn"
-                onClick={onClose}
-            />
+            <div className="absolute inset-0 bg-black/50 animate-fadeIn" onClick={onClose} />
 
             <div className="relative z-[61] w-[90vw] max-w-xl rounded-2xl border-[.2rem] border-zinc-500/70 bg-zinc-100 dark:bg-zinc-900 shadow-2xl animate-slideUp">
                 <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-200 dark:border-zinc-800">
@@ -52,14 +66,12 @@ export default function TaskEdit({ categories, tags, modalError, onClose, onSubm
 
                 {modalError && (
                     <div className="px-5 py-3 bg-red-300 text-black dark:bg-red-800 dark:text-white">
-                        <strong>Error: </strong>{modalError}
+                        <strong>Error: </strong>
+                        {modalError}
                     </div>
                 )}
 
-                <form
-                    className="px-5 py-4 space-y-4"
-                    onSubmit={onSubmit}
-                >
+                <form className="px-5 py-4 space-y-4" onSubmit={onSubmit}>
                     <div className="grid gap-3">
                         <label className="text-sm font-medium">Title *</label>
                         <input
@@ -92,7 +104,7 @@ export default function TaskEdit({ categories, tags, modalError, onClose, onSubm
                                 name="category_id"
                                 required
                                 value={selectedCategory}
-                                onChange={(e) => setSelectedCategory(e.target.value)}
+                                onChange={(e) => setSelectedCategory(Number(e.target.value))}
                                 className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-3 py-2 outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600"
                             >
                                 <option value="" disabled hidden className="text-zinc-400">
@@ -117,10 +129,8 @@ export default function TaskEdit({ categories, tags, modalError, onClose, onSubm
                                 disabled={!selectedCategory}
                                 value={selectedTag}
                                 onChange={(e) => setSelectedTag(e.target.value)}
-                                className={
-                                    `w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-3 py-2 outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600
-                                    ${!selectedCategory ? "bg-zinc-100 dark:bg-zinc-800 cursor-not-allowed text-zinc-500 dark:text-zinc-400" : ""}`
-                                }
+                                className={`w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-3 py-2 outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600
+                                    ${!selectedCategory ? "bg-zinc-100 dark:bg-zinc-800 cursor-not-allowed text-zinc-500 dark:text-zinc-400" : ""}`}
                             >
                                 <option value="">No tag</option>
 
@@ -151,7 +161,7 @@ export default function TaskEdit({ categories, tags, modalError, onClose, onSubm
                                     onChange={(e) => setDueDate(e.target.value)}
                                     style={{
                                         WebkitAppearance: "none",
-                                        MozAppearance: "textfield"
+                                        MozAppearance: "textfield",
                                     }}
                                 />
                                 <FaRegCalendarAlt

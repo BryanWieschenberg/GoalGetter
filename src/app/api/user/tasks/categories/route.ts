@@ -14,7 +14,7 @@ export async function GET() {
             FROM task_categories
             WHERE user_id = $1
             ORDER BY sort_order, id`,
-            [session?.user.id]
+            [session?.user.id],
         );
 
         return NextResponse.json({ categories: categories.rows }, { status: 200 });
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    try {        
+    try {
         const body = await req.json();
         const payload = body.payload;
         const { title, color } = payload;
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
             `SELECT COALESCE(MAX(sort_order) + 1, 0) AS next_order
             FROM task_categories
             WHERE user_id = $1`,
-            [session?.user.id]
+            [session?.user.id],
         );
         const nextOrder = maxRows[0].next_order;
 
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
             `INSERT INTO task_categories (user_id, name, color, sort_order)
             VALUES ($1, $2, $3, $4)
             RETURNING *`,
-            [session?.user.id, title, color || null, nextOrder]
+            [session?.user.id, title, color || null, nextOrder],
         );
 
         return NextResponse.json({ category: category.rows[0] }, { status: 201 });
@@ -70,7 +70,7 @@ export async function PUT(req: Request) {
 
         const catCheck = await pool.query(
             "SELECT 1 FROM task_categories WHERE id = $1 AND user_id = $2",
-            [id, session.user.id]
+            [id, session.user.id],
         );
         if (catCheck.rowCount === 0) {
             return NextResponse.json({ error: "Invalid task category" }, { status: 403 });
@@ -80,7 +80,7 @@ export async function PUT(req: Request) {
             `UPDATE task_categories
             SET name = $1, color = $2
             WHERE id = $3`,
-            [title, color || null, id]
+            [title, color || null, id],
         );
 
         return NextResponse.json({ ok: true }, { status: 200 });
@@ -106,7 +106,7 @@ export async function DELETE(req: Request) {
             `SELECT sort_order
             FROM task_categories
             WHERE id = $1 AND user_id = $2`,
-            [id, session.user.id]
+            [id, session.user.id],
         );
         if (catRes.rowCount === 0) {
             return NextResponse.json({ error: "Invalid task category" }, { status: 403 });
@@ -125,7 +125,7 @@ export async function DELETE(req: Request) {
             `UPDATE task_categories
             SET sort_order = sort_order - 1
             WHERE user_id = $1 AND sort_order > $2`,
-            [session.user.id, sort_order]
+            [session.user.id, sort_order],
         );
 
         await client.query("COMMIT");
@@ -133,7 +133,9 @@ export async function DELETE(req: Request) {
 
         return NextResponse.json({ ok: true }, { status: 200 });
     } catch (err) {
-        if (began) { await client.query("ROLLBACK"); }
+        if (began) {
+            await client.query("ROLLBACK");
+        }
         console.error("DELETE /api/user/tasks/categories error:", err);
         return NextResponse.json({ error: "Failed to delete task category." }, { status: 500 });
     } finally {

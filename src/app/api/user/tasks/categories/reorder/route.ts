@@ -17,7 +17,7 @@ export async function PATCH(req: Request) {
             `SELECT id, sort_order
              FROM task_categories
              WHERE id = $1 AND user_id = $2`,
-            [category_id, session.user.id]
+            [category_id, session.user.id],
         );
         if (rows.length === 0) {
             return NextResponse.json({ error: "Category not found" }, { status: 404 });
@@ -34,7 +34,7 @@ export async function PATCH(req: Request) {
             AND sort_order ${directionOp} $2
             ORDER BY sort_order ${orderDir}
             LIMIT 1`,
-            [session.user.id, category.sort_order]
+            [session.user.id, category.sort_order],
         );
 
         if (neighbor.rows.length === 0) {
@@ -46,21 +46,23 @@ export async function PATCH(req: Request) {
         await client.query("BEGIN");
         began = true;
 
-        await client.query(
-            `UPDATE task_categories SET sort_order = $1 WHERE id = $2`,
-            [swap.sort_order, category.id]
-        );
-        await client.query(
-            `UPDATE task_categories SET sort_order = $1 WHERE id = $2`,
-            [category.sort_order, swap.id]
-        );
+        await client.query(`UPDATE task_categories SET sort_order = $1 WHERE id = $2`, [
+            swap.sort_order,
+            category.id,
+        ]);
+        await client.query(`UPDATE task_categories SET sort_order = $1 WHERE id = $2`, [
+            category.sort_order,
+            swap.id,
+        ]);
 
         await client.query("COMMIT");
         began = false;
 
         return NextResponse.json({ ok: true });
     } catch (err) {
-        if (began) { await client.query("ROLLBACK"); }
+        if (began) {
+            await client.query("ROLLBACK");
+        }
         console.error("PATCH /api/user/tasks/categories/reorder", err);
         return NextResponse.json({ error: "Failed to reorder categories." }, { status: 500 });
     } finally {

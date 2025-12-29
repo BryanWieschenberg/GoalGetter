@@ -10,7 +10,7 @@ type EventCategoryAddProps = {
 
 export default function EventCategoryAdd({ modalError, onClose, onSubmit }: EventCategoryAddProps) {
     const [useCustomColor, setUseCustomColor] = useState(false);
-    
+
     return (
         <div
             className="fixed inset-0 z-[60] flex items-center justify-center animate-fadeIn"
@@ -18,10 +18,7 @@ export default function EventCategoryAdd({ modalError, onClose, onSubmit }: Even
             role="dialog"
             aria-labelledby="new-event-category-title"
         >
-            <div
-                className="absolute inset-0 bg-black/50 animate-fadeIn"
-                onClick={onClose}
-            />
+            <div className="absolute inset-0 bg-black/50 animate-fadeIn" onClick={onClose} />
 
             <div className="relative z-[61] w-[90vw] max-w-xl rounded-2xl border-[.2rem] border-zinc-500/70 bg-zinc-100 dark:bg-zinc-900 shadow-2xl animate-slideUp">
                 <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-200 dark:border-zinc-800">
@@ -39,7 +36,8 @@ export default function EventCategoryAdd({ modalError, onClose, onSubmit }: Even
 
                 {modalError && (
                     <div className="px-5 py-3 bg-red-300 text-black dark:bg-red-800 dark:text-white">
-                        <strong>Error: </strong>{modalError}
+                        <strong>Error: </strong>
+                        {modalError}
                     </div>
                 )}
 

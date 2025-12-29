@@ -51,7 +51,7 @@ export default function Calendar({
     const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
     const [eventTimeslot, setEventTimeslot] = useState<{ start: Date; end: Date } | null>(null);
     const [visibleCategories, setVisibleCategories] = useState<number[]>(
-        categories?.map((c: any) => c.id) ?? [],
+        categories?.map((c: EventCategory) => c.id) ?? [],
     );
     const [tooltipsVisible, setTooltipsVisible] = useState(true);
 
@@ -59,7 +59,7 @@ export default function Calendar({
     const filterRef = useRef<HTMLDivElement>(null);
 
     const weekOccurrences = useMemo(() => {
-        const filtered = (events || []).filter((ev: any) =>
+        const filtered = (events || []).filter((ev: Event) =>
             visibleCategories.includes(ev.category_id),
         );
         return buildWeekOccurrences(filtered || [], weekStart);
@@ -167,23 +167,23 @@ export default function Calendar({
         const res = await fetch("/api/user/calendar/categories");
         const data = await res.json();
         setCategories(data.categories);
-        setVisibleCategories(data.categories.map((c: any) => c.id));
+        setVisibleCategories(data.categories.map((c: EventCategory) => c.id));
     };
 
     const fetchEventData = () => {
         fetch("/api/user/calendar/events")
             .then((res) => res.json())
             .then((data) => {
-                const transformedEvents = data.events.map((event: any) => ({
+                const transformedEvents = data.events.map((event: Event) => ({
                     ...event,
-                    recurrence: event.frequency
+                    recurrence: event.recurrence
                         ? {
-                              frequency: event.frequency,
-                              interval: event.interval,
-                              weekly: event.weekly,
-                              count: event.count,
-                              exceptions: event.exceptions,
-                              until: event.until,
+                              frequency: event.recurrence.frequency,
+                              interval: event.recurrence.interval,
+                              weekly: event.recurrence.weekly,
+                              count: event.recurrence.count,
+                              exceptions: event.recurrence.exceptions,
+                              until: event.recurrence.until,
                           }
                         : null,
                 }));
@@ -706,8 +706,8 @@ export default function Calendar({
                                 const leftExpr = `calc(64px + ((100% - 64px) / 7) * ${occ.dayIndex})`;
                                 const widthExpr = `calc(((100% - 64px) / 7) - 6px)`;
 
-                                const colIndex = (occ as any).__colIndex ?? 0;
-                                const colCount = Math.max(1, (occ as any).__colCount ?? 1);
+                                const colIndex = occ.__colIndex ?? 0;
+                                const colCount = Math.max(1, occ.__colCount ?? 1);
                                 const widthColExpr = `calc(((${widthExpr}) - 6px) / ${colCount})`;
                                 const leftColExpr = `calc(${leftExpr} + 3px + (${widthColExpr} * ${colIndex}) + (4px * ${colIndex}))`;
 

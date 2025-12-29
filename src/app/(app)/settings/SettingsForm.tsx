@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { HiPencil, HiX } from "react-icons/hi";
@@ -15,6 +15,7 @@ interface User {
 interface UserSettings {
     theme: string;
     week_start: string;
+    timezone: string;
 }
 
 type EditField = "username" | "handle" | "email";
@@ -44,6 +45,15 @@ export default function SettingsForm({
     const [editUsername, setEditUsername] = useState<string>(account.username);
     const [editHandle, setEditHandle] = useState<string>(account.handle);
     const [editEmail, setEditEmail] = useState<string>(account.email);
+    const [timezones, setTimezones] = useState<string[]>([]);
+
+    useEffect(() => {
+        setTimezones(Intl.supportedValuesOf("timeZone"));
+    }, []);
+
+    if (timezones.length === 0) {
+        return null;
+    }
 
     const closeEditor = () => {
         setEditorOpen(null);
@@ -124,10 +134,43 @@ export default function SettingsForm({
         }
     };
 
+    const resetSettingsToDefaults = async () => {
+        try {
+            setSaving(true);
+
+            const sysTimezone =
+                typeof Intl !== "undefined"
+                    ? Intl.DateTimeFormat().resolvedOptions().timeZone
+                    : "UTC";
+
+            const res = await fetch("/api/auth/settings", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    timezone: sysTimezone,
+                }),
+            });
+
+            if (!res.ok) {
+                throw new Error("Failed to reset settings");
+            }
+
+            const reset = { theme: "system", week_start: "sun", timezone: sysTimezone };
+
+            setSettings(reset);
+            router.refresh();
+            original.current = reset;
+        } catch (err) {
+            console.error("Error resetting settings:", err);
+        } finally {
+            setSaving(false);
+        }
+    };
+
     const handleSettingSave = async () => {
         setSaving(true);
         await fetch("/api/auth/settings", {
-            method: "PUT",
+            method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(settings),
         });
@@ -369,6 +412,16 @@ export default function SettingsForm({
             <h2 className="font-bold text-xl pb-4">User Preferences</h2>
 
             <div className="flex flex-col gap-4 max-w-md">
+                <button
+                    type="button"
+                    onClick={resetSettingsToDefaults}
+                    disabled={saving}
+                    className="border border-zinc-300 dark:border-zinc-700 px-4 py-2 rounded
+                        hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:cursor-pointer"
+                >
+                    Reset to Defaults
+                </button>
+
                 <label className="flex flex-col">
                     <strong>Theme:</strong>
                     <div className="flex items-center gap-2">
@@ -429,6 +482,47 @@ export default function SettingsForm({
                                 }
                                 className="text-sm ml-4 px-2 py-[.3rem] rounded border border-yellow-500 bg-yellow-100 text-yellow-700 hover:bg-yellow-200 dark:border-purple-700 dark:bg-purple-200 dark:text-purple-800 dark:hover:bg-purple-300 hover:cursor-pointer"
                                 title="Reset Week Start"
+                            >
+                                Reset
+                            </button>
+                        )}
+                    </div>
+                </label>
+
+                <label className="flex flex-col">
+                    <strong>Timezone:</strong>
+                    <div className="flex items-center gap-2">
+                        <select
+                            value={settings.timezone}
+                            onChange={(e) =>
+                                setSettings((s) => ({ ...s, timezone: e.target.value }))
+                            }
+                            className={`rounded p-2 border-2 dark:bg-black
+                                ${
+                                    settings.timezone !== original.current.timezone
+                                        ? "border-yellow-500 dark:border-purple-700"
+                                        : ""
+                                }`}
+                        >
+                            {Intl.supportedValuesOf("timeZone").map((tz) => (
+                                <option key={tz} value={tz}>
+                                    {tz}
+                                </option>
+                            ))}
+                        </select>
+
+                        {settings.timezone !== original.current.timezone && (
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setSettings((s) => ({
+                                        ...s,
+                                        timezone: original.current.timezone,
+                                    }))
+                                }
+                                className="text-sm ml-4 px-2 py-[.3rem] rounded border border-yellow-500 bg-yellow-100
+                                    text-yellow-700 hover:bg-yellow-200 dark:border-purple-700
+                                    dark:bg-purple-200 dark:text-purple-800 dark:hover:bg-purple-300"
                             >
                                 Reset
                             </button>

@@ -73,8 +73,8 @@ type EventOccurrence = {
     height: number;
     startLabel: string;
     endLabel: string;
-    __colIndex?: number;
-    __colCount?: number;
+    _colIndex?: number;
+    _colCount?: number;
 };
 
 const toDateOnly = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate());
@@ -452,8 +452,8 @@ export function buildWeekOccurrences(events: Event[], weekStart: Date): EventOcc
 
         groups.forEach((group) => {
             if (group.length === 1) {
-                group[0].__colIndex = 0;
-                group[0].__colCount = 1;
+                group[0]._colIndex = 0;
+                group[0]._colCount = 1;
                 return;
             }
 
@@ -475,8 +475,8 @@ export function buildWeekOccurrences(events: Event[], weekStart: Date): EventOcc
                     cols.push([ev]);
                 }
                 const colIndex = cols.findIndex((c) => c.includes(ev));
-                ev.__colIndex = colIndex;
-                ev.__colCount = cols.length;
+                ev._colIndex = colIndex;
+                ev._colCount = cols.length;
             });
         });
     }

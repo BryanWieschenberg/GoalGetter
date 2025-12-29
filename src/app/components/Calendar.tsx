@@ -706,8 +706,8 @@ export default function Calendar({
                                 const leftExpr = `calc(64px + ((100% - 64px) / 7) * ${occ.dayIndex})`;
                                 const widthExpr = `calc(((100% - 64px) / 7) - 6px)`;
 
-                                const colIndex = occ.__colIndex ?? 0;
-                                const colCount = Math.max(1, occ.__colCount ?? 1);
+                                const colIndex = occ._colIndex ?? 0;
+                                const colCount = Math.max(1, occ._colCount ?? 1);
                                 const widthColExpr = `calc(((${widthExpr}) - 6px) / ${colCount})`;
                                 const leftColExpr = `calc(${leftExpr} + 3px + (${widthColExpr} * ${colIndex}) + (4px * ${colIndex}))`;
 

@@ -5,6 +5,7 @@ import pool from "@/lib/db";
 interface UserSettings {
     theme: string;
     week_start: string;
+    timezone: string;
 }
 
 export async function GET() {
@@ -31,13 +32,28 @@ export async function PUT(req: Request) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const body = await req.json();
+
+    await pool.query(
+        `UPDATE user_settings SET theme=$1, week_start=$2, timezone=$3 WHERE user_id=$4`,
+        ["system", "sun", body.timezone, session.user.id],
+    );
+
+    return NextResponse.json({ ok: true });
+}
+
+export async function PATCH(req: Request) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body: UserSettings = await req.json();
 
-    await pool.query(`UPDATE user_settings SET theme=$1, week_start=$2 WHERE user_id=$3`, [
-        body.theme,
-        body.week_start,
-        session.user.id,
-    ]);
+    await pool.query(
+        `UPDATE user_settings SET theme=$1, week_start=$2, timezone=$3 WHERE user_id=$4`,
+        [body.theme, body.week_start, body.timezone, session.user.id],
+    );
 
     return NextResponse.json({ ok: true });
 }

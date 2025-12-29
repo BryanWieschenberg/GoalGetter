@@ -13,6 +13,7 @@ interface User {
 interface UserSettings {
     theme: string;
     week_start: string;
+    timezone: string;
 }
 
 export default async function Settings() {
@@ -28,7 +29,7 @@ export default async function Settings() {
     );
 
     const settingsRes = await pool.query<UserSettings>(
-        "SELECT theme, week_start FROM user_settings WHERE user_id=$1",
+        "SELECT theme, week_start, timezone FROM user_settings WHERE user_id=$1",
         [session.user.id],
     );
 

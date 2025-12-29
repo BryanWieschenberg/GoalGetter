@@ -129,10 +129,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                         ],
                     );
 
+                    const sysTimezone =
+                        typeof Intl !== "undefined"
+                            ? Intl.DateTimeFormat().resolvedOptions().timeZone
+                            : "UTC";
+
                     await Promise.all([
                         client.query(
-                            `INSERT INTO user_settings (user_id, theme) VALUES ($1, 'system')`,
-                            [userId.rows[0].id],
+                            `INSERT INTO user_settings (user_id, theme, timezone) VALUES ($1, $2, $3)`,
+                            [userId.rows[0].id, "system", sysTimezone],
                         ),
                         client.query(
                             `INSERT INTO task_categories (user_id, name, sort_order) VALUES ($1, 'My Tasks', 0)`,

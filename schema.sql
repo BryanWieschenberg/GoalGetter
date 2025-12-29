@@ -1,4 +1,4 @@
-CREATE TYPE provider_type AS ENUM ('', 'google', 'microsoft', 'facebook', 'apple', 'github');
+CREATE TYPE provider_type AS ENUM ('inapp', 'google', 'microsoft', 'facebook', 'apple', 'github');
 CREATE TABLE users IF NOT EXISTS (
     id                      SERIAL PRIMARY KEY,
     username                TEXT NOT NULL,

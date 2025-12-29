@@ -14,6 +14,7 @@ export default function Navbar({ hasSession }: { hasSession: boolean }) {
                         alt="GoalGetter"
                         width={48}
                         height={48}
+                        priority
                         className="object-contain transition-none hover:spinJump"
                     />
                 </Link>

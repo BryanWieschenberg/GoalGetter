@@ -180,6 +180,8 @@ export default function WelcomePage() {
                                 <Image
                                     src="/welcome1-using.png"
                                     alt="Split-Screen Interface Preview"
+                                    width={800}
+                                    height={500}
                                     className="mx-auto rounded-xl shadow-md"
                                 />
                             </div>
@@ -198,6 +200,8 @@ export default function WelcomePage() {
                                 <Image
                                     src="/welcome2-creating.png"
                                     alt="Customization Panel Preview"
+                                    width={800}
+                                    height={500}
                                     className="mx-auto rounded-xl shadow-md"
                                 />
                             </div>
@@ -283,6 +287,8 @@ export default function WelcomePage() {
                                 <Image
                                     src="/welcome3-alarm.png"
                                     alt="[Smart Alerts Preview]"
+                                    width={800}
+                                    height={500}
                                     className="mx-auto rounded-xl shadow-md"
                                 />
                             </div>

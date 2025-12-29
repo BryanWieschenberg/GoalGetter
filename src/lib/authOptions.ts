@@ -48,8 +48,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     const data = await pool.query(
                         `SELECT id, username, handle, email, password, provider
                          FROM users
-                         WHERE ${queryParam} = $2`,
-                        [queryParam, creds.handleOrEmail],
+                         WHERE ${queryParam} = $1`,
+                        [creds.handleOrEmail],
                     );
                     const user = data.rows[0];
 
@@ -94,7 +94,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     callbacks: {
         async signIn({ account, profile }) {
-            if (!account || account.provider === "inapp") {
+            if (!account || account.provider === "credentials") {
                 return true;
             }
 

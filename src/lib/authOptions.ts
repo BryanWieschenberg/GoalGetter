@@ -49,13 +49,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     const user = data.rows[0];
 
                     if (!user) {
-                        throw new Error("User not found");
+                        return null;
                     }
 
                     const ok = await bcrypt.compare(creds.password, user.password);
 
                     if (!ok) {
-                        throw new Error("Invalid password");
+                        return null;
                     }
 
                     return { id: String(user.id) };

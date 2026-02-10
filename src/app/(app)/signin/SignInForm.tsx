@@ -86,13 +86,14 @@ export default function SignInForm() {
                     password: password,
                 });
 
-                if (loginRes?.ok) {
-                    router.replace("/");
-                    router.refresh();
-                } else {
+                if (loginRes?.error) {
                     setError("Invalid credentials");
                     setSubmitting(false);
+                    return;
                 }
+
+                router.replace("/");
+                router.refresh();
             } catch (e) {
                 console.error(e);
                 setError("Could not run reCAPTCHA");

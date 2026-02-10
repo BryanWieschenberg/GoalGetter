@@ -51,3 +51,8 @@ export type Event = {
     color: string | null;
     recurrence: Recurrence | null;
 };
+
+export type Settings = {
+    week_start: "sun" | "mon" | "tue" | "wed" | "thu" | "fri" | "sat";
+    timezone: string;
+};

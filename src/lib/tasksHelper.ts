@@ -16,10 +16,8 @@ export function daysUntil(dateStr?: string | null) {
     const now = new Date();
     const todayUTC = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
     const dueUTC = Date.UTC(due.getUTCFullYear(), due.getUTCMonth(), due.getUTCDate());
-
     const diff = dueUTC - todayUTC;
-    const MS_PER_DAY = 1000 * 60 * 60 * 24;
-    return Math.floor(diff / MS_PER_DAY) + 1;
+    return Math.floor(diff / (1000 * 60 * 60 * 24)) + 1;
 }
 
 export function dueColor(days: number | null): string {

@@ -3,7 +3,7 @@
 import { useRef, useState, useEffect } from "react";
 import Tasks from "../components/Tasks";
 import Calendar from "../components/Calendar";
-import { TaskCategory, Task, Tag, EventCategory, Event } from "@/types/core-types";
+import { TaskCategory, Task, Tag, EventCategory, Event, Settings } from "@/types/core-types";
 
 interface Body {
     task_categories: TaskCategory[];
@@ -15,11 +15,11 @@ interface Body {
 
 export default function HomePage({
     body,
-    startWeek,
+    settings,
     nowTop,
 }: {
     body: Body;
-    startWeek: string;
+    settings: Settings;
     nowTop: number;
 }) {
     const containerRef = useRef<HTMLDivElement | null>(null);
@@ -32,7 +32,7 @@ export default function HomePage({
     const [tags, setTags] = useState(body.task_tags);
 
     let startWeekCode = 0;
-    switch (startWeek) {
+    switch (settings.week_start) {
         case "mon":
             startWeekCode = 1;
             break;

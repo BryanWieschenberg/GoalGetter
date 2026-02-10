@@ -6,7 +6,7 @@ import pool from "@/lib/db";
 export default async function Home() {
     const session = await auth();
     let res = null;
-    let startWeek = null;
+    let settings = null;
     let nowTop = 0;
 
     if (session) {
@@ -68,9 +68,10 @@ export default async function Home() {
             ) AS user_data;`,
             [session.user.id],
         );
-        startWeek = await pool.query(`SELECT week_start FROM user_settings WHERE user_id = $1`, [
-            session.user.id,
-        ]);
+        settings = await pool.query(
+            `SELECT week_start, timezone FROM user_settings WHERE user_id = $1`,
+            [session.user.id],
+        );
 
         const minutes = new Date().getHours() * 60 + new Date().getMinutes();
         const pxPerMinute = 48 / 60;
@@ -82,7 +83,7 @@ export default async function Home() {
             {res ? (
                 <HomePage
                     body={res.rows[0].user_data}
-                    startWeek={startWeek?.rows[0].week_start}
+                    settings={settings?.rows[0]}
                     nowTop={nowTop}
                 />
             ) : (

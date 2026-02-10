@@ -31,8 +31,8 @@ export default async function BareLayout({ children }: { children: React.ReactNo
                         dangerouslySetInnerHTML={{
                             __html: `
                                 (function() {
-                                    var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                                    if (prefersDark) {
+                                    var darkTheme = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                                    if (darkTheme) {
                                         document.documentElement.classList.add('dark');
                                     } else {
                                         document.documentElement.classList.remove('dark');

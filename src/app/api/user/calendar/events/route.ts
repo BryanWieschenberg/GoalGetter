@@ -2,6 +2,15 @@ import { NextResponse } from "next/server";
 import pool from "@/lib/db";
 import { apiRateLimit } from "@/lib/rateLimit";
 import { withAuth } from "@/lib/authMiddleware";
+import {
+    validate,
+    validationError,
+    sanitize,
+    MAX_TITLE,
+    MAX_DESCRIPTION,
+    MAX_COLOR,
+    FREQUENCIES,
+} from "@/lib/validate";
 
 export const GET = withAuth(async (req, userId) => {
     const limited = await apiRateLimit(req);
@@ -36,11 +45,11 @@ export const POST = withAuth(async (req, userId) => {
     try {
         const body = await req.json();
         const payload = body.payload;
+        const title = sanitize(payload.title);
+        const description = sanitize(payload.description);
+        const color = sanitize(payload.color);
         const {
-            title,
-            description,
             category_id,
-            color,
             start_time,
             end_time,
             frequency,
@@ -50,6 +59,31 @@ export const POST = withAuth(async (req, userId) => {
             weekly,
             exceptions,
         } = payload;
+
+        const err = validate([
+            {
+                field: "title",
+                value: title,
+                required: true,
+                type: "string",
+                maxLength: MAX_TITLE,
+                minLength: 1,
+            },
+            {
+                field: "description",
+                value: description,
+                type: "string",
+                maxLength: MAX_DESCRIPTION,
+            },
+            { field: "category_id", value: category_id, required: true, type: "number" },
+            { field: "color", value: color, type: "string", maxLength: MAX_COLOR },
+            { field: "start_time", value: start_time, required: true, type: "string" },
+            { field: "end_time", value: end_time, required: true, type: "string" },
+            { field: "frequency", value: frequency, type: "string", enum: FREQUENCIES },
+            { field: "interval", value: interval, type: "number", min: 1, max: 365 },
+            { field: "count", value: count, type: "number", min: 1, max: 999 },
+        ]);
+        if (err) return validationError(err);
 
         const catCheck = await client.query(
             "SELECT 1 FROM event_categories WHERE id = $1 AND user_id = $2",
@@ -111,12 +145,12 @@ export const PUT = withAuth(async (req, userId) => {
     try {
         const body = await req.json();
         const payload = body.payload;
+        const title = sanitize(payload.title);
+        const description = sanitize(payload.description);
+        const color = sanitize(payload.color);
         const {
             id,
-            title,
-            description,
             category_id,
-            color,
             start_time,
             end_time,
             frequency,
@@ -126,6 +160,32 @@ export const PUT = withAuth(async (req, userId) => {
             weekly,
             exceptions,
         } = payload;
+
+        const err = validate([
+            { field: "id", value: id, required: true, type: "number" },
+            {
+                field: "title",
+                value: title,
+                required: true,
+                type: "string",
+                maxLength: MAX_TITLE,
+                minLength: 1,
+            },
+            {
+                field: "description",
+                value: description,
+                type: "string",
+                maxLength: MAX_DESCRIPTION,
+            },
+            { field: "category_id", value: category_id, required: true, type: "number" },
+            { field: "color", value: color, type: "string", maxLength: MAX_COLOR },
+            { field: "start_time", value: start_time, required: true, type: "string" },
+            { field: "end_time", value: end_time, required: true, type: "string" },
+            { field: "frequency", value: frequency, type: "string", enum: FREQUENCIES },
+            { field: "interval", value: interval, type: "number", min: 1, max: 365 },
+            { field: "count", value: count, type: "number", min: 1, max: 999 },
+        ]);
+        if (err) return validationError(err);
 
         const catCheck = await client.query(
             "SELECT 1 FROM event_categories WHERE id = $1 AND user_id = $2",

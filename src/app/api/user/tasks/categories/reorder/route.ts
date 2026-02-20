@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import pool from "@/lib/db";
 import { apiRateLimit } from "@/lib/rateLimit";
 import { withAuth } from "@/lib/authMiddleware";
+import { validate, validationError, DIRECTIONS } from "@/lib/validate";
 
 export const PATCH = withAuth(async (req, userId) => {
     const limited = await apiRateLimit(req);
@@ -12,6 +13,18 @@ export const PATCH = withAuth(async (req, userId) => {
 
     try {
         const { category_id, direction } = await req.json();
+
+        const err = validate([
+            { field: "category_id", value: category_id, required: true, type: "number" },
+            {
+                field: "direction",
+                value: direction,
+                required: true,
+                type: "string",
+                enum: DIRECTIONS,
+            },
+        ]);
+        if (err) return validationError(err);
 
         const { rows } = await client.query(
             `SELECT id, sort_order

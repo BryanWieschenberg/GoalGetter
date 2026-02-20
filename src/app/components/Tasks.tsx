@@ -23,6 +23,10 @@ export default function Tasks({
     setTasks,
     modalOpen,
     setModalOpen,
+    hasMore,
+    setHasMore,
+    loadMoreTasks,
+    loadingMore,
 }: {
     task_categories: TaskCategory[];
     tags: Tag[];
@@ -31,6 +35,10 @@ export default function Tasks({
     setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
     modalOpen: string | null;
     setModalOpen: (value: string | null) => void;
+    hasMore: boolean;
+    setHasMore: React.Dispatch<React.SetStateAction<boolean>>;
+    loadMoreTasks: () => void;
+    loadingMore: boolean;
 }) {
     const [categories, setCategories] = useState(task_categories);
     const [hoveredCat, setHoveredCat] = useState<number | null>(null);
@@ -170,9 +178,13 @@ export default function Tasks({
     };
 
     const fetchTaskData = () => {
-        fetch("/api/user/tasks/tasks")
+        const count = Math.max(tasks.length + 1, 50);
+        fetch(`/api/user/tasks/tasks?limit=${count}&offset=0`)
             .then((res) => res.json())
-            .then((data) => setTasks(data.tasks));
+            .then((data) => {
+                setTasks(data.tasks);
+                setHasMore(data.hasMore);
+            });
     };
 
     async function handleCategoryAdd(e: React.FormEvent<HTMLFormElement>) {
@@ -867,7 +879,7 @@ export default function Tasks({
 
                                 {catTasks.length === 0 ? (
                                     <p className="whitespace-nowrap text-sm text-zinc-500">
-                                        Nice! You're all done with these tasks!
+                                        No tasks in this category.
                                     </p>
                                 ) : (
                                     // Get all tasks in this category
@@ -1009,6 +1021,18 @@ export default function Tasks({
                         );
                     })}
             </div>
+
+            {hasMore && (
+                <div className="flex justify-center py-4">
+                    <button
+                        onClick={loadMoreTasks}
+                        disabled={loadingMore}
+                        className="px-4 py-2 text-sm rounded-lg border border-zinc-300 dark:border-zinc-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                        {loadingMore ? "Loading..." : "Load More Tasks"}
+                    </button>
+                </div>
+            )}
 
             {/* Modals */}
             {modalOpen === "taskCategoryAdd" && (

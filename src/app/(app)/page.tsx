@@ -26,6 +26,18 @@ export default async function Home() {
                 ),
                 'tasks', (
                     SELECT COALESCE(json_agg(t ORDER BY t.sort_order), '[]'::json) 
+                    FROM (
+                        SELECT t.*
+                        FROM tasks t
+                        WHERE t.category_id IN (
+                            SELECT id FROM task_categories WHERE user_id = $1
+                        )
+                        ORDER BY t.category_id, t.sort_order, t.id
+                        LIMIT 51
+                    ) t
+                ),
+                'tasks_has_more', (
+                    SELECT COUNT(*) > 50
                     FROM tasks t
                     WHERE t.category_id IN (
                         SELECT id FROM task_categories WHERE user_id = $1

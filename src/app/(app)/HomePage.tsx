@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import Tasks from "../components/Tasks";
 import Calendar from "../components/Calendar";
 import { TaskCategory, Task, Tag, EventCategory, Event, Settings } from "@/types/core-types";
@@ -9,6 +9,7 @@ interface Body {
     task_categories: TaskCategory[];
     task_tags: Tag[];
     tasks: Task[];
+    tasks_has_more: boolean;
     event_categories: EventCategory[];
     events: Event[];
 }
@@ -28,8 +29,25 @@ export default function HomePage({
     const [isMobile, setIsMobile] = useState(false);
     const [mobileView, setMobileView] = useState<"tasks" | "calendar">("tasks");
     const [modalOpen, setModalOpen] = useState<string | null>(null);
-    const [tasks, setTasks] = useState(body.tasks);
+    const [tasks, setTasks] = useState(body.tasks.slice(0, 50));
     const [tags, setTags] = useState(body.task_tags);
+    const [hasMore, setHasMore] = useState(body.tasks_has_more);
+    const [loadingMore, setLoadingMore] = useState(false);
+
+    const loadMoreTasks = useCallback(async () => {
+        if (loadingMore || !hasMore) return;
+        setLoadingMore(true);
+        try {
+            const res = await fetch(`/api/user/tasks/tasks?limit=50&offset=${tasks.length}`);
+            const data = await res.json();
+            setTasks((prev) => [...prev, ...data.tasks]);
+            setHasMore(data.hasMore);
+        } catch (e) {
+            console.error("Failed to load more tasks:", e);
+        } finally {
+            setLoadingMore(false);
+        }
+    }, [loadingMore, hasMore, tasks.length]);
 
     let startWeekCode = 0;
     switch (settings.week_start) {
@@ -112,6 +130,10 @@ export default function HomePage({
                             setTasks={setTasks}
                             modalOpen={modalOpen}
                             setModalOpen={setModalOpen}
+                            hasMore={hasMore}
+                            setHasMore={setHasMore}
+                            loadMoreTasks={loadMoreTasks}
+                            loadingMore={loadingMore}
                         />
                     ) : (
                         <Calendar
@@ -146,6 +168,10 @@ export default function HomePage({
                             setTasks={setTasks}
                             modalOpen={modalOpen}
                             setModalOpen={setModalOpen}
+                            hasMore={hasMore}
+                            setHasMore={setHasMore}
+                            loadMoreTasks={loadMoreTasks}
+                            loadingMore={loadingMore}
                         />
                     </div>
 

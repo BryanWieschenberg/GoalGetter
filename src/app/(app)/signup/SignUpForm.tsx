@@ -15,6 +15,32 @@ export default function SignUpForm() {
     const [submitting, setSubmitting] = useState(false);
     const [handle, setHandle] = useState("");
     const [handleError, setHandleError] = useState<string | null>(null);
+    const [password, setPassword] = useState("");
+
+    const pwRequirements = [
+        { label: "At least 8 characters", met: password.length >= 8 },
+        { label: "At least 2 numbers", met: (password.match(/\d/g) || []).length >= 2 },
+        { label: "At least 1 special character", met: /[^a-zA-Z0-9]/.test(password) },
+    ];
+    const allMet = pwRequirements.every((r) => r.met);
+    const metCount = pwRequirements.filter((r) => r.met).length;
+    const strengthPercent = password.length === 0 ? 0 : (metCount / pwRequirements.length) * 100;
+    const strengthColor =
+        strengthPercent <= 66
+            ? "bg-red-500"
+            : strengthPercent < 100
+              ? "bg-yellow-500"
+              : "bg-green-500";
+    const strengthLabel =
+        password.length === 0
+            ? ""
+            : strengthPercent <= 33
+              ? "Weak"
+              : strengthPercent <= 66
+                ? "Fair"
+                : strengthPercent < 100
+                  ? "Good"
+                  : "Strong";
 
     const sanitizeHandle = (value: string) => {
         const cleaned = value.toLowerCase().replace(/\s+/g, "-");
@@ -31,6 +57,12 @@ export default function SignUpForm() {
     const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
+
+        if (!allMet) {
+            setError("Password does not meet all requirements");
+            return;
+        }
+
         setSubmitting(true);
 
         const form = new FormData(e.currentTarget);
@@ -176,6 +208,8 @@ export default function SignUpForm() {
                             name="password"
                             type={passwordVisible ? "text" : "password"}
                             placeholder="Password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
                             className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300 dark:focus:border-blue-700 dark:focus:ring-blue-600"
                             required
                         />
@@ -188,6 +222,35 @@ export default function SignUpForm() {
                             {passwordVisible ? <HiEyeOff size={20} /> : <HiEye size={20} />}
                         </button>
                     </div>
+
+                    {password.length > 0 && (
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                                <div className="flex-1 h-2 rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden">
+                                    <div
+                                        className={`h-full rounded-full transition-all duration-300 ${strengthColor}`}
+                                        style={{ width: `${strengthPercent}%` }}
+                                    />
+                                </div>
+                                <span className="text-xs font-medium w-10">{strengthLabel}</span>
+                            </div>
+                            <ul className="space-y-1">
+                                {pwRequirements.map((r) => (
+                                    <li
+                                        key={r.label}
+                                        className={`flex items-center gap-2 text-sm transition-colors ${
+                                            r.met
+                                                ? "text-green-600 dark:text-green-400"
+                                                : "text-zinc-400 dark:text-zinc-500"
+                                        }`}
+                                    >
+                                        <span className="text-xs">{r.met ? "✓" : "○"}</span>
+                                        {r.label}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
 
                     <div className="relative">
                         <input

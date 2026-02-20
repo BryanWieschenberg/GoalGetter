@@ -37,6 +37,24 @@ export async function POST(req: Request) {
         if (password !== confirmPassword) {
             return NextResponse.json({ error: "Passwords do not match" }, { status: 400 });
         }
+        if (password.length < 8) {
+            return NextResponse.json(
+                { error: "Password must be at least 8 characters" },
+                { status: 400 },
+            );
+        }
+        if ((password.match(/\d/g) || []).length < 2) {
+            return NextResponse.json(
+                { error: "Password must contain at least 2 numbers" },
+                { status: 400 },
+            );
+        }
+        if (!/[^a-zA-Z0-9]/.test(password)) {
+            return NextResponse.json(
+                { error: "Password must contain at least 1 special character" },
+                { status: 400 },
+            );
+        }
         const handleExists = await client.query("SELECT 1 FROM users WHERE handle=$1", [handle]);
         if (handleExists.rowCount) {
             return NextResponse.json({ error: "Handle already in use" }, { status: 409 });

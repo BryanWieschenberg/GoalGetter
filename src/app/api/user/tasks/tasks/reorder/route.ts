@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import pool from "@/lib/db";
 import { apiRateLimit } from "@/lib/rateLimit";
 import { withAuth } from "@/lib/authMiddleware";
+import { validate, validationError, DIRECTIONS } from "@/lib/validate";
 
 export const PATCH = withAuth(async (req, userId) => {
     const limited = await apiRateLimit(req);
@@ -12,6 +13,18 @@ export const PATCH = withAuth(async (req, userId) => {
 
     try {
         const { task_id, direction } = await req.json();
+
+        const err = validate([
+            { field: "task_id", value: task_id, required: true, type: "number" },
+            {
+                field: "direction",
+                value: direction,
+                required: true,
+                type: "string",
+                enum: DIRECTIONS,
+            },
+        ]);
+        if (err) return validationError(err);
 
         const ownerCheck = await client.query(
             `SELECT 1

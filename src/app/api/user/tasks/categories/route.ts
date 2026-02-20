@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import pool from "@/lib/db";
 import { apiRateLimit } from "@/lib/rateLimit";
 import { withAuth } from "@/lib/authMiddleware";
+import { validate, validationError, sanitize, MAX_TITLE, MAX_COLOR } from "@/lib/validate";
 
 export const GET = withAuth(async (req, userId) => {
     const limited = await apiRateLimit(req);
@@ -30,7 +31,28 @@ export const POST = withAuth(async (req, userId) => {
     try {
         const body = await req.json();
         const payload = body.payload;
-        const { title, color } = payload;
+        const title = sanitize(payload.title);
+        const color = sanitize(payload.color);
+
+        const err = validate([
+            {
+                field: "title",
+                value: title,
+                required: true,
+                type: "string",
+                maxLength: MAX_TITLE,
+                minLength: 1,
+            },
+            {
+                field: "color",
+                value: color,
+                type: "string",
+                maxLength: MAX_COLOR,
+                pattern: /^[0-9a-fA-F]{0,6}$/,
+                patternMessage: "color must be a hex value",
+            },
+        ]);
+        if (err) return validationError(err);
 
         const { rows: maxRows } = await pool.query(
             `SELECT COALESCE(MAX(sort_order) + 1, 0) AS next_order
@@ -61,7 +83,30 @@ export const PUT = withAuth(async (req, userId) => {
     try {
         const body = await req.json();
         const payload = body.payload;
-        const { id, title, color } = payload;
+        const title = sanitize(payload.title);
+        const color = sanitize(payload.color);
+        const { id } = payload;
+
+        const err = validate([
+            { field: "id", value: id, required: true, type: "number" },
+            {
+                field: "title",
+                value: title,
+                required: true,
+                type: "string",
+                maxLength: MAX_TITLE,
+                minLength: 1,
+            },
+            {
+                field: "color",
+                value: color,
+                type: "string",
+                maxLength: MAX_COLOR,
+                pattern: /^[0-9a-fA-F]{0,6}$/,
+                patternMessage: "color must be a hex value",
+            },
+        ]);
+        if (err) return validationError(err);
 
         const catCheck = await pool.query(
             "SELECT 1 FROM task_categories WHERE id = $1 AND user_id = $2",

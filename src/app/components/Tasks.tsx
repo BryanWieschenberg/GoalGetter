@@ -64,6 +64,12 @@ export default function Tasks({
     const [visiblePriorities, setVisiblePriorities] = useState<string[]>(allPriorities);
     const [dueFilter, setDueFilter] = useState<"all" | "tomorrow" | "week" | "none">("all");
     const [searchQuery, setSearchQuery] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
+
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedSearch(searchQuery), 200);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
 
     const createRef = useRef<HTMLDivElement | null>(null);
     const sortRef = useRef<HTMLDivElement | null>(null);
@@ -765,8 +771,8 @@ export default function Tasks({
                                     }
                                 }
 
-                                if (searchQuery.trim() !== "") {
-                                    const q = searchQuery.toLowerCase();
+                                if (debouncedSearch.trim() !== "") {
+                                    const q = debouncedSearch.toLowerCase();
                                     const title = t.title?.toLowerCase() ?? "";
                                     const desc = t.description?.toLowerCase() ?? "";
                                     if (!title.includes(q) && !desc.includes(q)) {

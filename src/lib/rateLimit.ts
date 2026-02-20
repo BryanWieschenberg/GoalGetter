@@ -71,7 +71,7 @@ export const authRateLimit = rateLimit({
 
 export const apiRateLimit = rateLimit({
     interval: 1000 * 60, // 1 min
-    maxRequests: 60,
+    maxRequests: 200,
     message: "API rate limit exceeded.",
 });
 

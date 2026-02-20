@@ -16,33 +16,34 @@ export default async function PasswordResetPage({
         const token = Array.isArray(tokenParam) ? tokenParam[0] : tokenParam;
 
         if (!token) {
-            return UI("No verification token was provided.", false);
+            return UI("No reset token was provided.", false);
         }
 
         const hashed = crypto.createHash("sha256").update(token).digest("hex");
 
-        const res = await pool.query(`SELECT user_id, expires_at FROM auth_tokens WHERE token=$1`, [
-            hashed,
-        ]);
+        const res = await pool.query(
+            `SELECT user_id, expires_at FROM auth_tokens
+            WHERE token=$1 AND purpose='password_reset'`,
+            [hashed],
+        );
         const row = res.rows[0];
         if (!row) {
-            return UI("This verification link is invalid or has already been used.", false);
+            return UI("This reset link is invalid or has already been used.", false);
         }
 
         if (new Date(row.expires_at) < new Date()) {
-            return UI("This verification link has expired. Please request a new one.", false);
+            return UI("This reset link has expired. Please request a new one.", false);
         }
 
-        await pool.query(`DELETE FROM auth_tokens WHERE token=$1`, [hashed]);
-
-        return UI("Your email has been verified successfully!", true, row.user_id);
+        // Token is valid — pass the raw token to the form (API will verify + delete it)
+        return UI("Enter your new password below.", true, token);
     } catch (e) {
-        console.error("Error verifying email:", e);
+        console.error("Error loading password reset:", e);
         return UI("An unexpected error occurred. Please try again later.", false);
     }
 }
 
-function UI(message: string, success: boolean, userId?: number) {
+function UI(message: string, success: boolean, token?: string) {
     return (
         <main className="min-h-screen flex flex-col items-center justify-center text-center">
             <h1 className="text-2xl font-bold mb-2">Reset Password:</h1>
@@ -52,7 +53,7 @@ function UI(message: string, success: boolean, userId?: number) {
                 {message}
             </p>
 
-            {success && userId && <PasswordResetForm accountId={userId} />}
+            {success && token && <PasswordResetForm token={token} />}
 
             <p className="mb-4">You may now close this page, or click the link below: </p>
             <Link

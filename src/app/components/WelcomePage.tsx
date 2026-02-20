@@ -34,21 +34,11 @@ export default function WelcomePage() {
                         className="mb-8"
                     >
                         <motion.h1
-                            className="text-6xl md:text-8xl font-black text-white"
-                            style={{
-                                WebkitTextStroke: "1.5px black",
-                            }}
-                            animate={{
-                                textShadow: [
-                                    "0 7px 3px rgba(0,0,0,0.7), 0 0 12px #4bd0ff, 0 0 24px #4bd0ff",
-                                    "0 7px 5px rgba(0,0,0,0.8), 0 0 30px #4bd0ff, 0 0 60px #4bd0ff",
-                                    "0 7px 3px rgba(0,0,0,0.7), 0 0 12px #4bd0ff, 0 0 24px #4bd0ff",
-                                ],
-                            }}
+                            className="text-6xl md:text-8xl font-black text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)] dark:drop-shadow-[0_4px_16px_rgba(0,180,255,0.4)]"
+                            animate={{ scale: [1, 1.02, 1] }}
                             transition={{
                                 duration: 3,
                                 repeat: Infinity,
-                                repeatType: "mirror",
                                 ease: "easeInOut",
                             }}
                         >

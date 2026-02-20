@@ -35,6 +35,8 @@ export default function SettingsForm({
     const [showDelete, setShowDelete] = useState(false);
     const [confirmHandle, setConfirmHandle] = useState("");
     const [deleting, setDeleting] = useState(false);
+    const [deletePassword, setDeletePassword] = useState("");
+    const [deleteError, setDeleteError] = useState<string | null>(null);
     const handleMatches = confirmHandle === account.handle.toLowerCase();
 
     const [editorOpen, setEditorOpen] = useState<EditField | null>(null);
@@ -166,22 +168,36 @@ export default function SettingsForm({
             return;
         }
 
+        if (localProvider && !deletePassword) {
+            setDeleteError("Password is required to delete your account.");
+            return;
+        }
+
+        setDeleteError(null);
+
         try {
             setDeleting(true);
-            const res = await fetch("/api/auth/delete", { method: "DELETE" });
+            const res = await fetch("/api/auth/delete", {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ password: localProvider ? deletePassword : undefined }),
+            });
             if (!res.ok) {
+                const data = await res.json();
+                setDeleteError(data.error || "Failed to delete account.");
                 setDeleting(false);
                 return;
             }
             await signOut({ callbackUrl: "/" });
         } catch {
+            setDeleteError("Network error. Please try again.");
             setDeleting(false);
         }
     };
 
     const themeModified = settings.theme !== original.current.theme;
     const weekStartModified = settings.week_start !== original.current.week_start;
-    const localProvider = account.provider === "" ? true : false;
+    const localProvider = account.provider === "inapp";
     const providerName = account.provider.charAt(0).toUpperCase() + account.provider.slice(1);
 
     return (
@@ -372,13 +388,38 @@ export default function SettingsForm({
                             />
                         </div>
 
+                        {localProvider && handleMatches && (
+                            <div className="mt-3 max-w-md">
+                                <label className="text-sm">
+                                    <span className="block font-medium mb-1">
+                                        Enter your password to confirm:
+                                    </span>
+                                    <input
+                                        type="password"
+                                        value={deletePassword}
+                                        onChange={(e) => setDeletePassword(e.target.value)}
+                                        placeholder="Password"
+                                        className="w-full border rounded px-3 py-2 dark:bg-black border-zinc-300 dark:border-zinc-700"
+                                    />
+                                </label>
+                            </div>
+                        )}
+
+                        {deleteError && (
+                            <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                                {deleteError}
+                            </p>
+                        )}
+
                         <button
                             type="button"
                             onClick={onDelete}
-                            disabled={!handleMatches || deleting}
+                            disabled={
+                                !handleMatches || deleting || (localProvider && !deletePassword)
+                            }
                             className={`mt-4 rounded-md px-4 py-2 transition
                                 ${
-                                    !handleMatches || deleting
+                                    !handleMatches || deleting || (localProvider && !deletePassword)
                                         ? "bg-zinc-200 dark:bg-zinc-800 text-black cursor-not-allowed"
                                         : "bg-red-600 hover:bg-red-700 cursor-pointer"
                                 }`}

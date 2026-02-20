@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export default function PasswordResetForm({ accountId }: { accountId?: number }) {
+export default function PasswordResetForm({ token }: { token: string }) {
     const [password, setPassword] = useState("");
     const [confirm, setConfirm] = useState("");
     const [visible, setVisible] = useState(false);
@@ -15,6 +15,11 @@ export default function PasswordResetForm({ accountId }: { accountId?: number })
         e.preventDefault();
         setError(null);
 
+        if (password.length < 8) {
+            setError("Password must be at least 8 characters");
+            return;
+        }
+
         if (password !== confirm) {
             setError("Passwords do not match");
             return;
@@ -25,7 +30,7 @@ export default function PasswordResetForm({ accountId }: { accountId?: number })
             const res = await fetch("/api/auth/reset-password", {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ accountId, password }),
+                body: JSON.stringify({ token, password }),
             });
 
             if (res.ok) {

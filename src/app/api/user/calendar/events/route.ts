@@ -17,18 +17,58 @@ export const GET = withAuth(async (req, userId) => {
     if (limited) return limited;
 
     try {
-        const events = await pool.query(
-            `SELECT
+        const { searchParams } = new URL(req.url);
+        const start = searchParams.get("start");
+        const end = searchParams.get("end");
+
+        let query: string;
+        let params: (string | number)[];
+
+        if (start && end) {
+            query = `SELECT
                 e.id, e.title, e.description, e.category_id, e.color, e.start_time, e.end_time,
                 r.frequency, r.interval, r.weekly, r.count, r.exceptions, r.until
             FROM events e
             LEFT JOIN event_recurrence r ON e.id = r.event_id
             WHERE e.category_id IN (SELECT id FROM event_categories WHERE user_id = $1)
-            ORDER BY e.start_time ASC`,
-            [userId],
-        );
+              AND (
+                (r.frequency IS NULL AND e.start_time < $3 AND e.end_time > $2)
+                OR (r.frequency IS NOT NULL AND e.start_time < $3)
+              )
+            ORDER BY e.start_time ASC`;
+            params = [userId, start, end];
+        } else {
+            query = `SELECT
+                e.id, e.title, e.description, e.category_id, e.color, e.start_time, e.end_time,
+                r.frequency, r.interval, r.weekly, r.count, r.exceptions, r.until
+            FROM events e
+            LEFT JOIN event_recurrence r ON e.id = r.event_id
+            WHERE e.category_id IN (SELECT id FROM event_categories WHERE user_id = $1)
+            ORDER BY e.start_time ASC`;
+            params = [userId];
+        }
 
-        return NextResponse.json({ events: events.rows }, { status: 200 });
+        const events = await pool.query(query, params);
+
+        const formattedEvents = events.rows.map((row) => {
+            const { frequency, interval, weekly, count, exceptions, until, ...baseEvent } = row;
+
+            return {
+                ...baseEvent,
+                recurrence: frequency
+                    ? {
+                          frequency,
+                          interval,
+                          weekly,
+                          count,
+                          exceptions,
+                          until,
+                      }
+                    : null,
+            };
+        });
+
+        return NextResponse.json({ events: formattedEvents }, { status: 200 });
     } catch (e) {
         console.error("GET /api/user/calendar/events:", e);
         return NextResponse.json({ error: "Failed to fetch events." }, { status: 500 });
@@ -82,6 +122,7 @@ export const POST = withAuth(async (req, userId) => {
             { field: "frequency", value: frequency, type: "string", enum: FREQUENCIES },
             { field: "interval", value: interval, type: "number", min: 1, max: 365 },
             { field: "count", value: count, type: "number", min: 1, max: 999 },
+            { field: "until", value: until, type: "string" },
         ]);
         if (err) return validationError(err);
 
@@ -184,6 +225,7 @@ export const PUT = withAuth(async (req, userId) => {
             { field: "frequency", value: frequency, type: "string", enum: FREQUENCIES },
             { field: "interval", value: interval, type: "number", min: 1, max: 365 },
             { field: "count", value: count, type: "number", min: 1, max: 999 },
+            { field: "until", value: until, type: "string" },
         ]);
         if (err) return validationError(err);
 

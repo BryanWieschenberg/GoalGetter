@@ -252,7 +252,24 @@ export function expandEventForWeek(ev: Event, weekStart: Date, weekEnd: Date): E
         return [];
     }
 
-    const until: Date | null = rec.until ? toDate(rec.until) : null;
+    let until: Date | null = null;
+    if (rec.until) {
+        // Safe local parsing: Extract YYYY-MM-DD to avoid UTC timezone shifts when creating the limit
+        let str = "";
+        if (typeof rec.until === "string") {
+            str = rec.until;
+        } else if ((rec.until as any) instanceof Date) {
+            str = (rec.until as any).toISOString();
+        }
+
+        if (str && str.length >= 10) {
+            const [y, m, d] = str.substring(0, 10).split("-").map(Number);
+            if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+                until = new Date(y, m - 1, d);
+                until.setHours(23, 59, 59, 999);
+            }
+        }
+    }
     const countLimit: number | null = typeof rec.count === "number" ? rec.count : null;
     const occurrences: EventOccurrence[] = [];
     const exceptions: Date[] = Array.isArray(rec.exceptions)

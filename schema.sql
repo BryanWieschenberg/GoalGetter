@@ -84,3 +84,20 @@ CREATE TABLE IF NOT EXISTS event_recurrence (
     exceptions              TIMESTAMPTZ[],
     until                   TIMESTAMPTZ
 );
+
+CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);
+CREATE INDEX IF NOT EXISTS idx_users_handle ON users (handle);
+CREATE INDEX IF NOT EXISTS idx_users_provider ON users (provider, provider_id) WHERE provider_id IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_auth_tokens_user_purpose ON auth_tokens (user_id, purpose);
+CREATE INDEX IF NOT EXISTS idx_auth_tokens_expires ON auth_tokens (expires_at);
+
+CREATE INDEX IF NOT EXISTS idx_task_categories_user ON task_categories (user_id, sort_order);
+CREATE INDEX IF NOT EXISTS idx_tasks_category_sort ON tasks (category_id, sort_order);
+CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks (due_date) WHERE due_date IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_task_tags_category ON task_tags (category_id);
+
+CREATE INDEX IF NOT EXISTS idx_event_categories_user ON event_categories (user_id);
+CREATE INDEX IF NOT EXISTS idx_events_category ON events (category_id);
+CREATE INDEX IF NOT EXISTS idx_events_time_range ON events (start_time, end_time);

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import EventAdd from "./modals/EventAdd";
 import EventCategoryAdd from "./modals/EventCategoryAdd";
 import EventEdit from "./modals/EventEdit";
@@ -39,7 +40,21 @@ export default function Calendar({
     setModalOpen: (value: string | null) => void;
     nowTopServer: number;
 }) {
-    const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), startWeekPreference));
+    const searchParams = useSearchParams();
+    const router = useRouter();
+
+    const getInitialWeek = () => {
+        const dateParam = searchParams.get("date");
+        if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
+            const parsed = parseLocalDate(dateParam);
+            if (!isNaN(parsed.getTime())) {
+                return startOfWeek(parsed, startWeekPreference);
+            }
+        }
+        return startOfWeek(new Date(), startWeekPreference);
+    };
+
+    const [weekStart, setWeekStart] = useState(getInitialWeek);
     const inputRef = useRef<HTMLInputElement>(null);
     const [categories, setCategories] = useState(calendarData.event_categories);
     const [events, setEvents] = useState(calendarData.events);
@@ -57,6 +72,14 @@ export default function Calendar({
 
     const [filterOpen, setFilterOpen] = useState(false);
     const filterRef = useRef<HTMLDivElement>(null);
+    const eventCache = useRef<Map<string, Event[]>>(new Map());
+
+    useEffect(() => {
+        const key = formatDateParam(weekStart);
+        if (!eventCache.current.has(key)) {
+            eventCache.current.set(key, calendarData.events);
+        }
+    }, []);
 
     const weekOccurrences = useMemo(() => {
         const filtered = (events || []).filter((ev: Event) =>
@@ -73,9 +96,43 @@ export default function Calendar({
         return map;
     }, [events]);
 
-    const goPrev = () => setWeekStart(addDays(weekStart, -7));
-    const goNext = () => setWeekStart(addDays(weekStart, 7));
-    const goToday = () => setWeekStart(startOfWeek(new Date(), startWeekPreference));
+    const formatDateParam = (d: Date) => {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${y}-${m}-${day}`;
+    };
+
+    const navigateWeek = useCallback(
+        (newWeekStart: Date) => {
+            const key = formatDateParam(newWeekStart);
+            const cached = eventCache.current.get(key);
+            if (cached) {
+                setEvents(cached);
+            }
+            setWeekStart(newWeekStart);
+            const todayWeek = startOfWeek(new Date(), startWeekPreference);
+            if (key === formatDateParam(todayWeek)) {
+                router.replace("/", { scroll: false });
+            } else {
+                router.replace(`/?date=${key}`, { scroll: false });
+            }
+        },
+        [router, startWeekPreference],
+    );
+
+    const goPrev = () => navigateWeek(addDays(weekStart, -7));
+    const goNext = () => navigateWeek(addDays(weekStart, 7));
+    const goToday = () => navigateWeek(startOfWeek(new Date(), startWeekPreference));
+
+    const initialMount = useRef(true);
+    useEffect(() => {
+        if (initialMount.current) {
+            initialMount.current = false;
+            return;
+        }
+        fetchEventData(weekStart);
+    }, [weekStart]);
 
     const getTasksForDay = (day: Date) => {
         const today = new Date();
@@ -170,25 +227,59 @@ export default function Calendar({
         setVisibleCategories(data.categories.map((c: EventCategory) => c.id));
     };
 
-    const fetchEventData = () => {
-        fetch("/api/user/calendar/events")
-            .then((res) => res.json())
-            .then((data) => {
-                const transformedEvents = data.events.map((event: Event) => ({
-                    ...event,
-                    recurrence: event.recurrence
-                        ? {
-                              frequency: event.recurrence.frequency,
-                              interval: event.recurrence.interval,
-                              weekly: event.recurrence.weekly,
-                              count: event.recurrence.count,
-                              exceptions: event.recurrence.exceptions,
-                              until: event.recurrence.until,
-                          }
-                        : null,
-                }));
-                setEvents(transformedEvents);
-            });
+    const transformEvents = (raw: Event[]) =>
+        raw.map((event: Event) => ({
+            ...event,
+            recurrence: event.recurrence
+                ? {
+                      frequency: event.recurrence.frequency,
+                      interval: event.recurrence.interval,
+                      weekly: event.recurrence.weekly,
+                      count: event.recurrence.count,
+                      exceptions: event.recurrence.exceptions,
+                      until: event.recurrence.until,
+                  }
+                : null,
+        }));
+
+    const fetchWeekEvents = async (ws: Date): Promise<Event[]> => {
+        const rangeStart = addDays(ws, -1).toISOString();
+        const rangeEnd = addDays(ws, 8).toISOString();
+        const res = await fetch(
+            `/api/user/calendar/events?start=${encodeURIComponent(rangeStart)}&end=${encodeURIComponent(rangeEnd)}`,
+        );
+        const data = await res.json();
+        return transformEvents(data.events);
+    };
+
+    const prefetchAdjacentWeeks = (ws: Date) => {
+        const prev = addDays(ws, -7);
+        const next = addDays(ws, 7);
+        const prevKey = formatDateParam(prev);
+        const nextKey = formatDateParam(next);
+
+        if (!eventCache.current.has(prevKey)) {
+            fetchWeekEvents(prev).then((evts) => eventCache.current.set(prevKey, evts));
+        }
+        if (!eventCache.current.has(nextKey)) {
+            fetchWeekEvents(next).then((evts) => eventCache.current.set(nextKey, evts));
+        }
+    };
+
+    const fetchEventData = (ws?: Date) => {
+        const w = ws || weekStart;
+        const key = formatDateParam(w);
+
+        fetchWeekEvents(w).then((evts) => {
+            eventCache.current.set(key, evts);
+            setEvents(evts);
+            prefetchAdjacentWeeks(w);
+        });
+    };
+
+    const clearCacheAndRefetch = () => {
+        eventCache.current.clear();
+        fetchEventData(weekStart);
     };
 
     async function handleCategoryAdd(e: React.FormEvent<HTMLFormElement>) {
@@ -253,7 +344,7 @@ export default function Calendar({
             const res_json = await res.json();
             setModalError(res_json.error || "An unknown error occurred.");
         } else {
-            fetchEventData();
+            clearCacheAndRefetch();
             setModalOpen(null);
             setModalError(null);
         }
@@ -332,7 +423,7 @@ export default function Calendar({
             const res_json = await res.json();
             setModalError(res_json.error || "An unknown error occurred.");
         } else {
-            fetchEventData();
+            clearCacheAndRefetch();
             setModalOpen(null);
             setSelectedEventRaw(null);
             setModalError(null);
@@ -364,7 +455,7 @@ export default function Calendar({
             const res_json = await res.json();
             setModalError(res_json.error || "An unknown error occurred.");
         } else {
-            fetchEventData();
+            clearCacheAndRefetch();
             setModalOpen(null);
             setSelectedEventRaw(null);
             setModalError(null);

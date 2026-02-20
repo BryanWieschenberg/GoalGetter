@@ -35,7 +35,9 @@ export default function HomePage({
     const [loadingMore, setLoadingMore] = useState(false);
 
     const loadMoreTasks = useCallback(async () => {
-        if (loadingMore || !hasMore) return;
+        if (loadingMore || !hasMore) {
+            return;
+        }
         setLoadingMore(true);
         try {
             const res = await fetch(`/api/user/tasks/tasks?limit=50&offset=${tasks.length}`);

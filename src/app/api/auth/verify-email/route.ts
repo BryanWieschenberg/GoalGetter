@@ -5,7 +5,9 @@ import { apiRateLimit } from "@/lib/rateLimit";
 
 export async function POST(req: Request) {
     const limited = await apiRateLimit(req);
-    if (limited) return limited;
+    if (limited) {
+        return limited;
+    }
 
     const client = await pool.connect();
     let began = false;

@@ -79,6 +79,7 @@ export default function Calendar({
         if (!eventCache.current.has(key)) {
             eventCache.current.set(key, calendarData.events);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const weekOccurrences = useMemo(() => {
@@ -96,12 +97,12 @@ export default function Calendar({
         return map;
     }, [events]);
 
-    const formatDateParam = (d: Date) => {
+    function formatDateParam(d: Date) {
         const y = d.getFullYear();
         const m = String(d.getMonth() + 1).padStart(2, "0");
         const day = String(d.getDate()).padStart(2, "0");
         return `${y}-${m}-${day}`;
-    };
+    }
 
     const navigateWeek = useCallback(
         (newWeekStart: Date) => {
@@ -132,6 +133,7 @@ export default function Calendar({
             return;
         }
         fetchEventData(weekStart);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [weekStart]);
 
     const getTasksForDay = (day: Date) => {
@@ -266,7 +268,7 @@ export default function Calendar({
         }
     };
 
-    const fetchEventData = (ws?: Date) => {
+    function fetchEventData(ws?: Date) {
         const w = ws || weekStart;
         const key = formatDateParam(w);
 
@@ -275,7 +277,7 @@ export default function Calendar({
             setEvents(evts);
             prefetchAdjacentWeeks(w);
         });
-    };
+    }
 
     const clearCacheAndRefetch = () => {
         eventCache.current.clear();

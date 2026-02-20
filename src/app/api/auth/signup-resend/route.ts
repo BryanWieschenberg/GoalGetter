@@ -8,7 +8,9 @@ import { withAuth } from "@/lib/authMiddleware";
 
 export const POST = withAuth(async (req, userId) => {
     const limited = await strictRateLimit(req);
-    if (limited) return limited;
+    if (limited) {
+        return limited;
+    }
 
     try {
         const userRes = await pool.query(

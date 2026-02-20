@@ -6,7 +6,9 @@ import { validate, validationError, sanitize, MAX_TITLE, MAX_COLOR } from "@/lib
 
 export const GET = withAuth(async (req, userId) => {
     const limited = await apiRateLimit(req);
-    if (limited) return limited;
+    if (limited) {
+        return limited;
+    }
 
     try {
         const categories = await pool.query(
@@ -29,7 +31,9 @@ export const GET = withAuth(async (req, userId) => {
 
 export const POST = withAuth(async (req, userId) => {
     const limited = await apiRateLimit(req);
-    if (limited) return limited;
+    if (limited) {
+        return limited;
+    }
 
     try {
         const body = await req.json();
@@ -55,7 +59,9 @@ export const POST = withAuth(async (req, userId) => {
                 patternMessage: "color must be a hex value",
             },
         ]);
-        if (err) return validationError(err);
+        if (err) {
+            return validationError(err);
+        }
 
         await pool.query(
             `INSERT INTO event_categories (user_id, name, color)
@@ -73,7 +79,9 @@ export const POST = withAuth(async (req, userId) => {
 
 export const PUT = withAuth(async (req, userId) => {
     const limited = await apiRateLimit(req);
-    if (limited) return limited;
+    if (limited) {
+        return limited;
+    }
 
     try {
         const body = await req.json();
@@ -101,7 +109,9 @@ export const PUT = withAuth(async (req, userId) => {
                 patternMessage: "color must be a hex value",
             },
         ]);
-        if (err) return validationError(err);
+        if (err) {
+            return validationError(err);
+        }
 
         const result = await pool.query(
             `UPDATE event_categories
@@ -124,7 +134,9 @@ export const PUT = withAuth(async (req, userId) => {
 
 export const DELETE = withAuth(async (req, userId) => {
     const limited = await apiRateLimit(req);
-    if (limited) return limited;
+    if (limited) {
+        return limited;
+    }
 
     try {
         const { searchParams } = new URL(req.url);

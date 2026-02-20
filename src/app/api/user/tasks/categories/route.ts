@@ -6,7 +6,9 @@ import { validate, validationError, sanitize, MAX_TITLE, MAX_COLOR } from "@/lib
 
 export const GET = withAuth(async (req, userId) => {
     const limited = await apiRateLimit(req);
-    if (limited) return limited;
+    if (limited) {
+        return limited;
+    }
 
     try {
         const categories = await pool.query(
@@ -26,7 +28,9 @@ export const GET = withAuth(async (req, userId) => {
 
 export const POST = withAuth(async (req, userId) => {
     const limited = await apiRateLimit(req);
-    if (limited) return limited;
+    if (limited) {
+        return limited;
+    }
 
     try {
         const body = await req.json();
@@ -52,7 +56,9 @@ export const POST = withAuth(async (req, userId) => {
                 patternMessage: "color must be a hex value",
             },
         ]);
-        if (err) return validationError(err);
+        if (err) {
+            return validationError(err);
+        }
 
         const { rows: maxRows } = await pool.query(
             `SELECT COALESCE(MAX(sort_order) + 1, 0) AS next_order
@@ -78,7 +84,9 @@ export const POST = withAuth(async (req, userId) => {
 
 export const PUT = withAuth(async (req, userId) => {
     const limited = await apiRateLimit(req);
-    if (limited) return limited;
+    if (limited) {
+        return limited;
+    }
 
     try {
         const body = await req.json();
@@ -106,7 +114,9 @@ export const PUT = withAuth(async (req, userId) => {
                 patternMessage: "color must be a hex value",
             },
         ]);
-        if (err) return validationError(err);
+        if (err) {
+            return validationError(err);
+        }
 
         const catCheck = await pool.query(
             "SELECT 1 FROM task_categories WHERE id = $1 AND user_id = $2",
@@ -132,7 +142,9 @@ export const PUT = withAuth(async (req, userId) => {
 
 export const DELETE = withAuth(async (req, userId) => {
     const limited = await apiRateLimit(req);
-    if (limited) return limited;
+    if (limited) {
+        return limited;
+    }
 
     const client = await pool.connect();
     let began = false;

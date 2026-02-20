@@ -254,12 +254,11 @@ export function expandEventForWeek(ev: Event, weekStart: Date, weekEnd: Date): E
 
     let until: Date | null = null;
     if (rec.until) {
-        // Safe local parsing: Extract YYYY-MM-DD to avoid UTC timezone shifts when creating the limit
         let str = "";
         if (typeof rec.until === "string") {
             str = rec.until;
-        } else if ((rec.until as any) instanceof Date) {
-            str = (rec.until as any).toISOString();
+        } else if ((rec.until as unknown) instanceof Date) {
+            str = (rec.until as unknown as Date).toISOString();
         }
 
         if (str && str.length >= 10) {

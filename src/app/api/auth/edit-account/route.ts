@@ -9,7 +9,9 @@ import { withAuth } from "@/lib/authMiddleware";
 
 export const PATCH = withAuth(async (req, userId) => {
     const limited = await strictRateLimit(req);
-    if (limited) return limited;
+    if (limited) {
+        return limited;
+    }
 
     const client = await pool.connect();
     let began = false;

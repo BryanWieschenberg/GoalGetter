@@ -3,7 +3,9 @@ import { authRateLimit } from "@/lib/rateLimit";
 
 export async function POST(req: Request) {
     const limited = await authRateLimit(req);
-    if (limited) return limited;
+    if (limited) {
+        return limited;
+    }
 
     const { token } = await req.json();
 

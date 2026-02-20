@@ -27,7 +27,9 @@ export function validate(rules: ValidationRule[]): ValidationError | null {
             return { field, message: `${field} is required` };
         }
 
-        if (value === undefined || value === null || value === "") continue;
+        if (value === undefined || value === null || value === "") {
+            continue;
+        }
 
         if (type === "string") {
             if (typeof value !== "string") {
@@ -73,7 +75,9 @@ export function validationError(err: ValidationError) {
 }
 
 export function sanitize(value: unknown): string {
-    if (typeof value !== "string") return "";
+    if (typeof value !== "string") {
+        return "";
+    }
     return value.trim();
 }
 

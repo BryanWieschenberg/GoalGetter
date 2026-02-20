@@ -11,7 +11,9 @@ interface UserSettings {
 
 export const GET = withAuth(async (req, userId) => {
     const limited = await apiRateLimit(req);
-    if (limited) return limited;
+    if (limited) {
+        return limited;
+    }
 
     const result = await pool.query<UserSettings>(
         "SELECT theme, week_start FROM user_settings WHERE user_id=$1",
@@ -27,7 +29,9 @@ export const GET = withAuth(async (req, userId) => {
 
 export const PUT = withAuth(async (req, userId) => {
     const limited = await apiRateLimit(req);
-    if (limited) return limited;
+    if (limited) {
+        return limited;
+    }
 
     await pool.query(`UPDATE user_settings SET theme=$1, week_start=$2 WHERE user_id=$3`, [
         "system",
@@ -40,7 +44,9 @@ export const PUT = withAuth(async (req, userId) => {
 
 export const PATCH = withAuth(async (req, userId) => {
     const limited = await apiRateLimit(req);
-    if (limited) return limited;
+    if (limited) {
+        return limited;
+    }
 
     const body: UserSettings = await req.json();
 
@@ -54,7 +60,9 @@ export const PATCH = withAuth(async (req, userId) => {
             enum: WEEK_STARTS,
         },
     ]);
-    if (err) return validationError(err);
+    if (err) {
+        return validationError(err);
+    }
 
     await pool.query(`UPDATE user_settings SET theme=$1, week_start=$2 WHERE user_id=$3`, [
         body.theme,

@@ -1,4 +1,15 @@
-import { Html, Head, Preview, Body, Container, Heading, Text, Hr, Section, Button } from "@react-email/components";
+import {
+    Html,
+    Head,
+    Preview,
+    Body,
+    Container,
+    Heading,
+    Text,
+    Hr,
+    Section,
+    Button,
+} from "@react-email/components";
 
 export default function SignupResendVerify({ username, link }: { username: string; link: string }) {
     return (
@@ -31,7 +42,8 @@ export default function SignupResendVerify({ username, link }: { username: strin
                         Hello {username},
                     </Text>
                     <Text style={{ fontSize: "16px", marginBottom: "24px" }}>
-                        To complete your <strong>GoalGetter</strong> registration, please verify your email by clicking the button below:
+                        To complete your <strong>GoalGetter</strong> registration, please verify
+                        your email by clicking the button below:
                     </Text>
 
                     <Section style={{ textAlign: "center", marginBottom: "32px" }}>

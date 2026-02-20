@@ -6,7 +6,9 @@ import { withAuth } from "@/lib/authMiddleware";
 
 export const DELETE = withAuth(async (req, userId) => {
     const limited = await strictRateLimit(req);
-    if (limited) return limited;
+    if (limited) {
+        return limited;
+    }
 
     try {
         const body = await req.json().catch(() => ({}));

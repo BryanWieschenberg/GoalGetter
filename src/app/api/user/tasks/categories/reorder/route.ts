@@ -6,7 +6,9 @@ import { validate, validationError, DIRECTIONS } from "@/lib/validate";
 
 export const PATCH = withAuth(async (req, userId) => {
     const limited = await apiRateLimit(req);
-    if (limited) return limited;
+    if (limited) {
+        return limited;
+    }
 
     const client = await pool.connect();
     let began = false;
@@ -24,7 +26,9 @@ export const PATCH = withAuth(async (req, userId) => {
                 enum: DIRECTIONS,
             },
         ]);
-        if (err) return validationError(err);
+        if (err) {
+            return validationError(err);
+        }
 
         const { rows } = await client.query(
             `SELECT id, sort_order

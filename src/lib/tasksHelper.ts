@@ -4,20 +4,20 @@ export function formatPgDate(dateStr: string) {
 }
 
 export function daysUntil(dateStr?: string | null) {
-    if (!dateStr) {
+    if (!dateStr || dateStr.length < 10) {
         return null;
     }
 
-    const due = new Date(dateStr + "T00:00:00Z");
-    if (isNaN(due.getTime())) {
+    const [y, m, d] = dateStr.substring(0, 10).split("-").map(Number);
+    if (isNaN(y) || isNaN(m) || isNaN(d)) {
         return null;
     }
 
     const now = new Date();
-    const todayUTC = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
-    const dueUTC = Date.UTC(due.getUTCFullYear(), due.getUTCMonth(), due.getUTCDate());
-    const diff = dueUTC - todayUTC;
-    return Math.floor(diff / (1000 * 60 * 60 * 24)) + 1;
+    const todayLocalUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+    const dueLocalUTC = Date.UTC(y, m - 1, d);
+    const diff = dueLocalUTC - todayLocalUTC;
+    return Math.floor(diff / (1000 * 60 * 60 * 24));
 }
 
 export function dueColor(days: number | null): string {

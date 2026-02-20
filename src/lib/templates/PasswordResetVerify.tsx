@@ -1,6 +1,23 @@
-import { Html, Head, Preview, Body, Container, Heading, Text, Hr, Section, Button } from "@react-email/components";
+import {
+    Html,
+    Head,
+    Preview,
+    Body,
+    Container,
+    Heading,
+    Text,
+    Hr,
+    Section,
+    Button,
+} from "@react-email/components";
 
-export default function PasswordResetVerify({ username, link }: { username: string; link: string }) {
+export default function PasswordResetVerify({
+    username,
+    link,
+}: {
+    username: string;
+    link: string;
+}) {
     return (
         <Html>
             <Head />
@@ -31,7 +48,8 @@ export default function PasswordResetVerify({ username, link }: { username: stri
                         Hello {username},
                     </Text>
                     <Text style={{ fontSize: "16px", marginBottom: "24px" }}>
-                        To reset your <strong>GoalGetter</strong> password, please verify your email by clicking the button below:
+                        To reset your <strong>GoalGetter</strong> password, please verify your email
+                        by clicking the button below:
                     </Text>
 
                     <Section style={{ textAlign: "center", marginBottom: "32px" }}>

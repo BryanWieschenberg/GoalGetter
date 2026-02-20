@@ -6,7 +6,9 @@ import { strictRateLimit } from "@/lib/rateLimit";
 
 export async function PATCH(req: Request) {
     const limited = await strictRateLimit(req);
-    if (limited) return limited;
+    if (limited) {
+        return limited;
+    }
 
     try {
         const { token, password } = await req.json();

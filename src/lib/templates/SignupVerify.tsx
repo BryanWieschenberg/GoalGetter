@@ -1,4 +1,15 @@
-import { Html, Head, Preview, Body, Container, Heading, Text, Hr, Section, Button } from "@react-email/components";
+import {
+    Html,
+    Head,
+    Preview,
+    Body,
+    Container,
+    Heading,
+    Text,
+    Hr,
+    Section,
+    Button,
+} from "@react-email/components";
 
 export default function SignupVerify({ username, link }: { username: string; link: string }) {
     return (

@@ -75,7 +75,8 @@ export default function SignInForm() {
                 });
 
                 if (!res.ok) {
-                    setError("Failed reCAPTCHA check");
+                    const data = await res.json().catch(() => ({}));
+                    setError(data.error || "Failed reCAPTCHA check");
                     setSubmitting(false);
                     return;
                 }

@@ -3,8 +3,12 @@ import pool from "@/lib/db";
 import { Resend } from "resend";
 import crypto from "crypto";
 import PasswordResetVerify from "@/lib/templates/PasswordResetVerify";
+import { strictRateLimit } from "@/lib/rateLimit";
 
 export async function POST(req: Request) {
+    const limited = await strictRateLimit(req);
+    if (limited) return limited;
+
     try {
         const { email } = await req.json();
 

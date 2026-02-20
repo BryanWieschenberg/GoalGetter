@@ -1,22 +1,20 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/authOptions";
 import pool from "@/lib/db";
+import { apiRateLimit } from "@/lib/rateLimit";
+import { withAuth } from "@/lib/authMiddleware";
 
 interface UserSettings {
     theme: string;
     week_start: string;
-    timezone: string;
 }
 
-export async function GET() {
-    const session = await auth();
-    if (!session?.user?.id) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const GET = withAuth(async (req, userId) => {
+    const limited = await apiRateLimit(req);
+    if (limited) return limited;
 
     const result = await pool.query<UserSettings>(
         "SELECT theme, week_start FROM user_settings WHERE user_id=$1",
-        [session.user.id],
+        [userId],
     );
 
     if (result.rowCount === 0) {
@@ -24,34 +22,32 @@ export async function GET() {
     }
 
     return NextResponse.json(result.rows[0]);
-}
+});
 
-export async function PUT(req: Request) {
-    const session = await auth();
-    if (!session?.user?.id) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const PUT = withAuth(async (req, userId) => {
+    const limited = await apiRateLimit(req);
+    if (limited) return limited;
 
-    await pool.query(
-        `UPDATE user_settings SET theme=$1, week_start=$2, timezone=$3 WHERE user_id=$4`,
-        ["system", "sun", "system", session.user.id],
-    );
+    await pool.query(`UPDATE user_settings SET theme=$1, week_start=$2 WHERE user_id=$3`, [
+        "system",
+        "sun",
+        userId,
+    ]);
 
     return NextResponse.json({ ok: true });
-}
+});
 
-export async function PATCH(req: Request) {
-    const session = await auth();
-    if (!session?.user?.id) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const PATCH = withAuth(async (req, userId) => {
+    const limited = await apiRateLimit(req);
+    if (limited) return limited;
 
     const body: UserSettings = await req.json();
 
-    await pool.query(
-        `UPDATE user_settings SET theme=$1, week_start=$2, timezone=$3 WHERE user_id=$4`,
-        [body.theme, body.week_start, body.timezone, session.user.id],
-    );
+    await pool.query(`UPDATE user_settings SET theme=$1, week_start=$2 WHERE user_id=$3`, [
+        body.theme,
+        body.week_start,
+        userId,
+    ]);
 
     return NextResponse.json({ ok: true });
-}
+});

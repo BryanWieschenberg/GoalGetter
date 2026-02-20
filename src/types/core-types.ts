@@ -54,5 +54,4 @@ export type Event = {
 
 export type Settings = {
     week_start: "sun" | "mon" | "tue" | "wed" | "thu" | "fri" | "sat";
-    timezone: string;
 };

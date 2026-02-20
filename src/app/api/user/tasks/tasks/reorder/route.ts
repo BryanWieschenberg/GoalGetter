@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/authOptions";
 import pool from "@/lib/db";
+import { apiRateLimit } from "@/lib/rateLimit";
+import { withAuth } from "@/lib/authMiddleware";
 
-export async function PATCH(req: Request) {
-    const session = await auth();
-    if (!session?.user?.id) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const PATCH = withAuth(async (req, userId) => {
+    const limited = await apiRateLimit(req);
+    if (limited) return limited;
+
     const client = await pool.connect();
     let began = false;
 
@@ -18,7 +18,7 @@ export async function PATCH(req: Request) {
             FROM tasks t
             JOIN task_categories tc ON t.category_id = tc.id
             WHERE t.id = $1 AND tc.user_id = $2`,
-            [task_id, session?.user.id],
+            [task_id, userId],
         );
         if (ownerCheck.rowCount === 0) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -79,4 +79,4 @@ export async function PATCH(req: Request) {
     } finally {
         client.release();
     }
-}
+});

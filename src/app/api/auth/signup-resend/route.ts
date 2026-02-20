@@ -1,18 +1,16 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/authOptions";
 import pool from "@/lib/db";
 import crypto from "crypto";
 import { Resend } from "resend";
 import SignupResendVerify from "@/lib/templates/SignupResendVerify";
+import { strictRateLimit } from "@/lib/rateLimit";
+import { withAuth } from "@/lib/authMiddleware";
 
-export async function POST() {
+export const POST = withAuth(async (req, userId) => {
+    const limited = await strictRateLimit(req);
+    if (limited) return limited;
+
     try {
-        const session = await auth();
-        const userId = session?.user?.id ? Number(session.user.id) : null;
-        if (!userId) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
         const userRes = await pool.query(
             "SELECT username, email, email_verified FROM users WHERE id=$1",
             [userId],
@@ -32,7 +30,6 @@ export async function POST() {
             [userId],
         );
 
-        // Enforce 60s cooldown
         if (tokenRes.rowCount) {
             const createdAt = new Date(tokenRes.rows[0].created_at).getTime();
             const elapsedMs = Date.now() - createdAt;
@@ -88,4 +85,4 @@ export async function POST() {
         console.error(e);
         return NextResponse.json({ error: "Server error" }, { status: 500 });
     }
-}
+});

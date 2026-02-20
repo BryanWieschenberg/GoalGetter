@@ -1,11 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
-
-interface RateLimitStore {
-    count: number;
-    resetTime: number;
-}
-
-const store = new Map<string, RateLimitStore>();
+import { NextResponse } from "next/server";
+import redis from "@/lib/redis";
 
 interface RateLimitOptions {
     interval: number;
@@ -16,60 +10,63 @@ interface RateLimitOptions {
 export function rateLimit(options: RateLimitOptions) {
     const { interval, maxRequests, message = "Too many requests" } = options;
 
-    return async (req: NextRequest) => {
+    return async (req: Request) => {
         const ip =
             req.headers.get("x-forwarded-for")?.split(",")[0] ??
             req.headers.get("x-real-ip") ??
             "unknown";
 
-        const key = `${req.nextUrl.pathname}:${ip}`;
+        const pathname = new URL(req.url).pathname;
+        const key = `rl:${pathname}:${ip}`;
         const now = Date.now();
+        const windowStart = now - interval;
 
-        if (Math.random() < 0.01) {
-            for (const [k, v] of store.entries()) {
-                if (now > v.resetTime) {
-                    store.delete(k);
-                }
+        try {
+            const pipeline = redis.pipeline();
+
+            pipeline.zremrangebyscore(key, 0, windowStart);
+            pipeline.zcard(key);
+            pipeline.zadd(key, now, `${now}:${Math.random()}`);
+            pipeline.pexpire(key, interval);
+
+            const results = await pipeline.exec();
+
+            const count = results?.[1]?.[1] as number;
+
+            if (count >= maxRequests) {
+                const oldestInWindow = await redis.zrange(key, 0, 0, "WITHSCORES");
+                const oldestTimestamp =
+                    oldestInWindow.length >= 2 ? Number(oldestInWindow[1]) : now;
+                const retryAfter = Math.ceil((oldestTimestamp + interval - now) / 1000);
+
+                return NextResponse.json(
+                    { error: message },
+                    {
+                        status: 429,
+                        headers: {
+                            "Retry-After": String(Math.max(1, retryAfter)),
+                            "X-RateLimit-Limit": String(maxRequests),
+                            "X-RateLimit-Remaining": "0",
+                            "X-RateLimit-Reset": String(
+                                Math.ceil((oldestTimestamp + interval) / 1000),
+                            ),
+                        },
+                    },
+                );
             }
-        }
 
-        const record = store.get(key);
-
-        if (!record || now > record.resetTime) {
-            store.set(key, {
-                count: 1,
-                resetTime: now + interval,
-            });
+            return null;
+        } catch (err) {
+            console.error("Rate limit Redis error:", err);
             return null;
         }
-
-        record.count++;
-
-        if (record.count > maxRequests) {
-            const retryAfter = Math.ceil((record.resetTime - now) / 1000);
-            return NextResponse.json(
-                { error: message },
-                {
-                    status: 429,
-                    headers: {
-                        "Retry-After": String(retryAfter),
-                        "X-RateLimit-Limit": String(maxRequests),
-                        "X-RateLimit-Remaining": "0",
-                        "X-RateLimit-Reset": String(Math.ceil(record.resetTime / 1000)),
-                    },
-                },
-            );
-        }
-
-        store.set(key, record);
-        return null;
     };
 }
 
 export const authRateLimit = rateLimit({
     interval: 1000 * 60 * 15, // 15 mins
     maxRequests: 5,
-    message: "Too many login attempts. Please try again alter.",
+    message: "Too many login attempts. Please try again later.",
 });
 
 export const apiRateLimit = rateLimit({

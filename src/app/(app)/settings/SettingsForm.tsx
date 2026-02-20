@@ -15,7 +15,6 @@ interface User {
 interface UserSettings {
     theme: string;
     week_start: string;
-    timezone: string;
 }
 
 type EditField = "username" | "handle" | "email";
@@ -45,15 +44,6 @@ export default function SettingsForm({
     const [editUsername, setEditUsername] = useState<string>(account.username);
     const [editHandle, setEditHandle] = useState<string>(account.handle);
     const [editEmail, setEditEmail] = useState<string>(account.email);
-    const [timezones, setTimezones] = useState<string[]>([]);
-
-    useEffect(() => {
-        setTimezones(Intl.supportedValuesOf("timeZone"));
-    }, []);
-
-    if (timezones.length === 0) {
-        return null;
-    }
 
     const closeEditor = () => {
         setEditorOpen(null);
@@ -147,7 +137,7 @@ export default function SettingsForm({
                 throw new Error("Failed to reset settings");
             }
 
-            const reset = { theme: "system", week_start: "sun", timezone: "system" };
+            const reset = { theme: "system", week_start: "sun" };
 
             setSettings(reset);
             router.refresh();
@@ -474,48 +464,6 @@ export default function SettingsForm({
                                 }
                                 className="text-sm ml-4 px-2 py-[.3rem] rounded border border-yellow-500 bg-yellow-100 text-yellow-700 hover:bg-yellow-200 dark:border-purple-700 dark:bg-purple-200 dark:text-purple-800 dark:hover:bg-purple-300 hover:cursor-pointer"
                                 title="Reset Week Start"
-                            >
-                                Reset
-                            </button>
-                        )}
-                    </div>
-                </label>
-
-                <label className="flex flex-col">
-                    <strong>Timezone:</strong>
-                    <div className="flex items-center gap-2">
-                        <select
-                            value={settings.timezone}
-                            onChange={(e) =>
-                                setSettings((s) => ({ ...s, timezone: e.target.value }))
-                            }
-                            className={`rounded p-2 border-2 dark:bg-black
-                                ${
-                                    settings.timezone !== original.current.timezone
-                                        ? "border-yellow-500 dark:border-purple-700"
-                                        : ""
-                                }`}
-                        >
-                            <option value="system">System</option>
-                            {Intl.supportedValuesOf("timeZone").map((tz) => (
-                                <option key={tz} value={tz}>
-                                    {tz}
-                                </option>
-                            ))}
-                        </select>
-
-                        {settings.timezone !== original.current.timezone && (
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    setSettings((s) => ({
-                                        ...s,
-                                        timezone: original.current.timezone,
-                                    }))
-                                }
-                                className="text-sm ml-4 px-2 py-[.3rem] rounded border border-yellow-500 bg-yellow-100
-                                    text-yellow-700 hover:bg-yellow-200 dark:border-purple-700
-                                    dark:bg-purple-200 dark:text-purple-800 dark:hover:bg-purple-300"
                             >
                                 Reset
                             </button>

@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
+import { authRateLimit } from "@/lib/rateLimit";
 
 export async function POST(req: Request) {
+    const limited = await authRateLimit(req);
+    if (limited) return limited;
+
     const { token } = await req.json();
 
     const res = await fetch("https://www.google.com/recaptcha/api/siteverify", {

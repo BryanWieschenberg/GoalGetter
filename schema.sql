@@ -19,8 +19,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS user_settings (
     user_id                 INT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     theme                   theme_type NOT NULL DEFAULT 'system',
-    week_start              week_start_type NOT NULL DEFAULT 'sun',
-    timezone                VARCHAR(255) NOT NULL DEFAULT 'system'
+    week_start              week_start_type NOT NULL DEFAULT 'sun'
 );
 
 CREATE TABLE IF NOT EXISTS auth_tokens (

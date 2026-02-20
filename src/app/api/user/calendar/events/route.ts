@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/authOptions";
 import pool from "@/lib/db";
+import { apiRateLimit } from "@/lib/rateLimit";
+import { withAuth } from "@/lib/authMiddleware";
 
-export async function GET() {
-    const session = await auth();
-    if (!session?.user?.id) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const GET = withAuth(async (req, userId) => {
+    const limited = await apiRateLimit(req);
+    if (limited) return limited;
 
     try {
         const events = await pool.query(
@@ -17,7 +16,7 @@ export async function GET() {
             LEFT JOIN event_recurrence r ON e.id = r.event_id
             WHERE e.category_id IN (SELECT id FROM event_categories WHERE user_id = $1)
             ORDER BY e.start_time ASC`,
-            [session.user.id],
+            [userId],
         );
 
         return NextResponse.json({ events: events.rows }, { status: 200 });
@@ -25,13 +24,12 @@ export async function GET() {
         console.error("GET /api/user/calendar/events:", e);
         return NextResponse.json({ error: "Failed to fetch events." }, { status: 500 });
     }
-}
+});
 
-export async function POST(req: Request) {
-    const session = await auth();
-    if (!session?.user?.id) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const POST = withAuth(async (req, userId) => {
+    const limited = await apiRateLimit(req);
+    if (limited) return limited;
+
     const client = await pool.connect();
     let began = false;
 
@@ -55,7 +53,7 @@ export async function POST(req: Request) {
 
         const catCheck = await client.query(
             "SELECT 1 FROM event_categories WHERE id = $1 AND user_id = $2",
-            [category_id, session?.user.id],
+            [category_id, userId],
         );
         if (catCheck.rowCount === 0) {
             return NextResponse.json({ error: "Invalid category" }, { status: 403 });
@@ -101,13 +99,12 @@ export async function POST(req: Request) {
     } finally {
         client.release();
     }
-}
+});
 
-export async function PUT(req: Request) {
-    const session = await auth();
-    if (!session?.user?.id) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const PUT = withAuth(async (req, userId) => {
+    const limited = await apiRateLimit(req);
+    if (limited) return limited;
+
     const client = await pool.connect();
     let began = false;
 
@@ -132,7 +129,7 @@ export async function PUT(req: Request) {
 
         const catCheck = await client.query(
             "SELECT 1 FROM event_categories WHERE id = $1 AND user_id = $2",
-            [category_id, session.user.id],
+            [category_id, userId],
         );
         if (catCheck.rowCount === 0) {
             return NextResponse.json({ error: "Invalid category" }, { status: 403 });
@@ -179,13 +176,12 @@ export async function PUT(req: Request) {
     } finally {
         client.release();
     }
-}
+});
 
-export async function DELETE(req: Request) {
-    const session = await auth();
-    if (!session?.user?.id) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const DELETE = withAuth(async (req, userId) => {
+    const limited = await apiRateLimit(req);
+    if (limited) return limited;
+
     const client = await pool.connect();
     let began = false;
 
@@ -198,7 +194,7 @@ export async function DELETE(req: Request) {
             FROM events e
             JOIN event_categories ec ON e.category_id = ec.id
             WHERE e.id=$1 AND ec.user_id=$2`,
-            [id, session.user.id],
+            [id, userId],
         );
         if (evCheck.rowCount === 0) {
             return NextResponse.json({ error: "Not found or not authorized" }, { status: 404 });
@@ -223,4 +219,4 @@ export async function DELETE(req: Request) {
     } finally {
         client.release();
     }
-}
+});

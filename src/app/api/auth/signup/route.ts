@@ -4,11 +4,15 @@ import pool from "@/lib/db";
 import SignupVerify from "@/lib/templates/SignupVerify";
 import { Resend } from "resend";
 import crypto from "crypto";
+import { authRateLimit } from "@/lib/rateLimit";
 
 const isValidHandle = (h: string) => /^[a-z0-9-_]{1,20}$/.test(h);
 const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 
 export async function POST(req: Request) {
+    const limited = await authRateLimit(req);
+    if (limited) return limited;
+
     const client = await pool.connect();
     let began = false;
     try {

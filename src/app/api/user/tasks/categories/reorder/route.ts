@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/authOptions";
 import pool from "@/lib/db";
+import { apiRateLimit } from "@/lib/rateLimit";
+import { withAuth } from "@/lib/authMiddleware";
 
-export async function PATCH(req: Request) {
-    const session = await auth();
-    if (!session?.user?.id) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const PATCH = withAuth(async (req, userId) => {
+    const limited = await apiRateLimit(req);
+    if (limited) return limited;
+
     const client = await pool.connect();
     let began = false;
 
@@ -17,7 +17,7 @@ export async function PATCH(req: Request) {
             `SELECT id, sort_order
              FROM task_categories
              WHERE id = $1 AND user_id = $2`,
-            [category_id, session.user.id],
+            [category_id, userId],
         );
         if (rows.length === 0) {
             return NextResponse.json({ error: "Category not found" }, { status: 404 });
@@ -34,7 +34,7 @@ export async function PATCH(req: Request) {
             AND sort_order ${directionOp} $2
             ORDER BY sort_order ${orderDir}
             LIMIT 1`,
-            [session.user.id, category.sort_order],
+            [userId, category.sort_order],
         );
 
         if (neighbor.rows.length === 0) {
@@ -68,4 +68,4 @@ export async function PATCH(req: Request) {
     } finally {
         client.release();
     }
-}
+});

@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import pool from "@/lib/db";
 import bcrypt from "bcrypt";
+import { strictRateLimit } from "@/lib/rateLimit";
 
 export async function PATCH(req: Request) {
+    const limited = await strictRateLimit(req);
+    if (limited) return limited;
+
     const { accountId, password } = await req.json();
 
     const hashed = await bcrypt.hash(password, 12);

@@ -6,11 +6,14 @@
         "dev": "next dev",
         "build": "next build",
         "start": "next start",
-        "lintidk": "next lint",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "format": "prettier --write .",
-        "format:check": "prettier --check ."
+        "format:check": "prettier --check .",
+        "lines": "cloc . --exclude-dir=dist,node_modules,.next --include-ext=ts,tsx --exclude-ext=d.ts,gen.ts",
+        "lines:large": "cloc . --exclude-dir=dist,node_modules,.next --include-ext=ts,tsx --exclude-ext=d.ts,gen.ts --by-file --csv | awk -F, '$5 >= 500 {print $2, $5}'",
+        "tree": "tree -I node_modules -I dist -I .next -I node_modules -I public",
+        "leakcheck": "gitleaks detect --source ."
     },
     "dependencies": {
         "@auth/core": "^0.41.1",
@@ -24,6 +27,7 @@
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "framer-motion": "^12.23.12",
+        "ioredis": "^5.9.3",
         "lucide-react": "^0.539.0",
         "next": "^16.1.1",
         "next-auth": "^5.0.0-beta.30",
@@ -44,17 +48,19 @@
         "@types/pg": "^8.15.4",
         "@types/react": "^19",
         "@types/react-dom": "^19",
-        "eslint": "^9.39.2",
-        "eslint-config-next": "^16.1.1",
-        "eslint-config-prettier": "^10.1.8",
+        "@typescript-eslint/eslint-plugin": "^8.56.0",
+        "@typescript-eslint/parser": "^8.56.0",
+        "eslint": "^8.57.1",
+        "eslint-config-next": "^0.2.4",
+        "eslint-config-prettier": "^9.1.2",
         "eslint-config-react": "^1.1.7",
         "eslint-plugin-react": "^7.37.5",
         "globals": "^16.5.0",
         "jiti": "^2.6.1",
-        "prettier": "^3.7.4",
+        "prettier": "^3.8.1",
         "tailwindcss": "^4",
         "tw-animate-css": "^1.3.6",
         "typescript": "^5",
-        "typescript-eslint": "^8.50.1"
+        "typescript-eslint": "^8.36.0"
     }
 }

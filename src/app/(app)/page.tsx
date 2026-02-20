@@ -68,10 +68,9 @@ export default async function Home() {
             ) AS user_data;`,
             [session.user.id],
         );
-        settings = await pool.query(
-            `SELECT week_start, timezone FROM user_settings WHERE user_id = $1`,
-            [session.user.id],
-        );
+        settings = await pool.query(`SELECT week_start FROM user_settings WHERE user_id = $1`, [
+            session.user.id,
+        ]);
 
         const minutes = new Date().getHours() * 60 + new Date().getMinutes();
         const pxPerMinute = 48 / 60;

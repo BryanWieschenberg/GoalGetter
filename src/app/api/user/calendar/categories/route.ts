@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/authOptions";
 import pool from "@/lib/db";
+import { apiRateLimit } from "@/lib/rateLimit";
+import { withAuth } from "@/lib/authMiddleware";
 
-export async function GET() {
-    const session = await auth();
-    if (!session?.user?.id) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const GET = withAuth(async (req, userId) => {
+    const limited = await apiRateLimit(req);
+    if (limited) return limited;
 
     try {
         const categories = await pool.query(
@@ -14,7 +13,7 @@ export async function GET() {
             FROM event_categories
             WHERE user_id = $1
             ORDER BY id ASC`,
-            [session?.user.id],
+            [userId],
         );
 
         return NextResponse.json({ categories: categories.rows }, { status: 200 });
@@ -25,13 +24,11 @@ export async function GET() {
             { status: 500 },
         );
     }
-}
+});
 
-export async function POST(req: Request) {
-    const session = await auth();
-    if (!session?.user?.id) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const POST = withAuth(async (req, userId) => {
+    const limited = await apiRateLimit(req);
+    if (limited) return limited;
 
     try {
         const body = await req.json();
@@ -42,7 +39,7 @@ export async function POST(req: Request) {
             `INSERT INTO event_categories (user_id, name, color)
             VALUES ($1, $2, $3)
             RETURNING id, name, color`,
-            [session.user.id, name, color || null],
+            [userId, name, color || null],
         );
 
         return NextResponse.json({ ok: true }, { status: 201 });
@@ -50,13 +47,11 @@ export async function POST(req: Request) {
         console.error("POST /api/user/calendar/categories error:", e);
         return NextResponse.json({ error: "Failed to add calendar category." }, { status: 500 });
     }
-}
+});
 
-export async function PUT(req: Request) {
-    const session = await auth();
-    if (!session?.user?.id) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const PUT = withAuth(async (req, userId) => {
+    const limited = await apiRateLimit(req);
+    if (limited) return limited;
 
     try {
         const body = await req.json();
@@ -68,11 +63,11 @@ export async function PUT(req: Request) {
             SET name = $1, color = $2
             WHERE id = $3 AND user_id = $4
             RETURNING id, name, color`,
-            [title, color || null, id, session.user.id],
+            [title, color || null, id, userId],
         );
 
         if (result.rowCount === 0) {
-            return NextResponse.json({ error: "Anauthorized" }, { status: 404 });
+            return NextResponse.json({ error: "Unauthorized" }, { status: 404 });
         }
 
         return NextResponse.json({ ok: true, category: result.rows[0] }, { status: 200 });
@@ -80,13 +75,11 @@ export async function PUT(req: Request) {
         console.error("PUT /api/user/calendar/categories error:", e);
         return NextResponse.json({ error: "Failed to update calendar category." }, { status: 500 });
     }
-}
+});
 
-export async function DELETE(req: Request) {
-    const session = await auth();
-    if (!session?.user?.id) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const DELETE = withAuth(async (req, userId) => {
+    const limited = await apiRateLimit(req);
+    if (limited) return limited;
 
     try {
         const { searchParams } = new URL(req.url);
@@ -96,7 +89,7 @@ export async function DELETE(req: Request) {
             `DELETE FROM event_categories
             WHERE id = $1 AND user_id = $2
             RETURNING id`,
-            [id, session.user.id],
+            [id, userId],
         );
 
         if (result.rowCount === 0) {
@@ -108,4 +101,4 @@ export async function DELETE(req: Request) {
         console.error("DELETE /api/user/calendar/categories error:", e);
         return NextResponse.json({ error: "Failed to delete calendar category." }, { status: 500 });
     }
-}
+});

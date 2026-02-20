@@ -1,16 +1,16 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/authOptions";
 import pool from "@/lib/db";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { Resend } from "resend";
 import EmailChangeVerify from "@/lib/templates/EmailChangeVerify";
+import { strictRateLimit } from "@/lib/rateLimit";
+import { withAuth } from "@/lib/authMiddleware";
 
-export async function PATCH(req: Request) {
-    const session = await auth();
-    if (!session) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const PATCH = withAuth(async (req, userId) => {
+    const limited = await strictRateLimit(req);
+    if (limited) return limited;
+
     const client = await pool.connect();
     let began = false;
 
@@ -26,7 +26,7 @@ export async function PATCH(req: Request) {
 
         const userRes = await client.query(
             "SELECT id, email, username, password, provider FROM users WHERE id=$1",
-            [session.user.id],
+            [userId],
         );
         if (userRes.rowCount === 0) {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -75,10 +75,7 @@ export async function PATCH(req: Request) {
         began = true;
 
         if (editType === "username") {
-            await client.query("UPDATE users SET username=$1 WHERE id=$2", [
-                newValue,
-                session.user.id,
-            ]);
+            await client.query("UPDATE users SET username=$1 WHERE id=$2", [newValue, userId]);
         } else if (editType === "handle") {
             const handleExists = await client.query("SELECT id FROM users WHERE handle=$1", [
                 newValue,
@@ -88,10 +85,7 @@ export async function PATCH(req: Request) {
                 return NextResponse.json({ error: "Handle already exists" }, { status: 409 });
             }
 
-            await client.query("UPDATE users SET handle=$1 WHERE id=$2", [
-                newValue,
-                session.user.id,
-            ]);
+            await client.query("UPDATE users SET handle=$1 WHERE id=$2", [newValue, userId]);
         } else if (editType === "email") {
             const emailExists = await client.query("SELECT id FROM users WHERE email=$1", [
                 newValue,
@@ -104,7 +98,7 @@ export async function PATCH(req: Request) {
             const tokenRes = await client.query(
                 `SELECT token FROM auth_tokens
                 WHERE user_id=$1 AND purpose='email_change'`,
-                [session.user.id],
+                [userId],
             );
 
             const raw = crypto.randomBytes(32).toString("hex");
@@ -118,7 +112,7 @@ export async function PATCH(req: Request) {
                     `UPDATE auth_tokens
                     SET token=$1, created_at=NOW(), expires_at=NOW() + interval '1 hour', pending_email
                     WHERE user_id=$2 AND purpose='email_change', $3`,
-                    [tokenHash, session.user.id, newValue],
+                    [tokenHash, userId, newValue],
                 );
             } else {
                 await client.query(
@@ -153,4 +147,4 @@ export async function PATCH(req: Request) {
     } finally {
         client.release();
     }
-}
+});

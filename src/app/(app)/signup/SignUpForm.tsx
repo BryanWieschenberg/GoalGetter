@@ -74,16 +74,10 @@ export default function SignUpForm() {
                     return;
                 }
 
-                const timezone =
-                    typeof Intl !== "undefined"
-                        ? Intl.DateTimeFormat().resolvedOptions().timeZone
-                        : "UTC";
-
                 const loginRes = await signIn("credentials", {
                     redirect: false,
                     handleOrEmail: payload.email,
                     password: payload.password,
-                    timezone,
                 });
 
                 if (loginRes?.ok) {

@@ -1,5 +1,6 @@
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
+import GitHub from "next-auth/providers/github";
 import bcrypt from "bcrypt";
 import pool from "@/lib/db";
 import NextAuth from "next-auth";
@@ -22,6 +23,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 };
             },
         }),
+        GitHub({
+            clientId: process.env.GITHUB_CLIENT_ID!,
+            clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+            profile(p) {
+                return {
+                    id: String(p.id),
+                    email: p.email ? String(p.email) : undefined,
+                    name: p.name ? String(p.name) : undefined,
+                    image: p.avatar_url,
+                };
+            },
+        }),
         Credentials({
             name: "Credentials",
             credentials: {
@@ -38,7 +51,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                         throw new Error("Missing credentials");
                     }
 
-                    const isEmail = creds.handleOrEmail.includes("@");
+                    const isEmail =
+                        creds.handleOrEmail.includes("@") && !creds.handleOrEmail.startsWith("@");
                     const query = isEmail
                         ? `SELECT id, username, handle, email, password, provider
                            FROM users WHERE email = $1`

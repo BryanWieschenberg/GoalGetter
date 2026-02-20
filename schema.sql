@@ -1,4 +1,4 @@
-CREATE TYPE provider_type AS ENUM ('inapp', 'google', 'microsoft', 'facebook', 'apple', 'github');
+CREATE TYPE provider_type AS ENUM ('inapp', 'google', 'github');
 CREATE TYPE theme_type AS ENUM ('system', 'light', 'dark');
 CREATE TYPE week_start_type AS ENUM ('sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat');
 CREATE TYPE token_purpose AS ENUM ('signup', 'email_change', 'password_reset');

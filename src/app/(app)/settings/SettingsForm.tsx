@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { HiPencil, HiX } from "react-icons/hi";
+import Link from "next/link";
 
 interface User {
     username: string;
@@ -22,9 +23,11 @@ type EditField = "username" | "handle" | "email";
 export default function SettingsForm({
     account,
     initialSettings,
+    supportEmail,
 }: {
     account: User;
     initialSettings: UserSettings;
+    supportEmail?: string;
 }) {
     const router = useRouter();
 
@@ -519,6 +522,25 @@ export default function SettingsForm({
                 >
                     {saving ? "Saving..." : "Save Settings"}
                 </button>
+            </div>
+
+            <hr className="my-6 border-zinc-300 dark:border-zinc-700" />
+
+            <div className="flex gap-4 text-sm text-zinc-500 dark:text-zinc-400">
+                <Link href="/privacy" className="hover:text-zinc-900 dark:hover:text-zinc-300">
+                    Privacy Policy
+                </Link>
+                <Link href="/terms" className="hover:text-zinc-900 dark:hover:text-zinc-300">
+                    Terms of Service
+                </Link>
+                {supportEmail && (
+                    <a
+                        href={`mailto:${supportEmail}`}
+                        className="text-blue-500 hover:text-blue-900 dark:hover:text-blue-300"
+                    >
+                        Support
+                    </a>
+                )}
             </div>
         </div>
     );

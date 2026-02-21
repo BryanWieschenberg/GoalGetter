@@ -98,7 +98,7 @@ export default async function Home() {
                     nowTop={nowTop}
                 />
             ) : (
-                <WelcomePage />
+                <WelcomePage supportEmail={process.env.SUPPORT_EMAIL} />
             )}
         </>
     );

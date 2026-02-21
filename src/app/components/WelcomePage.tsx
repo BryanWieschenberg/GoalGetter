@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { CheckSquare, Bell, Zap, Sparkles } from "lucide-react";
 import Image from "next/image";
 
-export default function WelcomePage() {
+export default function WelcomePage({ supportEmail }: { supportEmail?: string }) {
     return (
         <div className="flex-1 overflow-y-auto bg-gradient-to-b from-white to-zinc-300 dark:from-zinc-800 dark:to-black">
             <motion.div
@@ -329,9 +329,31 @@ export default function WelcomePage() {
                     <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-2">
                         &copy; {new Date().getFullYear()} GoalGetter. All rights reserved.
                     </p>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-4">
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
                         Created by Bryan Wieschenberg
                     </p>
+                    <div className="flex gap-4 justify-center text-xs mb-4 text-zinc-500 dark:text-zinc-400">
+                        <Link
+                            href="/privacy"
+                            className="hover:text-zinc-900 dark:hover:text-zinc-300"
+                        >
+                            Privacy Policy
+                        </Link>
+                        <Link
+                            href="/terms"
+                            className="hover:text-zinc-900 dark:hover:text-zinc-300"
+                        >
+                            Terms of Service
+                        </Link>
+                        {supportEmail && (
+                            <a
+                                href={`mailto:${supportEmail}`}
+                                className="text-blue-500 hover:text-blue-900 dark:hover:text-blue-300"
+                            >
+                                Support
+                            </a>
+                        )}
+                    </div>
                 </footer>
             </motion.div>
         </div>

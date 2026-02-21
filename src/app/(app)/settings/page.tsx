@@ -38,7 +38,11 @@ export default async function Settings() {
 
     return (
         <div className="flex-1 overflow-y-auto p-8">
-            <SettingsForm account={account.rows[0]} initialSettings={settingsRes.rows[0]} />
+            <SettingsForm
+                account={account.rows[0]}
+                initialSettings={settingsRes.rows[0]}
+                supportEmail={process.env.SUPPORT_EMAIL}
+            />
         </div>
     );
 }

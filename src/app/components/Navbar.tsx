@@ -22,24 +22,6 @@ export default function Navbar({ hasSession }: { hasSession: boolean }) {
                 <Link href="/" className="hover:text-blue-600 dark:hover:text-blue-400 transition">
                     Home
                 </Link>
-                <Link
-                    href="/insights"
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition"
-                >
-                    Insights
-                </Link>
-                <Link
-                    href="/notifications"
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition"
-                >
-                    Notications
-                </Link>
-                <Link
-                    href="/profile"
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition"
-                >
-                    Profile
-                </Link>
             </div>
             <div className="flex items-center gap-6">
                 {hasSession ? (

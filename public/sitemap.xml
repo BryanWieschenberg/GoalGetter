@@ -26,4 +26,17 @@
         <priority>0.6</priority>
     </url>
 
+    <url>
+        <loc>https://goalgetter.dev/privacy</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
+    </url>
+    
+    <url>
+        <loc>https://goalgetter.dev/terms</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
+    </url>
 </urlset>

@@ -740,7 +740,6 @@ export default function Tasks({
                         return visibleCategories.includes(cat.id);
                     })
                     .map((cat: TaskCategory) => {
-                        // Get all categories
                         let catTasks = tasks
                             .filter((t: Task) => t.category_id === cat.id)
                             .filter((t: Task) => {
@@ -888,7 +887,6 @@ export default function Tasks({
                                         No tasks in this category.
                                     </p>
                                 ) : (
-                                    // Get all tasks in this category
                                     <ul>
                                         {catTasks.map((task: Task) => {
                                             const tag = tagById(task.tag_id);

@@ -105,18 +105,22 @@ export default function Calendar({
     }
 
     const navigateWeek = useCallback(
-        (newWeekStart: Date) => {
+        (newWeekStart: Date, exactRouteDate?: Date) => {
             const key = formatDateParam(newWeekStart);
             const cached = eventCache.current.get(key);
             if (cached) {
                 setEvents(cached);
             }
             setWeekStart(newWeekStart);
+
+            const routeDate = exactRouteDate || newWeekStart;
+            const routeKey = formatDateParam(routeDate);
             const todayWeek = startOfWeek(new Date(), startWeekPreference);
-            if (key === formatDateParam(todayWeek)) {
+
+            if (formatDateParam(newWeekStart) === formatDateParam(todayWeek) && !exactRouteDate) {
                 router.replace("/", { scroll: false });
             } else {
-                router.replace(`/?date=${key}`, { scroll: false });
+                router.replace(`/?date=${routeKey}`, { scroll: false });
             }
         },
         [router, startWeekPreference],
@@ -500,7 +504,7 @@ export default function Calendar({
                                     if (val) {
                                         const d = parseLocalDate(val);
                                         if (!isNaN(d.getTime())) {
-                                            setWeekStart(startOfWeek(d, startWeekPreference));
+                                            navigateWeek(startOfWeek(d, startWeekPreference), d);
                                         }
                                     }
                                 }}

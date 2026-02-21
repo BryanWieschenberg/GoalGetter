@@ -3,6 +3,7 @@ import pool from "@/lib/db";
 import { apiRateLimit } from "@/lib/rateLimit";
 import { withAuth } from "@/lib/authMiddleware";
 import { validate, validationError, THEMES, WEEK_STARTS } from "@/lib/validate";
+import redis from "@/lib/redis";
 
 interface UserSettings {
     theme: string;
@@ -39,6 +40,8 @@ export const PUT = withAuth(async (req, userId) => {
         userId,
     ]);
 
+    await redis.del(`cache:theme:${userId}`);
+
     return NextResponse.json({ ok: true });
 });
 
@@ -69,6 +72,8 @@ export const PATCH = withAuth(async (req, userId) => {
         body.week_start,
         userId,
     ]);
+
+    await redis.del(`cache:theme:${userId}`);
 
     return NextResponse.json({ ok: true });
 });

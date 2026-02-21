@@ -24,7 +24,6 @@ export const DELETE = withAuth(async (req, userId) => {
 
         const user = userRes.rows[0];
 
-        // In-app accounts: require password confirmation
         if (user.provider === "inapp") {
             if (!password) {
                 return NextResponse.json({ error: "Password is required" }, { status: 400 });
@@ -35,8 +34,6 @@ export const DELETE = withAuth(async (req, userId) => {
                 return NextResponse.json({ error: "Incorrect password" }, { status: 403 });
             }
         }
-
-        // OAuth accounts: already authenticated via provider, no password needed
 
         await pool.query("DELETE FROM users WHERE id=$1", [userId]);
 

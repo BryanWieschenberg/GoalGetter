@@ -4,6 +4,8 @@ import { auth } from "@/lib/authOptions";
 import pool from "@/lib/db";
 import ThemeApplier from "./ThemeApplier";
 
+import redis from "@/lib/redis";
+
 export const metadata = {
     title: {
         default: "GoalGetter",
@@ -16,11 +18,28 @@ export default async function BareLayout({ children }: { children: React.ReactNo
 
     let theme = "system";
     if (session?.user?.id) {
-        const themeRes = await pool.query<{ theme: string }>(
-            "SELECT theme FROM user_settings WHERE user_id=$1",
-            [session.user.id],
-        );
-        theme = themeRes.rows[0]?.theme || "system";
+        try {
+            const cacheKey = `cache:theme:${session.user.id}`;
+            const cachedTheme = await redis.get(cacheKey);
+
+            if (cachedTheme) {
+                theme = cachedTheme;
+            } else {
+                const themeRes = await pool.query<{ theme: string }>(
+                    "SELECT theme FROM user_settings WHERE user_id=$1",
+                    [session.user.id],
+                );
+                theme = themeRes.rows[0]?.theme || "system";
+                await redis.set(cacheKey, theme, "EX", 3600);
+            }
+        } catch (err) {
+            console.error("Redis cache error in layout:", err);
+            const themeRes = await pool.query<{ theme: string }>(
+                "SELECT theme FROM user_settings WHERE user_id=$1",
+                [session.user.id],
+            );
+            theme = themeRes.rows[0]?.theme || "system";
+        }
     }
 
     return (

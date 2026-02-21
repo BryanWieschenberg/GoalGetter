@@ -63,14 +63,23 @@ export default function EventEdit({
     );
     const [frequency, setFrequency] = useState<Frequency>((rec?.frequency as Frequency) ?? "");
     const [interval, setInterval] = useState<number>(rec?.interval ?? 1);
+    // Helper to safely extract YYYY-MM-DD from any timestamp string, avoiding JS Date shifting completely.
+    const extractYMD = (val: string | null | undefined): string => {
+        if (!val) return "";
+        const str = String(val);
+        // Extracts the first YYYY-MM-DD it finds, safely capturing exactly what the DB sent!
+        const match = str.match(/^\d{4}-\d{2}-\d{2}/);
+        return match ? match[0] : "";
+    };
+
     const [count, setCount] = useState<string>(
         typeof rec?.count === "number" ? String(rec.count) : "",
     );
-    const [until, setUntil] = useState<string>(rec?.until ?? "");
+    const [until, setUntil] = useState<string>(extractYMD(rec?.until));
     const [weekly, setWeekly] = useState<string[]>(Array.isArray(rec?.weekly) ? rec!.weekly! : []);
     const [exceptionsCsv, setExceptionsCsv] = useState<string>(
         Array.isArray(rec?.exceptions)
-            ? rec!.exceptions!.map((ex) => ex.split("T")[0]).join(", ")
+            ? rec!.exceptions!.map((ex) => extractYMD(ex)).join(", ")
             : "",
     );
 

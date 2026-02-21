@@ -35,7 +35,6 @@ export default async function PasswordResetPage({
             return UI("This reset link has expired. Please request a new one.", false);
         }
 
-        // Token is valid — pass the raw token to the form (API will verify + delete it)
         return UI("Enter your new password below.", true, token);
     } catch (e) {
         console.error("Error loading password reset:", e);

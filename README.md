@@ -105,7 +105,7 @@ Although this app is available publicly, you are free to run it locally as well,
 2. Install PostgreSQL with `sudo apt install postgresql postgresql-contrib -y` and start the service with `sudo systemctl start postgresql`. Optionally enable it to run on boot with `sudo systemctl enable postgresql`. Then, setup PostgreSQL:
 
 ```
-sudo -u postgresql
+sudo -u postgres psql
 CREATE USER goalgetter_user WITH PASSWORD 'pick_a_strong_password';
 CREATE DATABASE goalgetter_db;
 GRANT ALL PRIVILEGES ON DATABASE goalgetter_db TO goalgetter_user;

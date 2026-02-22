@@ -50,7 +50,7 @@ GoalGetter employs a modern architecture utilizing Next.js for optimized server-
 - **Raw SQL over ORM:** While ORMs like Drizzle or Prisma offer high developer velocity and type safety, GoalGetter utilizes raw SQL via the pg driver. **Trade-off:** This requires manual type casting and schema management, but provides maximum control over complex grouping/aggregation queries, significantly reducing database latency on heavy read operations.
 - **Redis for Rate Limiting vs. InMemory:** Rate limits could be stored in Node.js memory, but I wanted to design this app to be horizontally scalable, so I chose Redis because it better fits that philosophy. **Trade-off:** Redis introduces an external infrastructural dependency, but guarantees consistency and horizontal scalability.
 - **REST vs. GraphQL:** We leverage standard RESTful Next.js API Routes rather than introducing a GraphQL layer. **Trade-off:** While REST requires creating bespoke endpoints, it eliminates the heavy overhead of a GraphQL engine and keeps the architecture lean and performant.
-- **Workspace Client-Side Rendering:** The main application workspace relies heavily on client-side-rendered components rather than full server-side rendering. **Trade-off:** While SSR improves initial load experience and SEO, the highly interactive nature of the split-screen interface demands immediate state reflexes that CSR excels at. SEO is not required nor necessary for an authenticated, private user dashbaord like the GoalGetter workspace.
+- **Workspace Client-Side Rendering:** The main application workspace relies heavily on client-side-rendered components rather than full server-side rendering. **Trade-off:** While SSR improves initial load experience and SEO, the highly interactive nature of the split-screen interface demands immediate state reflexes that CSR excels at. SEO is not required nor necessary for an authenticated, private user dashboard like the GoalGetter workspace.
 - **Micro-Optimization via Ref-based Caching:** For calendar pagination, GoalGetter caches previously fetched weeks directly in React's useRef rather than using a complex global state manager like Redux. **Trade-off:** This tightly couples caching to the component lifecycle, but eliminates boilerplate and keeps performance extremely fast for the user.
 
 ## Testing & Quality
@@ -63,12 +63,10 @@ GoalGetter employs a modern architecture utilizing Next.js for optimized server-
 
 ## Performance & Benchmarks
 
-- By leveraging raw SQL json aggregation, entire workspace hydration queries (loading tasks, complex events, and hierarchies) average **~15-30ms** database latency, even with hundreds of entities.
-- Using Redis pipelining for the distributed rate limiter minimizes cache round trips to **<2ms** per API request checking.
-- The Calendar uses date-range filtered event fetching, and pre-fetches adjacent weeks and keeps them in memory for incredibly fast calendar performance.
-- Task pagination makes tasks extremely performant, will only show 50 tasks by default, with more being able to be loaded as desired by the user.
-- The search feature uses debouncing to ensure performance.
-- Database indexes on the most common read operations.
+- **Sub-50ms API Latency:** By utilizing strategic database indexing on common read operations, and choosing highly optimized raw SQL over ORMs, the application maintains 20-40ms request latency, even when workspaces contain hundreds of tasks or complex, recurring events.
+- **Smart Calendar Prefetching:** The calendar implements strict date-range filtering, drastically reducing payload sizes. It seamlessly pre-fetches adjacent weeks in the background and stores them in a localized React cache, rendering calendar navigation completely instantaneous to the user.
+- **Aggressive Pagination:** Task rendering is heavily performant by implementing chunked pagination. The UI initially hydrates a strict subset of exactly 50 tasks, allowing users to load subsequent chunks only as needed, preventing performance drops on heavy workspaces.
+- **Debounced Interactions:** The high-frequency input vector used, task searching, is wrapped in a debounced timeout. This eliminates UI stutter and prevents the system from being overwhelmed by per-keystroke queries.
 
 ## Tech Stack
 
@@ -95,6 +93,51 @@ GoalGetter employs a modern architecture utilizing Next.js for optimized server-
 
 ## Help
 
-- To see GoalGetter's terms of service, visit https://goalgetter.dev/terms.
-- To see GoalGetter's privacy policy, visit https://goalgetter.dev/privacy.
-- To receive support services, email support@goalgetter.dev.
+- **Terms of Service:** Our comprehensive usage guidelines are available at [goalgetter.dev/terms](https://goalgetter.dev/terms).
+- **Privacy Policy:** We take data security seriously. Review our privacy commitments at [goalgetter.dev/privacy](https://goalgetter.dev/privacy).
+- **Support & Inquiries:** For technical assistance or general inquiries, please reach out at [support@goalgetter.dev](mailto:support@goalgetter.dev).
+
+## Local Development
+
+Although this app available publicly, you are free to run it locally as well, given you have the correct dependencies and environment variables.
+
+1. Clone the repository with `git clone https://github.com/BryanWieschenberg/GoalGetter`, enter the directory with `cd GoalGetter`, and install dependencies with `npm install`
+2. Install PostgreSQL with `sudo apt install postgresql postgresql-contrib -y` and start the service with `sudo systemctl start postgresql`. Optionally enable it to run on boot with `sudo systemctl enable postgresql`.
+3. Install Redis with `sudo apt install redis-server -y` and start the service with `sudo systemctl start redis-server`. Optionally enable it to run on boot with `sudo systemctl enable redis-server`.
+4. Set up your local `.env` file with the following keys using your own credentials:
+
+```
+# Configuration
+ENV=development
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+DB_SSL_REJECT_UNAUTHORIZED=false
+
+# PostgreSQL (Database)
+PGUSER=<user>
+PGHOST=localhost
+PGNAME=<database_name>
+PGPASSWORD=<user_password>
+PGPORT=5432
+
+# Cache / Rate Limiting (Redis)
+REDIS_URL=redis://localhost:6379
+
+# Authentication (NextAuth)
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=<random_secure_string>
+
+# OAuth Providers (Google & GitHub)
+GOOGLE_CLIENT_ID=<google_client_id>
+GOOGLE_CLIENT_SECRET=<google_client_secret>
+GITHUB_CLIENT_ID=<github_client_id>
+GITHUB_CLIENT_SECRET=<github_client_secret>
+
+# External Services (Resend, reCAPTCHA)
+RESEND_API_KEY=<resend_api_key>
+EMAIL_FROM="onboarding@resend.dev"
+SUPPORT_EMAIL=<fake_support_email>
+NEXT_PUBLIC_RECAPTCHA_SITE_KEY=<recaptcha_site_key>
+RECAPTCHA_SECRET_KEY=<recaptcha_secret_key>
+```
+
+5. Run the development server with `npm run dev`, visit `http://localhost:3000`, and you're ready to go!

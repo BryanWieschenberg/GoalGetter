@@ -102,7 +102,18 @@ GoalGetter employs a modern architecture utilizing Next.js for optimized server-
 Although this app is available publicly, you are free to run it locally as well, given you have the correct dependencies and environment variables.
 
 1. Clone the repository with `git clone https://github.com/BryanWieschenberg/GoalGetter`, enter the directory with `cd GoalGetter`, and install dependencies with `npm install`
-2. Install PostgreSQL with `sudo apt install postgresql postgresql-contrib -y` and start the service with `sudo systemctl start postgresql`. Optionally enable it to run on boot with `sudo systemctl enable postgresql`.
+2. Install PostgreSQL with `sudo apt install postgresql postgresql-contrib -y` and start the service with `sudo systemctl start postgresql`. Optionally enable it to run on boot with `sudo systemctl enable postgresql`. Then, setup PostgreSQL:
+
+```
+sudo -u postgresql
+CREATE USER goalgetter_user WITH PASSWORD 'pick_a_strong_password';
+CREATE DATABASE goalgetter_db;
+GRANT ALL PRIVILEGES ON DATABASE goalgetter_db TO goalgetter_user;
+ALTER DATABASE goalgetter_db OWNER TO goalgetter_user;
+\q
+psql -U goalgetter_user -d goalgetter_db -f schema.sql
+```
+
 3. Install Redis with `sudo apt install redis-server -y` and start the service with `sudo systemctl start redis-server`. Optionally enable it to run on boot with `sudo systemctl enable redis-server`.
 4. Set up your local `.env` file with the following keys using your own credentials:
 

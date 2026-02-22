@@ -249,8 +249,8 @@ export default function Calendar({
         }));
 
     const fetchWeekEvents = async (ws: Date): Promise<Event[]> => {
-        const rangeStart = addDays(ws, -1).toISOString();
-        const rangeEnd = addDays(ws, 8).toISOString();
+        const rangeStart = formatDateParam(ws);
+        const rangeEnd = formatDateParam(addDays(ws, 6));
         const res = await fetch(
             `/api/user/calendar/events?start=${encodeURIComponent(rangeStart)}&end=${encodeURIComponent(rangeEnd)}`,
         );
@@ -275,6 +275,12 @@ export default function Calendar({
     function fetchEventData(ws?: Date) {
         const w = ws || weekStart;
         const key = formatDateParam(w);
+
+        if (eventCache.current.has(key)) {
+            setEvents(eventCache.current.get(key)!);
+            prefetchAdjacentWeeks(w);
+            return;
+        }
 
         fetchWeekEvents(w).then((evts) => {
             eventCache.current.set(key, evts);

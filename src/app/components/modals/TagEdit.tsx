@@ -73,6 +73,7 @@ export default function TagEdit({
                     <div className="grid gap-3">
                         <label className="text-sm font-medium">Title *</label>
                         <input
+                            autoFocus
                             required
                             type="text"
                             name="title"

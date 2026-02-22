@@ -63,11 +63,9 @@ export default function EventEdit({
     );
     const [frequency, setFrequency] = useState<Frequency>((rec?.frequency as Frequency) ?? "");
     const [interval, setInterval] = useState<number>(rec?.interval ?? 1);
-    // Helper to safely extract YYYY-MM-DD from any timestamp string, avoiding JS Date shifting completely.
     const extractYMD = (val: string | null | undefined): string => {
         if (!val) return "";
         const str = String(val);
-        // Extracts the first YYYY-MM-DD it finds, safely capturing exactly what the DB sent!
         const match = str.match(/^\d{4}-\d{2}-\d{2}/);
         return match ? match[0] : "";
     };
@@ -265,6 +263,7 @@ export default function EventEdit({
                     <div className="grid gap-3">
                         <label className="text-sm font-medium">Title *</label>
                         <input
+                            autoFocus
                             required
                             type="text"
                             name="title"

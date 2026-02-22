@@ -27,6 +27,7 @@ export const GET = withAuth(async (req, userId) => {
         let params: (string | number)[];
 
         if (start && end) {
+            const endInclusive = `${end} 23:59:59`;
             query = `SELECT
                 e.id, e.title, e.description, e.category_id, e.color, e.start_time, e.end_time,
                 r.frequency, r.interval, r.weekly, r.count, r.exceptions, r.until
@@ -34,11 +35,11 @@ export const GET = withAuth(async (req, userId) => {
             LEFT JOIN event_recurrence r ON e.id = r.event_id
             WHERE e.category_id IN (SELECT id FROM event_categories WHERE user_id = $1)
               AND (
-                (r.frequency IS NULL AND e.start_time < $3 AND e.end_time > $2)
-                OR (r.frequency IS NOT NULL AND e.start_time < $3)
+                (r.frequency IS NULL AND e.start_time <= $3 AND e.end_time >= $2)
+                OR (r.frequency IS NOT NULL AND e.start_time <= $3)
               )
             ORDER BY e.start_time ASC`;
-            params = [userId, start, end];
+            params = [userId, start, endInclusive];
         } else {
             query = `SELECT
                 e.id, e.title, e.description, e.category_id, e.color, e.start_time, e.end_time,

@@ -63,7 +63,7 @@ GoalGetter employs a modern architecture utilizing Next.js for optimized server-
 
 ## Performance & Benchmarks
 
-GoalGetter is designed for high-performance scale, maintaining sub-50ms latency transitions even with massive user datasets.
+StreamLine is engineered for high-performance scale, maintaining ultra-low-latency interactions even under massively-sized workspaces by using a variety of different optimizations.
 
 - **High-Scale Efficiency:** Maintained sub-30ms average API latency and ~110ms initial load time under a stress-test load of 50,000 entities, representing an 65%+ improvement over non-optimized baselines.
 - **Production-Grade RSC Pruning:** Implemented server-side date-range pruning in React Server Components, reducing initial RSC payload transfer size to just ~60kB (a ~70% reduction from previous behavior).

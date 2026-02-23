@@ -65,7 +65,7 @@ GoalGetter employs a modern architecture utilizing Next.js for optimized server-
 
 GoalGetter is designed for high-performance scale, maintaining sub-50ms latency transitions even with massive user datasets.
 
-- **High-Scale Efficiency:** Maintained sub-20ms average API latency and ~110ms initial load time under a stress-test load of 50,000 entities, representing an 65%+ improvement over non-optimized baselines.
+- **High-Scale Efficiency:** Maintained sub-30ms average API latency and ~110ms initial load time under a stress-test load of 50,000 entities, representing an 65%+ improvement over non-optimized baselines.
 - **Production-Grade RSC Pruning:** Implemented server-side date-range pruning in React Server Components, reducing initial RSC payload transfer size to just ~60kB (a ~70% reduction from previous behavior).
 - **SQL Optimization:** Leveraged PostgreSQL EXPLAIN ANALYZE to refactor subqueries into direct JOINs and implemented composite indexing, reducing database execution time to 3ms (a 63% reduction).
 - **Smart Calendar Prefetching:** The calendar pre-fetches adjacent weeks and stores them in a localized React cache, making calendar navigation instantaneous to the user while keeping network payloads extremely lean.

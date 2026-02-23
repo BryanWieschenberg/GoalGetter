@@ -2,14 +2,48 @@ import { auth } from "@/lib/authOptions";
 import HomePage from "./HomePage";
 import WelcomePage from "../components/WelcomePage";
 import pool from "@/lib/db";
+import { startOfWeek, addDays, parseLocalDate } from "@/lib/calendarHelper";
 
-export default async function Home() {
+export default async function Home({
+    searchParams,
+}: {
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
     const session = await auth();
     let res = null;
     let settings = null;
     let nowTop = 0;
 
     if (session) {
+        const params = await searchParams;
+        const dateParam = typeof params.date === "string" ? params.date : undefined;
+
+        settings = await pool.query(`SELECT week_start FROM user_settings WHERE user_id = $1`, [
+            session.user.id,
+        ]);
+        const userSettings = settings.rows[0];
+
+        let weekStartPref = 0;
+        if (userSettings?.week_start === "mon") weekStartPref = 1;
+        else if (userSettings?.week_start === "tue") weekStartPref = 2;
+        else if (userSettings?.week_start === "wed") weekStartPref = 3;
+        else if (userSettings?.week_start === "thu") weekStartPref = 4;
+        else if (userSettings?.week_start === "fri") weekStartPref = 5;
+        else if (userSettings?.week_start === "sat") weekStartPref = 6;
+
+        let activeDate = new Date();
+        if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
+            const parsed = parseLocalDate(dateParam);
+            if (!isNaN(parsed.getTime())) {
+                activeDate = parsed;
+            }
+        }
+
+        const ws = startOfWeek(activeDate, weekStartPref);
+        const rangeStart = ws.toISOString().split("T")[0];
+        const rangeEnd = addDays(ws, 6).toISOString().split("T")[0];
+        const rangeEndInclusive = `${rangeEnd} 23:59:59`;
+
         res = await pool.query(
             `SELECT json_build_object(
                 'task_categories', (
@@ -75,14 +109,16 @@ export default async function Home() {
                     ), '[]'::json)
                     FROM events e
                     JOIN event_categories ec ON e.category_id = ec.id
+                    LEFT JOIN event_recurrence er ON e.id = er.event_id
                     WHERE ec.user_id = $1
+                      AND (
+                        (er.frequency IS NULL AND e.start_time <= $3 AND e.end_time >= $2)
+                        OR (er.frequency IS NOT NULL AND e.start_time <= $3)
+                      )
                 )
             ) AS user_data;`,
-            [session.user.id],
+            [session.user.id, rangeStart, rangeEndInclusive],
         );
-        settings = await pool.query(`SELECT week_start FROM user_settings WHERE user_id = $1`, [
-            session.user.id,
-        ]);
 
         const minutes = new Date().getHours() * 60 + new Date().getMinutes();
         const pxPerMinute = 48 / 60;

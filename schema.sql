@@ -101,3 +101,4 @@ CREATE INDEX IF NOT EXISTS idx_task_tags_category ON task_tags (category_id);
 CREATE INDEX IF NOT EXISTS idx_event_categories_user ON event_categories (user_id);
 CREATE INDEX IF NOT EXISTS idx_events_category ON events (category_id);
 CREATE INDEX IF NOT EXISTS idx_events_time_range ON events (start_time, end_time);
+CREATE INDEX IF NOT EXISTS idx_events_category_start ON events (category_id, start_time);

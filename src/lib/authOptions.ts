@@ -74,7 +74,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
                     return { id: String(user.id) };
                 } catch (err) {
-                    console.error("[AUTH DEBUG] Authorization error:", err);
+                    console.error("Authorization error:", err);
                     return null;
                 }
             },

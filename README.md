@@ -80,6 +80,7 @@ StreamLine is engineered for high-performance scale, maintaining ultra-low-laten
 | **Backend/API**       | Next.js API Routes, TypeScript, NextAuth.js, bcrypt, SHA-256, Node.js |
 | **Data**              | PostgreSQL, Redis                                                     |
 | **External Services** | OAuth 2.0 Providers (Google, GitHub), Resend, reCAPTCHA               |
+| **Deployment**        | AWS EC2                                                               |
 
 ## Images
 
